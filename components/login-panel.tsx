@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabase/client";
 
 function getFriendlyAuthError(errorMessage: string) {
@@ -22,12 +23,40 @@ function getFriendlyAuthError(errorMessage: string) {
 }
 
 export default function LoginPanel() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSendingReset, setIsSendingReset] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const syncSession = async () => {
+      const { data } = await supabase.auth.getSession();
+
+      if (isMounted && data.session) {
+        router.replace("/dashboard");
+      }
+    };
+
+    syncSession();
+
+    const { data: subscription } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        if (session) {
+          router.replace("/dashboard");
+        }
+      },
+    );
+
+    return () => {
+      isMounted = false;
+      subscription.subscription.unsubscribe();
+    };
+  }, [router]);
 
   const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -47,8 +76,7 @@ export default function LoginPanel() {
       return;
     }
 
-    setStatusMessage("Du er logget ind. Siden opdateres automatisk, når du er klar til at gå videre.");
-    setPassword("");
+    router.replace("/dashboard");
   };
 
   const handleForgotPassword = async () => {
@@ -100,43 +128,11 @@ export default function LoginPanel() {
           Budget
         </h1>
         <p className="mt-3 text-lg font-medium text-blue-400 sm:text-xl">
-          Hold styr på familiens økonomi
+          Hold styr på din økonomi
         </p>
       </div>
 
-      <aside className="rounded-3xl border border-orange-500/80 bg-[#382726] px-5 py-4 text-[#f7d15c] shadow-[0_16px_40px_rgba(0,0,0,0.18)] sm:px-6 sm:py-5">
-        <div className="flex items-center gap-3 text-base font-semibold sm:text-lg">
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 24 24"
-            className="h-6 w-6 shrink-0 text-[#f6c94f]"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M12 9v4" />
-            <path d="M12 17h.01" />
-            <path d="M10.3 4.8 2.6 18a1.6 1.6 0 0 0 1.4 2.4h16a1.6 1.6 0 0 0 1.4-2.4L13.7 4.8a2 2 0 0 0-3.4 0Z" />
-          </svg>
-          <span>Vigtig besked</span>
-        </div>
-        <div className="mt-3 space-y-4 text-[0.98rem] leading-7 sm:text-[1.02rem]">
-          <p>
-            Så æøhm, alt er væk. Jeg fik ved et uheld ristet hele min server,
-            inkl. databaser, backup og det hele... så alle brugere og deres
-            oplysninger er væk. Så meget for selfhosted.
-          </p>
-          <p>
-            Du skal være velkommen til at starte forfra, jeg er ved at bygge et
-            system, så backup er placeret på en anden maskine her hjemme så det
-            ikke sker igen.
-          </p>
-          <p>Beklager mange gange.</p>
-          <p>Vh Søren</p>
-        </div>
-      </aside>
+     
 
       <ul className="space-y-3 text-sm text-slate-400 sm:text-base">
         <li className="flex items-center gap-3">
