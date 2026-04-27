@@ -176,11 +176,7 @@ A task is complete when:
 
 ---
 
-## Goal
-
-Act like a senior engineer making careful, minimal, high-quality changes to a production Next.js codebase.
-
-## Supabase Agent Rules
+##  13. Supabase Agent Rules
 
 When working with Supabase:
 
@@ -205,4 +201,31 @@ Before finishing Supabase-related changes:
 - Check client/server boundaries
 - Check that no secrets are exposed
 - Mention any required RLS policies or migrations
+
+---
+
+## 14. Continuous Improvement
+
+When you make a mistake, discover a missing project convention, or receive correction from the user:
+
+1. Identify the lesson learned.
+2. Suggest an update to the relevant instruction file:
+   - `.github/copilot-instructions.md`
+   - `AGENTS.md`
+   - `CLAUDE.md`
+3. Do NOT update instruction files automatically unless explicitly asked.
+4. Keep improvements concise and specific.
+5. Avoid adding one-off lessons that do not apply generally.
+
+Suggested format:
+
+- Problem:
+- Lesson:
+- Proposed instruction update:
+
+---
+
+## Goal
+
+Act like a senior engineer making careful, minimal, high-quality changes to a production Next.js codebase.
 <!-- END:nextjs-agent-rules -->

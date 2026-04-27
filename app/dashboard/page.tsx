@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { BottomNav } from "@/components/bottom-nav";
 import { supabase } from "@/lib/supabase/client";
 
 type PeriodView = "month" | "year";
@@ -493,17 +494,7 @@ export default function DashboardPage() {
           ) : null}
         </section>
 
-        <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-white/10 bg-slate-900/90 px-2 py-2 backdrop-blur-sm sm:px-3 sm:py-3">
-          <div className="mx-auto flex w-full max-w-[860px] items-center justify-between">
-            <button className="rounded-lg bg-blue-500/25 px-2 py-1 text-xs font-semibold text-blue-300 sm:rounded-2xl sm:px-4 sm:py-2 sm:text-base">
-              Oversigt
-            </button>
-            <button className="px-2 py-1 text-xs font-medium text-slate-400 sm:px-4 sm:py-2 sm:text-base">Udgifter</button>
-            <button className="px-2 py-1 text-xs font-medium text-slate-400 sm:px-4 sm:py-2 sm:text-base">Indkomst</button>
-            <button className="px-2 py-1 text-xs font-medium text-slate-400 sm:px-4 sm:py-2 sm:text-base">Om</button>
-            <button className="px-2 py-1 text-xs font-medium text-slate-400 sm:px-4 sm:py-2 sm:text-base">Konto</button>
-          </div>
-        </nav>
+        <BottomNav />
       </div>
     </main>
   );
