@@ -317,8 +317,8 @@ export default function DashboardPage() {
 
   if (isCheckingSession) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#09111f] px-4 text-slate-100">
-        <p className="rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4 text-sm text-slate-300 shadow-[0_20px_60px_rgba(0,0,0,0.25)] backdrop-blur-sm">
+      <main className="flex min-h-screen items-center justify-center bg-white text-slate-900 dark:bg-[#09111f] dark:text-slate-100 px-4">
+        <p className="rounded-2xl border border-slate-200 bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] px-5 py-4 text-sm text-slate-600 dark:text-slate-300 shadow-[0_20px_60px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.25)] backdrop-blur-sm">
           Tjekker session...
         </p>
       </main>
@@ -326,29 +326,29 @@ export default function DashboardPage() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#09111f] text-slate-100">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.18),_transparent_38%),radial-gradient(circle_at_bottom,_rgba(245,158,11,0.08),_transparent_35%)]" />
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(9,17,31,0.9)_0%,rgba(9,17,31,0.97)_100%)]" />
+    <main className="relative min-h-screen overflow-hidden bg-white text-slate-900 dark:bg-[#09111f] dark:text-slate-100">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.04),_transparent_38%),radial-gradient(circle_at_bottom,_rgba(245,158,11,0.02),_transparent_35%)] dark:bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.18),_transparent_38%),radial-gradient(circle_at_bottom,_rgba(245,158,11,0.08),_transparent_35%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.95)_0%,rgba(255,255,255,0.98)_100%)] dark:bg-[linear-gradient(180deg,rgba(9,17,31,0.9)_0%,rgba(9,17,31,0.97)_100%)]" />
 
       <div className="relative z-10 mx-auto w-full max-w-[860px] px-3 pb-28 pt-6 sm:px-6 sm:pt-8">
-        <section className="mx-auto w-full rounded-[2rem] border border-white/10 bg-slate-900/55 p-3 shadow-[0_30px_80px_rgba(0,0,0,0.35)] backdrop-blur-sm sm:p-8">
+        <section className="mx-auto w-full rounded-[2rem] border border-slate-200 bg-slate-50/50 p-3 shadow-[0_30px_80px_rgba(0,0,0,0.04)] backdrop-blur-sm dark:border-white/10 dark:bg-slate-900/55 dark:shadow-[0_30px_80px_rgba(0,0,0,0.35)] sm:p-8">
           <header className="flex items-center justify-between gap-2 sm:gap-4">
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-4xl">Budget</h1>
-              <p className="mt-0.5 text-xs text-slate-400 sm:mt-1 sm:text-sm">
+              <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-4xl">Budget</h1>
+              <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400 sm:mt-1 sm:text-sm">
                 {"Overblik"}
               </p>
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3">
-              <div className="rounded-2xl bg-slate-700/70 p-0.5">
+              <div className="rounded-2xl bg-slate-200 dark:bg-slate-700/70 p-0.5">
                 <button
                   type="button"
                   onClick={() => setPeriodView("month")}
                   className={`h-8 rounded-lg px-2 text-xs font-semibold transition sm:h-10 sm:rounded-xl sm:px-4 sm:text-lg ${
                     periodView === "month"
-                      ? "bg-slate-600 text-white"
-                      : "text-slate-300 hover:text-white"
+                      ? "bg-white text-slate-900 dark:bg-slate-600 dark:text-white"
+                      : "text-slate-500 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
                   }`}
                 >
                   Måned
@@ -358,8 +358,8 @@ export default function DashboardPage() {
                   onClick={() => setPeriodView("year")}
                   className={`h-8 rounded-lg px-2 text-xs font-semibold transition sm:h-10 sm:rounded-xl sm:px-4 sm:text-lg ${
                     periodView === "year"
-                      ? "bg-slate-600 text-white"
-                      : "text-slate-300 hover:text-white"
+                      ? "bg-white text-slate-900 dark:bg-slate-600 dark:text-white"
+                      : "text-slate-500 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
                   }`}
                 >
                   År
@@ -369,7 +369,7 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="grid h-9 w-9 place-items-center rounded-xl border border-white/15 bg-slate-800/70 text-slate-200 transition hover:bg-slate-700 focus:outline-none focus:ring-4 focus:ring-blue-400/20 sm:h-11 sm:w-11 sm:rounded-2xl"
+                className="grid h-9 w-9 place-items-center rounded-xl border border-slate-300 bg-slate-100 text-slate-600 transition hover:bg-slate-200 dark:border-white/15 dark:bg-slate-800/70 dark:text-slate-200 dark:hover:bg-slate-700 focus:outline-none focus:ring-4 focus:ring-blue-400/20 sm:h-11 sm:w-11 sm:rounded-2xl"
                 aria-label="Log ud"
               >
                 <LogOut size={20} strokeWidth={1.8} className="sm:size-6" />
@@ -378,24 +378,24 @@ export default function DashboardPage() {
           </header>
 
           {dataSource === "fallback" ? (
-            <p className="mt-3 rounded-2xl border border-blue-400/20 bg-blue-400/10 px-3 py-2 text-xs text-blue-100 sm:mt-4 sm:px-4 sm:py-3 sm:text-sm">
+            <p className="mt-3 rounded-2xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-100 sm:mt-4 sm:px-4 sm:py-3 sm:text-sm">
               Viser demo-tal. Tilføj data i tabellerne <span className="font-semibold">income_sources</span> og <span className="font-semibold">expense_items</span> for at få live-overblik.
             </p>
           ) : null}
 
           <section className="mt-4 grid grid-cols-2 gap-3 sm:mt-5 sm:gap-4">
-            <article className="rounded-2xl border border-white/15 bg-slate-800/70 p-3 sm:rounded-3xl sm:p-5">
-              <p className="text-xl leading-none text-emerald-400 sm:text-[32px]">↗</p>
-              <p className="mt-1 text-xs font-medium text-slate-300 sm:text-3xl">Indkomst</p>
-              <p className="mt-2 text-xl font-semibold text-white sm:mt-3 sm:text-5xl">
+            <article className="rounded-2xl border border-slate-200 bg-white p-3 dark:border-white/15 dark:bg-slate-800/70 sm:rounded-3xl sm:p-5">
+              <p className="text-xl leading-none text-emerald-600 dark:text-emerald-400 sm:text-[32px]">↗</p>
+              <p className="mt-1 text-xs font-medium text-slate-700 dark:text-slate-300 sm:text-3xl">Indkomst</p>
+              <p className="mt-2 text-xl font-semibold text-slate-900 dark:text-white sm:mt-3 sm:text-5xl">
                 {formatMoney(totalIncome)}
               </p>
             </article>
 
-            <article className="rounded-2xl border border-white/15 bg-slate-800/70 p-3 sm:rounded-3xl sm:p-5">
-              <p className="text-xl leading-none text-rose-400 sm:text-[32px]">↘</p>
-              <p className="mt-1 text-xs font-medium text-slate-300 sm:text-3xl">Udgifter</p>
-              <p className="mt-2 text-xl font-semibold text-white sm:mt-3 sm:text-5xl">
+            <article className="rounded-2xl border border-slate-200 bg-white p-3 dark:border-white/15 dark:bg-slate-800/70 sm:rounded-3xl sm:p-5">
+              <p className="text-xl leading-none text-rose-600 dark:text-rose-400 sm:text-[32px]">↘</p>
+              <p className="mt-1 text-xs font-medium text-slate-700 dark:text-slate-300 sm:text-3xl">Udgifter</p>
+              <p className="mt-2 text-xl font-semibold text-slate-900 dark:text-white sm:mt-3 sm:text-5xl">
                 {formatMoney(totalExpenses)}
               </p>
             </article>
@@ -411,7 +411,7 @@ export default function DashboardPage() {
 
           <section className="mt-6 sm:mt-7">
             <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-4">
-              <h2 className="text-base font-semibold tracking-tight text-white sm:text-4xl">
+              <h2 className="text-base font-semibold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
                 Udgifter per kategori
               </h2>
 
@@ -423,7 +423,7 @@ export default function DashboardPage() {
                   id="sort-expenses"
                   value={sortMode}
                   onChange={(event) => setSortMode(event.target.value as SortMode)}
-                  className="h-8 rounded-lg border border-white/10 bg-slate-700 px-2 text-xs font-medium text-slate-100 outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-400/15 sm:h-11 sm:rounded-xl sm:px-4 sm:text-lg"
+                  className="h-8 rounded-lg border border-slate-300 bg-white text-slate-900 dark:border-white/10 dark:bg-slate-700 dark:text-slate-100 px-2 text-xs font-medium outline-none transition focus:border-blue-300 dark:focus:border-blue-300 focus:ring-4 focus:ring-blue-400/15 sm:h-11 sm:rounded-xl sm:px-4 sm:text-lg"
                 >
                   <option value="alpha">A-Å</option>
                   <option value="highest">Størst først</option>
@@ -432,7 +432,7 @@ export default function DashboardPage() {
                 <button
                   type="button"
                   onClick={() => setIsCollapsed((value) => !value)}
-                  className="h-8 rounded-lg border border-white/10 bg-slate-800 px-2 text-xs font-medium text-slate-200 transition hover:bg-slate-700 sm:h-11 sm:rounded-xl sm:px-4 sm:text-lg"
+                  className="h-8 rounded-lg border border-slate-300 bg-slate-100 px-2 text-xs font-medium text-slate-700 dark:border-white/10 dark:bg-slate-800 dark:text-slate-200 transition dark:hover:bg-slate-700 hover:bg-slate-200 sm:h-11 sm:rounded-xl sm:px-4 sm:text-lg"
                 >
                   {isCollapsed ? "Fold ud" : "Fold ind"}
                 </button>
@@ -443,7 +443,7 @@ export default function DashboardPage() {
               {groupedExpenses.map((group) => (
                 <article
                   key={group.category}
-                  className="overflow-hidden rounded-2xl border border-white/15 bg-slate-800/75 sm:rounded-3xl"
+                  className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 dark:border-white/15 dark:bg-slate-800/75 sm:rounded-3xl"
                 >
                   <div className="flex items-center justify-between gap-2 px-3 py-3 sm:gap-4 sm:px-6 sm:py-4">
                     <h3 className="text-xs font-semibold text-white sm:text-4xl">{group.category}</h3>
