@@ -1,36 +1,120 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Budget App
 
-## Getting Started
+En moderne budgettyring-applikation bygget med Next.js og Supabase.
 
-First, run the development server:
+## Om projektet
 
+Budget App er en web-baseret applikation til at administrere og overvåge udgifter. Appen giver brugerne mulighed for at registrere udgifter, se deres budget-status og få indsigt i deres økonomiske vaner.
+
+## Tech Stack
+
+- **Frontend:** [Next.js 16](https://nextjs.org) + React 19
+- **Styling:** [Tailwind CSS](https://tailwindcss.com)
+- **Database & Auth:** [Supabase](https://supabase.com)
+- **Sprog:** TypeScript
+- **Development Tools:** ESLint, Prettier
+
+## Installation
+
+### Forudsætninger
+
+- Node.js 18+
+- npm eller yarn
+
+### Setup
+
+1. Klon projektet:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repository-url>
+cd budget
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Installer afhængigheder:
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Konfigurer miljøvariabler (`.env.local`):
+```
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. Kør udviklingserveren:
+```bash
+npm run dev
+```
 
-## Learn More
+Åbn [http://localhost:3000](http://localhost:3000) i din browser.
 
-To learn more about Next.js, take a look at the following resources:
+## Kommandoer
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `npm run dev` - Start udviklings-serveren
+- `npm run build` - Build produktionsversion
+- `npm start` - Start produktionsserveren
+- `npm run lint` - Kør ESLint
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Projektstruktur
 
-## Deploy on Vercel
+```
+├── app/                      # Next.js App Router
+│   ├── page.tsx             # Login-side (startside)
+│   ├── layout.tsx           # Root layout
+│   ├── dashboard/           # Dashboard-side
+│   ├── expenses/            # Udgifter-administrasjon
+│   └── reset-password/      # Nulstil adgangskode
+├── components/              # Reusable React komponenter
+│   ├── login-panel.tsx      # Login-formular
+│   ├── reset-password-panel.tsx
+│   └── bottom-nav.tsx       # Navigation
+├── lib/
+│   └── supabase/            # Supabase konfiguration
+│       └── client.ts        # Supabase klient
+├── public/                  # Statiske filer
+└── tsconfig.json           # TypeScript config
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Features
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- ✅ Bruger-autentificering (login/logout)
+- ✅ Adgangskode-nulstilling
+- ✅ Dashboard med budget-oversigt
+- ✅ Registrering af udgifter
+- ✅ Mobil-venligt design
+- ✅ Dark mode UI
+
+## Udvikling
+
+### Komponenter
+
+Projektet bruger React Server Components som standard. Client-komponenter markereres med `"use client"`.
+
+### Styling
+
+Alle stilarter bruger Tailwind CSS utility classes. Ingen CSS-moduler eller inline styles.
+
+### Database
+
+Supabase bruges til databaseadgang og autentificering. Alle brugerspesifikke data beskyttes med Row Level Security (RLS).
+
+## Miljøvariabler
+
+Krævet i `.env.local`:
+
+| Variabel | Beskrivelse |
+|----------|-------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Din Supabase projekt-URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Din Supabase anon API-nøgle |
+
+## Deployment
+
+Projektet kan nemt deployes på [Vercel](https://vercel.com):
+
+1. Push til GitHub
+2. Forbind repository til Vercel
+3. Tilføj miljøvariabler i Vercel dashboard
+4. Deploy!
+
+## Licens
+
+Privat projekt.

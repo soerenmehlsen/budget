@@ -225,6 +225,19 @@ Suggested format:
 
 ---
 
+## 15. Documentation Maintenance
+
+Keep README.md updated continuously:
+
+- When adding new features, update the Features section
+- When changing the tech stack, update Tech Stack section
+- When modifying folder structure, update the Projektstruktur section
+- When adding new commands, update Kommandoer section
+- When changing setup process, update Installation section
+- Keep README.md synchronized with the actual project state
+
+---
+
 ## Goal
 
 Act like a senior engineer making careful, minimal, high-quality changes to a production Next.js codebase.
