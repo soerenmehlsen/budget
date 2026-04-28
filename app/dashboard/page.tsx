@@ -446,24 +446,24 @@ export default function DashboardPage() {
                   className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 dark:border-white/15 dark:bg-slate-800/75 sm:rounded-3xl"
                 >
                   <div className="flex items-center justify-between gap-2 px-3 py-3 sm:gap-4 sm:px-6 sm:py-4">
-                    <h3 className="text-xs font-semibold text-white sm:text-4xl">{group.category}</h3>
-                    <p className="text-xs font-semibold text-slate-200 sm:text-3xl">
+                    <h3 className="text-xs font-semibold text-slate-900 dark:text-white sm:text-4xl">{group.category}</h3>
+                    <p className="text-xs font-semibold text-slate-700 dark:text-slate-200 sm:text-3xl">
                       {formatMoney(group.totalMonthly * periodFactor)}/{periodView === "month" ? "md" : "år"}
                     </p>
                   </div>
 
                   {!isCollapsed ? (
-                    <ul className="border-t border-white/10 px-3 py-2 sm:px-6 sm:py-4">
+                    <ul className="border-t border-slate-200 dark:border-white/10 px-3 py-2 sm:px-6 sm:py-4">
                       {group.items.map((item) => (
                         <li
                           key={item.id}
                           className="flex items-baseline justify-between gap-2 py-1 text-xs sm:gap-3 sm:py-1.5 sm:text-xl"
                         >
-                          <span className="text-slate-300">{item.name}</span>
-                          <span className="text-slate-100">
+                          <span className="text-slate-700 dark:text-slate-300">{item.name}</span>
+                          <span className="text-slate-900 dark:text-slate-100">
                             {formatMoney(item.amountMonthly * periodFactor)}
                             {item.amountAnnual && periodView === "month" ? (
-                              <span className="ml-2 text-base text-slate-400">
+                              <span className="ml-2 text-base text-slate-600 dark:text-slate-400">
                                 ({formatMoney(item.amountAnnual)}/år)
                               </span>
                             ) : null}
@@ -478,7 +478,7 @@ export default function DashboardPage() {
           </section>
 
           {isLoadingDashboard ? (
-            <p className="mt-4 text-xs text-slate-400 sm:mt-5 sm:text-sm">Opdaterer budgetdata...</p>
+            <p className="mt-4 text-xs text-slate-600 dark:text-slate-400 sm:mt-5 sm:text-sm">Opdaterer budgetdata...</p>
           ) : null}
         </section>
 

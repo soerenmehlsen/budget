@@ -249,15 +249,15 @@ export default function IncomePage() {
         <section className="mx-auto w-full rounded-[2rem] border border-slate-200 bg-slate-50/50 p-3 shadow-[0_30px_80px_rgba(0,0,0,0.04)] backdrop-blur-sm dark:border-white/10 dark:bg-slate-900/55 dark:shadow-[0_30px_80px_rgba(0,0,0,0.35)] sm:p-8">
           <header className="flex items-start justify-between gap-3 sm:gap-4">
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-4xl">Indkomst</h1>
-              <p className="mt-0.5 text-xs text-slate-400 sm:mt-1 sm:text-sm">Indkomst efter skat (beregnes til månedlig)</p>
+              <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-4xl">Indkomst</h1>
+              <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400 sm:mt-1 sm:text-sm">Indkomst efter skat (beregnes til månedlig)</p>
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3">
               <button
                 type="button"
                 disabled
-                className="grid h-11 w-11 place-items-center rounded-xl border border-white/15 bg-slate-700/70 text-slate-400 sm:h-12 sm:w-12 sm:rounded-2xl"
+                className="grid h-11 w-11 place-items-center rounded-xl border border-slate-300 dark:border-white/15 bg-slate-100 dark:bg-slate-700/70 text-slate-500 dark:text-slate-400 sm:h-12 sm:w-12 sm:rounded-2xl"
                 aria-hidden="true"
               >
                 <Settings size={20} strokeWidth={1.5} />
@@ -274,18 +274,18 @@ export default function IncomePage() {
             </div>
           </header>
 
-          <div className="mt-8 rounded-3xl border border-white/10 bg-emerald-500/15 p-4 sm:p-8">
-            <p className="text-sm font-medium text-slate-300">Samlet månedlig indkomst</p>
+          <div className="mt-8 rounded-3xl border border-emerald-300 bg-gradient-to-br from-emerald-400 via-emerald-500 to-green-500 p-4 text-emerald-50 shadow-[0_22px_70px_rgba(16,185,129,0.32)] sm:p-8">
+            <p className="text-sm font-medium text-emerald-50 sm:text-xl">Samlet månedlig indkomst</p>
             <div className="mt-2 flex items-center justify-between">
-              <p className="text-3xl sm:text-5xl font-bold text-emerald-300">
+              <p className="text-3xl sm:text-5xl font-bold text-white">
                 {formatCompactDkk(totalIncomeMonthly)}
               </p>
-              <p className="text-lg sm:text-xl font-semibold text-slate-300">{totalCount} kilder</p>
+              <p className="text-lg sm:text-xl font-semibold text-emerald-50">{totalCount} kilder</p>
             </div>
           </div>
 
-          <div className="mt-6 rounded-2xl border border-blue-400/20 bg-blue-400/10 px-4 py-3">
-            <p className="text-sm text-blue-100">
+          <div className="mt-6 rounded-2xl border border-blue-200 dark:border-blue-400/20 bg-blue-50 dark:bg-blue-400/10 px-4 py-3">
+            <p className="text-sm text-blue-800 dark:text-blue-100">
               <span className="font-semibold">Demo mode</span> – ændringer gemmes lokalt i din browser
             </p>
           </div>
@@ -294,17 +294,17 @@ export default function IncomePage() {
             {incomeItems.map((item) => (
               <article
                 key={item.id}
-                className="overflow-hidden rounded-3xl border border-white/10 bg-slate-800/70"
+                className="overflow-hidden rounded-3xl border border-slate-200 bg-white dark:border-white/10 dark:bg-slate-800/70"
               >
                 <div className="px-4 py-4 sm:px-6 sm:py-5">
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between mb-3">
-                        <p className="text-sm font-medium text-slate-400">Navn</p>
+                        <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Navn</p>
                         <button
                           type="button"
                           disabled
-                          className="inline-flex items-center gap-1.5 text-rose-400 cursor-not-allowed opacity-50"
+                          className="inline-flex items-center gap-1.5 text-rose-500 cursor-not-allowed opacity-50"
                         >
                           <Trash2 size={16} strokeWidth={2} />
                         </button>
@@ -312,24 +312,24 @@ export default function IncomePage() {
                       <input
                         value={item.name}
                         disabled
-                        className="h-12 sm:h-14 w-full rounded-2xl border border-white/10 bg-slate-600/40 px-4 text-lg sm:text-xl font-semibold text-white disabled:cursor-not-allowed"
+                        className="h-12 sm:h-14 w-full rounded-2xl border border-slate-300 dark:border-white/10 bg-slate-100 dark:bg-slate-600/40 px-4 text-lg sm:text-xl font-semibold text-slate-900 dark:text-white disabled:cursor-not-allowed"
                       />
 
                       <div className="mt-4 grid grid-cols-2 gap-4">
                         <div>
-                          <p className="text-xs font-medium text-slate-400 mb-2">Beløb</p>
-                          <div className="h-12 sm:h-14 rounded-2xl border border-white/10 bg-slate-600/40 px-4 flex items-center">
-                            <p className="text-base sm:text-lg font-semibold text-white">
+                          <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">Beløb</p>
+                          <div className="h-12 sm:h-14 rounded-2xl border border-slate-200 bg-slate-50 px-4 flex items-center dark:border-white/10 dark:bg-slate-600/40">
+                            <p className="text-base sm:text-lg font-semibold text-slate-900 dark:text-white">
                               {formatCompactDkk(item.amountMonthly)}
                             </p>
                           </div>
                         </div>
 
                         <div>
-                          <p className="text-xs font-medium text-slate-400 mb-2">Frekvens</p>
-                          <div className="h-12 sm:h-14 rounded-2xl border border-white/10 bg-slate-600/40 px-4 flex items-center justify-between">
-                            <p className="text-base sm:text-lg font-semibold text-white">Månedlig</p>
-                            <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">Frekvens</p>
+                          <div className="h-12 sm:h-14 rounded-2xl border border-slate-200 bg-slate-50 px-4 flex items-center justify-between dark:border-white/10 dark:bg-slate-600/40">
+                            <p className="text-base sm:text-lg font-semibold text-slate-900 dark:text-white">Månedlig</p>
+                            <svg className="w-5 h-5 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
                             </svg>
                           </div>
@@ -345,22 +345,22 @@ export default function IncomePage() {
           <button
             type="button"
             onClick={openAddIncomeModal}
-            className="mt-6 w-full rounded-2xl border-2 border-dashed border-white/20 py-6 text-center text-white transition hover:border-white/40"
+            className="mt-6 w-full rounded-2xl border-2 border-dashed border-slate-300 py-6 text-center text-slate-700 transition hover:border-slate-400 dark:border-white/20 dark:text-white dark:hover:border-white/40"
           >
             <span className="text-2xl">+</span> Tilføj indtægtskilde
           </button>
 
           {isLoadingIncome ? (
-            <p className="mt-4 text-sm text-slate-400">Opdaterer indkomster...</p>
+            <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">Opdaterer indkomster...</p>
           ) : null}
 
           {dataSource === "fallback" ? (
-            <p className="mt-4 rounded-2xl border border-blue-400/20 bg-blue-400/10 px-4 py-3 text-sm text-blue-100">
+            <p className="mt-4 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-100">
               Viser demo-tal. Opret data i tabellen income_sources for at få live-indkomster.
             </p>
           ) : null}
 
-          <p className="mt-6 text-xs text-slate-500">{email ?? ""}</p>
+          <p className="mt-6 text-xs text-slate-600 dark:text-slate-500">{email ?? ""}</p>
         </section>
 
         <BottomNav activeItem="Indkomst" />
@@ -369,18 +369,18 @@ export default function IncomePage() {
       {isAddIncomeOpen ? (
         <div className="fixed inset-0 z-40 bg-black/45 backdrop-blur-[2px]" onClick={closeAddIncomeModal}>
           <section
-            className="absolute left-1/2 top-1/2 w-[calc(100%-1.5rem)] max-w-[680px] -translate-x-1/2 -translate-y-1/2 rounded-[1rem] border border-white/10 bg-slate-800 p-5 shadow-[0_25px_80px_rgba(0,0,0,0.5)] max-h-[90vh] overflow-auto sm:top-auto sm:bottom-20 sm:-translate-y-0 sm:rounded-[2rem] sm:p-7"
+            className="absolute left-1/2 top-1/2 w-[calc(100%-1.5rem)] max-w-[680px] -translate-x-1/2 -translate-y-1/2 rounded-[1rem] border border-slate-200 bg-white p-5 shadow-[0_25px_80px_rgba(0,0,0,0.1)] max-h-[90vh] overflow-auto dark:border-white/10 dark:bg-slate-800 dark:shadow-[0_25px_80px_rgba(0,0,0,0.5)] sm:top-auto sm:bottom-20 sm:-translate-y-0 sm:rounded-[2rem] sm:p-7"
             onClick={(event) => event.stopPropagation()}
             role="dialog"
             aria-modal="true"
             aria-label="Tilføj indkomst"
           >
             <header className="flex items-start justify-between gap-4">
-              <h2 className="text-2xl sm:text-3xl font-semibold text-white">Tilføj indkomst</h2>
+              <h2 className="text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-white">Tilføj indkomst</h2>
               <button
                 type="button"
                 onClick={closeAddIncomeModal}
-                className="text-2xl sm:text-4xl leading-none text-slate-400 transition hover:text-white"
+                className="text-2xl sm:text-4xl leading-none text-slate-400 transition hover:text-slate-900 dark:hover:text-white"
                 aria-label="Luk"
               >
                 ×
@@ -389,32 +389,32 @@ export default function IncomePage() {
 
             <div className="mt-5 space-y-3 sm:space-y-4">
               <label className="block">
-                <span className="mb-2 block text-xl font-medium text-slate-200">Navn</span>
+                <span className="mb-2 block text-xl font-medium text-slate-900 dark:text-slate-200">Navn</span>
                 <input
                   value={name}
                   onChange={(event) => setName(event.target.value)}
                   placeholder="f.eks. Løn"
-                  className="h-12 sm:h-16 w-full rounded-2xl border border-white/10 bg-slate-600/65 px-5 text-xl sm:text-2xl text-white placeholder:text-slate-400 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20"
+                  className="h-12 sm:h-16 w-full rounded-2xl border border-slate-300 bg-white px-5 text-xl sm:text-2xl text-slate-900 placeholder:text-slate-500 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20 dark:border-white/10 dark:bg-slate-600/65 dark:text-white dark:placeholder:text-slate-400"
                 />
               </label>
 
               <label className="block">
-                <span className="mb-2 block text-xl font-medium text-slate-200">Beløb</span>
+                <span className="mb-2 block text-xl font-medium text-slate-900 dark:text-slate-200">Beløb</span>
                 <div className="relative">
                   <input
                     value={amount}
                     onChange={(event) => setAmount(event.target.value)}
                     placeholder="0,00"
                     inputMode="decimal"
-                    className="h-12 sm:h-16 w-full rounded-2xl border border-white/10 bg-slate-600/65 px-5 pr-16 text-xl sm:text-2xl text-white placeholder:text-slate-400 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20"
+                    className="h-12 sm:h-16 w-full rounded-2xl border border-slate-300 bg-white px-5 pr-16 text-xl sm:text-2xl text-slate-900 placeholder:text-slate-500 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20 dark:border-white/10 dark:bg-slate-600/65 dark:text-white dark:placeholder:text-slate-400"
                   />
-                  <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-lg sm:text-xl text-slate-300">
+                  <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-lg sm:text-xl text-slate-500 dark:text-slate-300">
                     kr
                   </span>
                 </div>
               </label>
 
-              {formError ? <p className="text-sm text-rose-300">{formError}</p> : null}
+              {formError ? <p className="text-sm text-rose-600 dark:text-rose-300">{formError}</p> : null}
 
               <button
                 type="button"
