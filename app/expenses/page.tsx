@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Settings, Building, ChevronDown, ChevronRight } from "lucide-react";
+import { Building, ChevronDown, ChevronRight, Edit2, Plus, Settings, Trash2 } from "lucide-react";
 import { BottomNav } from "@/components/bottom-nav";
 import { supabase } from "@/lib/supabase/client";
 
@@ -476,7 +476,7 @@ export default function ExpensesPage() {
                         className={`text-slate-400 transition ${isCollapsed ? "-rotate-90" : "rotate-0"}`}
                       />
 
-                      <h2 className="truncate text-xl font-semibold text-white">{group.category}</h2>
+                      <h2 className="truncate text font-semibold text-white">{group.category}</h2>
 
                       <span className="rounded-full bg-slate-700 px-2 py-0.5 text-xs font-semibold text-slate-300">
                         {group.items.length}
@@ -484,7 +484,7 @@ export default function ExpensesPage() {
                     </button>
 
                     <div className="flex items-center gap-3">
-                      <p className="text-lg font-semibold text-white sm:text-2xl">
+                      <p className="text-sm font-semibold text-white sm:text-2xl">
                         {formatCompactDkk(group.totalMonthly)}/md
                       </p>
 
@@ -508,27 +508,35 @@ export default function ExpensesPage() {
                         >
                           <div className="flex items-start justify-between gap-4">
                             <div className="min-w-0">
-                              <p className="truncate text-xl font-semibold text-slate-100">{item.name}</p>
-                              <p className="mt-0.5 text-lg text-slate-400 sm:text-xl">
+                              <p className="truncate text-sm font-semibold text-slate-100">{item.name}</p>
+                              <p className="mt-0.5 text-xs text-slate-400 sm:text-xl">
                                 {periodLabelToFrequencyText(item.periodLabel)}
                               </p>
 
-                              <div className="mt-2 flex items-center gap-3 text-sm">
-                                <button type="button" className="text-slate-400 transition hover:text-slate-200">
+                              <div className="mt-2 flex items-center gap-3 text-xs">
+                                <button
+                                  type="button"
+                                  className="inline-flex items-center gap-1.5 text-slate-400 transition hover:text-slate-200"
+                                >
+                                  <Edit2 size={14} strokeWidth={2} />
                                   Rediger
                                 </button>
-                                <button type="button" className="text-rose-400 transition hover:text-rose-300">
+                                <button
+                                  type="button"
+                                  className="inline-flex items-center gap-1.5 text-rose-400 transition hover:text-rose-300"
+                                >
+                                  <Trash2 size={14} strokeWidth={2} />
                                   Slet
                                 </button>
                               </div>
                             </div>
 
                             <div className="text-right">
-                              <p className="text-2xl font-semibold text-slate-100 sm:text-4xl">
+                              <p className="text font-semibold text-slate-100 sm:text-2xl">
                                 {formatCompactDkk(item.amountMonthly)}
                               </p>
                               {typeof item.amountPeriod === "number" && item.periodLabel ? (
-                                <p className="mt-1 text-sm text-slate-500">
+                                <p className="mt-1 text-xs text-slate-500">
                                   {formatCompactDkk(item.amountPeriod)}/{item.periodLabel}
                                 </p>
                               ) : null}
