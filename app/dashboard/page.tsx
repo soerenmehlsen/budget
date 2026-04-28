@@ -402,7 +402,7 @@ export default function DashboardPage() {
           </section>
 
           <section className="mt-4 rounded-2xl bg-gradient-to-br from-emerald-400 via-emerald-500 to-green-500 p-4 text-emerald-50 shadow-[0_22px_70px_rgba(16,185,129,0.32)] sm:mt-5 sm:rounded-[1.75rem] sm:p-6">
-            <p className="text-lg font-medium sm:text-4xl">Til fri brug/{periodView === "month" ? "md" : "år"}</p>
+            <p className="text-lg font-medium sm:text-4xl">Rådighedsbeløb/{periodView === "month" ? "md" : "år"}</p>
             <p className="mt-2 text-3xl font-semibold sm:mt-3 sm:text-6xl">{formatMoney(freeToSpend)}</p>
             <p className="mt-2 text-xs font-medium sm:mt-3 sm:text-3xl">
               {percentFormatter.format(freeToSpendPercent)}% af indkomst

@@ -11,7 +11,7 @@ const NAV_ITEMS = ["Oversigt", "Udgifter", "Indkomst", "Om", "Konto"] as const;
 const NAV_LINKS: Record<(typeof NAV_ITEMS)[number], string | null> = {
   Oversigt: "/dashboard",
   Udgifter: "/expenses",
-  Indkomst: null,
+  Indkomst: "/income",
   Om: null,
   Konto: null,
 };
