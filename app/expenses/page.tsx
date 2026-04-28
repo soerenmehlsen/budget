@@ -570,32 +570,32 @@ export default function ExpensesPage() {
       {isAddExpenseOpen ? (
         <div className="fixed inset-0 z-40 bg-black/45 backdrop-blur-[2px]" onClick={closeAddExpenseModal}>
           <section
-            className="absolute bottom-20 left-1/2 w-[calc(100%-1.5rem)] max-w-[680px] -translate-x-1/2 rounded-[2rem] border border-white/10 bg-slate-800 p-5 shadow-[0_25px_80px_rgba(0,0,0,0.5)] sm:p-7"
+            className="absolute left-1/2 top-1/2 w-[calc(100%-1.5rem)] max-w-[680px] -translate-x-1/2 -translate-y-1/2 rounded-[1rem] border border-white/10 bg-slate-800 p-5 shadow-[0_25px_80px_rgba(0,0,0,0.5)] max-h-[90vh] overflow-auto sm:top-auto sm:bottom-20 sm:-translate-y-0 sm:rounded-[2rem] sm:p-7"
             onClick={(event) => event.stopPropagation()}
             role="dialog"
             aria-modal="true"
             aria-label="Tilføj udgift"
           >
             <header className="flex items-start justify-between gap-4">
-              <h2 className="text-3xl font-semibold text-white">Tilføj udgift</h2>
+              <h2 className="text-2xl sm:text-3xl font-semibold text-white">Tilføj udgift</h2>
               <button
                 type="button"
                 onClick={closeAddExpenseModal}
-                className="text-4xl leading-none text-slate-400 transition hover:text-white"
+                className="text-2xl sm:text-4xl leading-none text-slate-400 transition hover:text-white"
                 aria-label="Luk"
               >
                 ×
               </button>
             </header>
 
-            <div className="mt-5 space-y-4">
-              <label className="block">
+            <div className="mt-5 space-y-3 sm:space-y-4">
+                <label className="block">
                 <span className="mb-2 block text-xl font-medium text-slate-200">Navn</span>
                 <input
                   value={name}
                   onChange={(event) => setName(event.target.value)}
                   placeholder="f.eks. Huslån"
-                  className="h-16 w-full rounded-2xl border border-white/10 bg-slate-600/65 px-5 text-2xl text-white placeholder:text-slate-400 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20"
+                  className="h-12 sm:h-16 w-full rounded-2xl border border-white/10 bg-slate-600/65 px-5 text-xl sm:text-2xl text-white placeholder:text-slate-400 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20"
                 />
               </label>
 
@@ -604,7 +604,7 @@ export default function ExpensesPage() {
                 <select
                   value={category}
                   onChange={(event) => setCategory(event.target.value)}
-                  className="h-12 w-full rounded-xl border border-white/15 bg-slate-600/70 px-4 text-xl text-white focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20"
+                  className="h-10 sm:h-12 w-full rounded-xl border border-white/15 bg-slate-600/70 px-4 text-lg sm:text-xl text-white focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20"
                 >
                   {Array.from(new Set([...CATEGORIES, ...groupedExpenses.map((group) => group.category)])).map(
                     (option) => (
@@ -624,17 +624,17 @@ export default function ExpensesPage() {
                     onChange={(event) => setAmount(event.target.value)}
                     placeholder="0,00"
                     inputMode="decimal"
-                    className="h-16 w-full rounded-2xl border border-white/10 bg-slate-600/65 px-5 pr-16 text-2xl text-white placeholder:text-slate-400 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20"
+                    className="h-12 sm:h-16 w-full rounded-2xl border border-white/10 bg-slate-600/65 px-5 pr-16 text-xl sm:text-2xl text-white placeholder:text-slate-400 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20"
                   />
-                  <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-xl text-slate-300">
+                  <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-lg sm:text-xl text-slate-300">
                     kr
                   </span>
                 </div>
               </label>
 
               <fieldset>
-                <legend className="mb-3 text-xl font-medium text-slate-200">Frekvens</legend>
-                <div className="grid grid-cols-2 gap-3">
+                <legend className="mb-3 text-lg sm:text-xl font-medium text-slate-200">Frekvens</legend>
+                <div className="grid grid-cols-2 gap-2 sm:gap-3">
                   {[
                     { value: "monthly", label: "Månedlig" },
                     { value: "quarterly", label: "Kvartalsvis" },
@@ -648,7 +648,7 @@ export default function ExpensesPage() {
                         key={option.value}
                         type="button"
                         onClick={() => setFrequency(option.value as Frequency)}
-                        className={`h-16 rounded-2xl border text-xl font-medium transition ${
+                        className={`h-12 sm:h-16 rounded-2xl border text-base sm:text-xl font-medium transition ${
                           isActive
                             ? "border-blue-400 bg-blue-500/20 text-blue-300"
                             : "border-white/15 bg-slate-700/40 text-slate-300 hover:border-white/25"
@@ -686,7 +686,7 @@ export default function ExpensesPage() {
                 type="button"
                 onClick={handleSaveExpense}
                 disabled={isSavingExpense}
-                className="mt-2 flex h-16 w-full items-center justify-center rounded-2xl bg-blue-500 text-2xl font-semibold text-white shadow-[0_20px_60px_rgba(59,130,246,0.35)] transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-70"
+                className="mt-2 flex h-12 sm:h-16 w-full items-center justify-center rounded-2xl bg-blue-500 text-xl sm:text-2xl font-semibold text-white shadow-[0_20px_60px_rgba(59,130,246,0.35)] transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {isSavingExpense ? "Gemmer..." : "✓ Tilføj"}
               </button>
