@@ -95,6 +95,10 @@ When creating files:
 ## 6. UI & Styling
 
 - Use Tailwind CSS only
+- Use **Lucide React** for all icons
+  - Import from `lucide-react`
+  - Never create inline SVG icons
+  - Use semantic icon names (e.g., `Plus`, `Settings`, `LogOut`)
 - Follow existing UI patterns
 - Ensure:
   - responsiveness
@@ -103,6 +107,7 @@ When creating files:
 
 Avoid:
 - Inline styles
+- Inline SVG markup
 - Duplicated UI logic
 
 ---

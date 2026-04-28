@@ -10,6 +10,7 @@ Budget App er en web-baseret applikation til at administrere og overvåge udgift
 
 - **Frontend:** [Next.js 16](https://nextjs.org) + React 19
 - **Styling:** [Tailwind CSS](https://tailwindcss.com)
+- **Icons:** [Lucide React](https://lucide.dev)
 - **Database & Auth:** [Supabase](https://supabase.com)
 - **Sprog:** TypeScript
 - **Development Tools:** ESLint, Prettier
@@ -82,6 +83,7 @@ npm run dev
 - ✅ Registrering af udgifter
 - ✅ Mobil-venligt design
 - ✅ Dark mode UI
+- ✅ Lucide React icons
 
 ## Udvikling
 

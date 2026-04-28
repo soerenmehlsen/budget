@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Plus, Settings, Building, ChevronDown, ChevronRight } from "lucide-react";
 import { BottomNav } from "@/components/bottom-nav";
 import { supabase } from "@/lib/supabase/client";
 
@@ -408,23 +409,7 @@ export default function ExpensesPage() {
                 className="grid h-11 w-11 place-items-center rounded-xl border border-white/15 bg-slate-700/70 text-slate-400 sm:h-12 sm:w-12 sm:rounded-2xl"
                 aria-hidden="true"
               >
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 24 24"
-                  className="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M3 9h18" />
-                  <path d="M5 21h14" />
-                  <path d="M7 9V6l5-3 5 3v3" />
-                  <path d="M8 9v8" />
-                  <path d="M12 9v8" />
-                  <path d="M16 9v8" />
-                </svg>
+                <Building size={20} strokeWidth={1.5} />
               </button>
 
               <button
@@ -433,19 +418,7 @@ export default function ExpensesPage() {
                 className="grid h-11 w-11 place-items-center rounded-xl border border-white/15 bg-slate-700/70 text-slate-400 sm:h-12 sm:w-12 sm:rounded-2xl"
                 aria-hidden="true"
               >
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 24 24"
-                  className="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="12" cy="12" r="3" />
-                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82 2 2 0 1 1-2.83 2.83 1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.07a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33 2 2 0 1 1-2.83-2.83A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82 2 2 0 1 1 2.83-2.83 1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.07a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33 2 2 0 1 1 2.83 2.83A1.65 1.65 0 0 0 19.4 9v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" />
-                </svg>
+                <Settings size={20} strokeWidth={1.5} />
               </button>
 
               <button
@@ -454,19 +427,7 @@ export default function ExpensesPage() {
                 className="grid h-11 w-11 place-items-center rounded-xl border border-blue-400/30 bg-blue-500 text-white shadow-[0_15px_45px_rgba(59,130,246,0.35)] transition hover:bg-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-300/35 sm:h-12 sm:w-12 sm:rounded-2xl"
                 aria-label="Tilføj udgift"
               >
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 24 24"
-                  className="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M12 5v14" />
-                  <path d="M5 12h14" />
-                </svg>
+                <Plus size={20} strokeWidth={2} />
               </button>
             </div>
           </header>
@@ -477,18 +438,11 @@ export default function ExpensesPage() {
               onClick={toggleAll}
               className="inline-flex items-center gap-2 text-sm text-slate-400 transition hover:text-slate-200"
             >
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 24 24"
-                className={`h-4 w-4 transition ${isAllCollapsed ? "rotate-0" : "rotate-180"}`}
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="m6 9 6 6 6-6" />
-              </svg>
+              <ChevronDown
+                size={16}
+                strokeWidth={2}
+                className={`transition ${isAllCollapsed ? "rotate-0" : "rotate-180"}`}
+              />
               {isAllCollapsed ? "Fold alle ud" : "Fold alle ind"}
             </button>
 
@@ -516,18 +470,11 @@ export default function ExpensesPage() {
                       }
                       aria-label={`Skift visning for ${group.category}`}
                     >
-                      <svg
-                        aria-hidden="true"
-                        viewBox="0 0 24 24"
-                        className={`h-5 w-5 text-slate-400 transition ${isCollapsed ? "-rotate-90" : "rotate-0"}`}
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="m6 9 6 6 6-6" />
-                      </svg>
+                      <ChevronDown
+                        size={20}
+                        strokeWidth={2}
+                        className={`text-slate-400 transition ${isCollapsed ? "-rotate-90" : "rotate-0"}`}
+                      />
 
                       <h2 className="truncate text-xl font-semibold text-white">{group.category}</h2>
 
@@ -711,18 +658,11 @@ export default function ExpensesPage() {
                 onClick={() => setIsAdvancedOpen((value) => !value)}
                 className="inline-flex items-center gap-2 text-slate-300 transition hover:text-white"
               >
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 24 24"
-                  className={`h-5 w-5 transition ${isAdvancedOpen ? "rotate-90" : "rotate-0"}`}
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="m9 6 6 6-6 6" />
-                </svg>
+                <ChevronRight
+                  size={20}
+                  strokeWidth={2}
+                  className={`transition ${isAdvancedOpen ? "rotate-90" : "rotate-0"}`}
+                />
                 Avanceret
               </button>
 

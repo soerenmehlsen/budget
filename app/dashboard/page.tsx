@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { LogOut } from "lucide-react";
 import { BottomNav } from "@/components/bottom-nav";
 import { supabase } from "@/lib/supabase/client";
 
@@ -371,20 +372,7 @@ export default function DashboardPage() {
                 className="grid h-9 w-9 place-items-center rounded-xl border border-white/15 bg-slate-800/70 text-slate-200 transition hover:bg-slate-700 focus:outline-none focus:ring-4 focus:ring-blue-400/20 sm:h-11 sm:w-11 sm:rounded-2xl"
                 aria-label="Log ud"
               >
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 24 24"
-                  className="h-5 w-5 sm:h-6 sm:w-6"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M9 6H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
-                  <path d="m16 17 5-5-5-5" />
-                  <path d="M21 12H9" />
-                </svg>
+                <LogOut size={20} strokeWidth={1.8} className="sm:size-6" />
               </button>
             </div>
           </header>

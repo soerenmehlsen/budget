@@ -115,6 +115,10 @@ Do NOT create duplicate clients.
 ## Styling Rules
 
 - Use Tailwind CSS only
+- Use **Lucide React** for all icons:
+  - Import from `lucide-react`
+  - Never use inline SVG
+  - Example: `<Plus size={20} strokeWidth={2} />`
 - No inline styles
 - Follow existing design patterns
 - Ensure responsive layout
