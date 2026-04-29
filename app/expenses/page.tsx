@@ -428,6 +428,37 @@ export default function ExpensesPage() {
     closeAddExpenseModal();
   };
 
+  const handleDeleteExpense = async (expenseId: string) => {
+    if (!userId) {
+      setFormError("Kunne ikke finde bruger. Prøv igen.");
+      return;
+    }
+
+    const isConfirmed = window.confirm("Vil du slette denne udgift?");
+
+    if (!isConfirmed) {
+      return;
+    }
+
+    const { error } = await supabase
+      .from("expense_items")
+      .delete()
+      .eq("id", expenseId)
+      .eq("user_id", userId);
+
+    if (error) {
+      setFormError("Kunne ikke slette udgift. Prøv igen.");
+      return;
+    }
+
+    setExpenseItems((current) => current.filter((item) => item.id !== expenseId));
+    setDataSource("supabase");
+
+    if (editingExpenseId === expenseId) {
+      closeAddExpenseModal();
+    }
+  };
+
   if (isCheckingSession) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-white text-slate-900 dark:bg-[#09111f] dark:text-slate-100 px-4">
@@ -574,7 +605,9 @@ export default function ExpensesPage() {
                                 </button>
                                 <button
                                   type="button"
+                                  onClick={() => handleDeleteExpense(item.id)}
                                   className="inline-flex items-center gap-1.5 text-rose-400 transition hover:text-rose-300"
+                                  aria-label="Slet udgift"
                                 >
                                   <Trash2 size={14} strokeWidth={2} />
                                   Slet
