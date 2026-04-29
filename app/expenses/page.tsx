@@ -4,6 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Building, ChevronDown, ChevronRight, Edit2, Plus, Settings, Trash2 } from "lucide-react";
 import { BottomNav } from "@/components/bottom-nav";
+import {
+  CACHE_KEYS,
+  invalidateDashboardCache,
+  readCachedData,
+  writeCachedData,
+} from "@/lib/data-cache";
 import { supabase } from "@/lib/supabase/client";
 
 type Frequency = "monthly" | "quarterly" | "halfYearly" | "yearly";
@@ -177,6 +183,15 @@ export default function ExpensesPage() {
     let isMounted = true;
 
     const loadExpenses = async (signedInUserId: string) => {
+      const cached = readCachedData<ExpenseItem[]>(CACHE_KEYS.expenses, signedInUserId);
+
+      if (cached) {
+        setExpenseItems(cached.data);
+        setDataSource(cached.source);
+        setIsLoadingExpenses(false);
+        return;
+      }
+
       setIsLoadingExpenses(true);
 
       const { data, error } = await supabase
@@ -193,6 +208,9 @@ export default function ExpensesPage() {
       if (error || !data || data.length === 0) {
         setExpenseItems(FALLBACK_EXPENSES);
         setDataSource("fallback");
+        if (!error) {
+          writeCachedData(CACHE_KEYS.expenses, signedInUserId, FALLBACK_EXPENSES, "fallback");
+        }
         setIsLoadingExpenses(false);
         return;
       }
@@ -217,6 +235,7 @@ export default function ExpensesPage() {
 
       setExpenseItems(mapped);
       setDataSource("supabase");
+      writeCachedData(CACHE_KEYS.expenses, signedInUserId, mapped, "supabase");
       setIsLoadingExpenses(false);
     };
 
@@ -416,13 +435,15 @@ export default function ExpensesPage() {
       sortOrder: typeof data.sort_order === "number" ? data.sort_order : null,
     };
 
-    setExpenseItems((current) => {
-      const nextItems = isEditingExpense
-        ? current.map((item) => (item.id === editingExpenseId ? savedItem : item))
-        : [...current, savedItem];
+    const nextExpenseItems = (
+      isEditingExpense
+        ? expenseItems.map((item) => (item.id === editingExpenseId ? savedItem : item))
+        : [...expenseItems, savedItem]
+    ).sort(bySortOrderAndName);
 
-      return nextItems.sort(bySortOrderAndName);
-    });
+    setExpenseItems(nextExpenseItems);
+    writeCachedData(CACHE_KEYS.expenses, userId, nextExpenseItems, "supabase");
+    invalidateDashboardCache(userId);
     setDataSource("supabase");
     setIsSavingExpense(false);
     closeAddExpenseModal();
@@ -451,7 +472,10 @@ export default function ExpensesPage() {
       return;
     }
 
-    setExpenseItems((current) => current.filter((item) => item.id !== expenseId));
+    const nextExpenseItems = expenseItems.filter((item) => item.id !== expenseId);
+    setExpenseItems(nextExpenseItems);
+    writeCachedData(CACHE_KEYS.expenses, userId, nextExpenseItems, "supabase");
+    invalidateDashboardCache(userId);
     setDataSource("supabase");
 
     if (editingExpenseId === expenseId) {

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { BottomNav } from "@/components/bottom-nav";
+import { CACHE_KEYS, readCachedData, writeCachedData } from "@/lib/data-cache";
 import { supabase } from "@/lib/supabase/client";
 
 type PeriodView = "month" | "year";
@@ -210,6 +211,15 @@ export default function DashboardPage() {
     let isMounted = true;
 
     const loadDashboardData = async (userId: string) => {
+      const cached = readCachedData<DashboardData>(CACHE_KEYS.dashboard, userId);
+
+      if (cached) {
+        setDashboardData(cached.data);
+        setDataSource(cached.source);
+        setIsLoadingDashboard(false);
+        return;
+      }
+
       setIsLoadingDashboard(true);
 
       const { data, source } = await fetchDashboardData(userId);
@@ -220,6 +230,7 @@ export default function DashboardPage() {
 
       setDashboardData(data);
       setDataSource(source);
+      writeCachedData(CACHE_KEYS.dashboard, userId, data, source);
       setIsLoadingDashboard(false);
     };
 

@@ -4,6 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Edit2, Plus, Settings, Trash2 } from "lucide-react";
 import { BottomNav } from "@/components/bottom-nav";
+import {
+  CACHE_KEYS,
+  invalidateDashboardCache,
+  readCachedData,
+  writeCachedData,
+} from "@/lib/data-cache";
 import { supabase } from "@/lib/supabase/client";
 
 type IncomeItem = {
@@ -136,6 +142,15 @@ export default function IncomePage() {
     let isMounted = true;
 
     const loadIncome = async (signedInUserId: string) => {
+      const cached = readCachedData<IncomeItem[]>(CACHE_KEYS.income, signedInUserId);
+
+      if (cached) {
+        setIncomeItems(cached.data);
+        setDataSource(cached.source);
+        setIsLoadingIncome(false);
+        return;
+      }
+
       setIsLoadingIncome(true);
 
       const { data, error } = await supabase
@@ -151,6 +166,9 @@ export default function IncomePage() {
       if (error || !data || data.length === 0) {
         setIncomeItems(FALLBACK_INCOMES);
         setDataSource("fallback");
+        if (!error) {
+          writeCachedData(CACHE_KEYS.income, signedInUserId, FALLBACK_INCOMES, "fallback");
+        }
         setIsLoadingIncome(false);
         return;
       }
@@ -173,6 +191,7 @@ export default function IncomePage() {
 
       setIncomeItems(mapped);
       setDataSource("supabase");
+      writeCachedData(CACHE_KEYS.income, signedInUserId, mapped, "supabase");
       setIsLoadingIncome(false);
     };
 
@@ -323,13 +342,15 @@ export default function IncomePage() {
       sortOrder: typeof data.sort_order === "number" ? data.sort_order : null,
     };
 
-    setIncomeItems((current) => {
-      const nextItems = isEditingIncome
-        ? current.map((item) => (item.id === editingIncomeId ? savedItem : item))
-        : [...current, savedItem];
+    const nextIncomeItems = (
+      isEditingIncome
+        ? incomeItems.map((item) => (item.id === editingIncomeId ? savedItem : item))
+        : [...incomeItems, savedItem]
+    ).sort(bySortOrderAndName);
 
-      return nextItems.sort(bySortOrderAndName);
-    });
+    setIncomeItems(nextIncomeItems);
+    writeCachedData(CACHE_KEYS.income, userId, nextIncomeItems, "supabase");
+    invalidateDashboardCache(userId);
     setDataSource("supabase");
     setIsSavingIncome(false);
     closeAddIncomeModal();
@@ -358,7 +379,10 @@ export default function IncomePage() {
       return;
     }
 
-    setIncomeItems((current) => current.filter((item) => item.id !== incomeId));
+    const nextIncomeItems = incomeItems.filter((item) => item.id !== incomeId);
+    setIncomeItems(nextIncomeItems);
+    writeCachedData(CACHE_KEYS.income, userId, nextIncomeItems, "supabase");
+    invalidateDashboardCache(userId);
     setDataSource("supabase");
 
     if (editingIncomeId === incomeId) {
