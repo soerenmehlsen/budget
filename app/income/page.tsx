@@ -263,6 +263,37 @@ export default function IncomePage() {
     closeAddIncomeModal();
   };
 
+  const handleDeleteIncome = async (incomeId: string) => {
+    if (!userId) {
+      setFormError("Kunne ikke finde bruger. Prøv igen.");
+      return;
+    }
+
+    const isConfirmed = window.confirm("Vil du slette denne indtægtskilde?");
+
+    if (!isConfirmed) {
+      return;
+    }
+
+    const { error } = await supabase
+      .from("income_sources")
+      .delete()
+      .eq("id", incomeId)
+      .eq("user_id", userId);
+
+    if (error) {
+      setFormError("Kunne ikke slette indkomst. Prøv igen.");
+      return;
+    }
+
+    setIncomeItems((current) => current.filter((item) => item.id !== incomeId));
+    setDataSource("supabase");
+
+    if (editingIncomeId === incomeId) {
+      closeAddIncomeModal();
+    }
+  };
+
   if (isCheckingSession) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-white text-slate-900 dark:bg-[#09111f] dark:text-slate-100 px-4">
@@ -319,7 +350,7 @@ export default function IncomePage() {
 
           <div className="mt-6 rounded-2xl border border-blue-200 dark:border-blue-400/20 bg-blue-50 dark:bg-blue-400/10 px-4 py-3">
             <p className="text-sm text-blue-800 dark:text-blue-100">
-              <span className="font-semibold">Demo mode</span> – ændringer gemmes lokalt i din browser
+              <span className="font-semibold">Tip:</span> Indtast din netto-løn (efter skat, AM-bidrag mv.). Det beløb du faktisk får udbetalt hver måned.
             </p>
           </div>
 
@@ -346,8 +377,8 @@ export default function IncomePage() {
                           </button>
                           <button
                             type="button"
-                            disabled
-                            className="inline-flex items-center gap-1.5 text-rose-500 cursor-not-allowed opacity-50"
+                            onClick={() => handleDeleteIncome(item.id)}
+                            className="inline-flex items-center gap-1.5 text-rose-500 transition hover:text-rose-400"
                             aria-label="Slet indkomst"
                           >
                             <Trash2 size={16} strokeWidth={2} />

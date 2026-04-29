@@ -82,7 +82,7 @@ npm run dev
 - ✅ Adgangskode-nulstilling
 - ✅ Dashboard med budget-oversigt
 - ✅ Registrering af udgifter
-- ✅ Registrering og redigering af indkomstkilder
+- ✅ Registrering, redigering og sletning af indkomstkilder
 - ✅ Mobil-venligt design
 - ✅ Dark mode UI
 - ✅ Lucide React icons
