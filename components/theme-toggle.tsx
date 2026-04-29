@@ -1,7 +1,8 @@
 "use client";
 
 import { useTheme } from "@/lib/theme-provider";
-import { Moon, Sun } from "lucide-react";
+import { MoonIcon } from "@/components/ui/moon";
+import { SunIcon } from "@/components/ui/sun";
 
 export function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
@@ -13,9 +14,9 @@ export function ThemeToggle() {
       title={`Skift tema (nu: ${theme})`}
     >
       {theme === "dark" ? (
-        <Sun size={20} strokeWidth={2} />
+        <SunIcon size={20} />
       ) : (
-        <Moon size={20} strokeWidth={2} />
+        <MoonIcon size={20} />
       )}
     </button>
   );

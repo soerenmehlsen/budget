@@ -2,9 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Edit2, Plus, Settings, Trash2 } from "lucide-react";
 import { motion } from "motion/react";
 import { BottomNav } from "@/components/bottom-nav";
+import { DeleteIcon } from "@/components/ui/delete";
+import { PlusIcon } from "@/components/ui/plus";
+import { SettingsIcon } from "@/components/ui/settings";
+import { SquarePenIcon } from "@/components/ui/square-pen";
 import {
   CACHE_KEYS,
   invalidateDashboardCache,
@@ -421,7 +424,7 @@ export default function IncomePage() {
                 className="grid h-11 w-11 place-items-center rounded-xl border border-slate-300 dark:border-white/15 bg-slate-100 dark:bg-slate-700/70 text-slate-500 dark:text-slate-400 sm:h-12 sm:w-12 sm:rounded-2xl"
                 aria-hidden="true"
               >
-                <Settings size={20} strokeWidth={1.5} />
+                <SettingsIcon size={20} />
               </button>
 
               <button
@@ -430,7 +433,7 @@ export default function IncomePage() {
                 className="grid h-11 w-11 place-items-center rounded-xl border border-blue-400/30 bg-blue-500 text-white shadow-[0_15px_45px_rgba(59,130,246,0.35)] transition hover:bg-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-300/35 sm:h-12 sm:w-12 sm:rounded-2xl"
                 aria-label="Tilføj indkomst"
               >
-                <Plus size={20} strokeWidth={2} />
+                <PlusIcon size={20} />
               </button>
             </div>
           </header>
@@ -469,7 +472,7 @@ export default function IncomePage() {
                             className="inline-flex items-center gap-1.5 text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
                             aria-label="Rediger indkomst"
                           >
-                            <Edit2 size={16} strokeWidth={2} />
+                            <SquarePenIcon size={16} />
                             Rediger
                           </button>
                           <button
@@ -478,7 +481,7 @@ export default function IncomePage() {
                             className="inline-flex items-center gap-1.5 text-rose-500 transition hover:text-rose-400"
                             aria-label="Slet indkomst"
                           >
-                            <Trash2 size={16} strokeWidth={2} />
+                            <DeleteIcon size={16} />
                           </button>
                         </div>
                       </div>

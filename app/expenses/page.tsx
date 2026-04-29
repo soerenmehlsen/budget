@@ -2,9 +2,15 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Building, ChevronDown, ChevronRight, Edit2, Plus, Settings, Trash2 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { BottomNav } from "@/components/bottom-nav";
+import { ChevronDownIcon } from "@/components/ui/chevron-down";
+import { ChevronRightIcon } from "@/components/ui/chevron-right";
+import { DeleteIcon } from "@/components/ui/delete";
+import { HomeIcon } from "@/components/ui/home";
+import { PlusIcon } from "@/components/ui/plus";
+import { SettingsIcon } from "@/components/ui/settings";
+import { SquarePenIcon } from "@/components/ui/square-pen";
 import {
   CACHE_KEYS,
   invalidateDashboardCache,
@@ -514,7 +520,7 @@ export default function ExpensesPage() {
                 className="grid h-11 w-11 place-items-center rounded-xl border border-slate-300 bg-slate-100 text-slate-500 dark:border-white/15 dark:bg-slate-700/70 dark:text-slate-400 sm:h-12 sm:w-12 sm:rounded-2xl"
                 aria-hidden="true"
               >
-                <Building size={20} strokeWidth={1.5} />
+                <HomeIcon size={20} />
               </button>
 
               <button
@@ -523,7 +529,7 @@ export default function ExpensesPage() {
                 className="grid h-11 w-11 place-items-center rounded-xl border border-slate-300 bg-slate-100 text-slate-500 dark:border-white/15 dark:bg-slate-700/70 dark:text-slate-400 sm:h-12 sm:w-12 sm:rounded-2xl"
                 aria-hidden="true"
               >
-                <Settings size={20} strokeWidth={1.5} />
+                <SettingsIcon size={20} />
               </button>
 
               <button
@@ -532,7 +538,7 @@ export default function ExpensesPage() {
                 className="grid h-11 w-11 place-items-center rounded-xl border border-blue-400/30 bg-blue-500 text-white shadow-[0_15px_45px_rgba(59,130,246,0.35)] transition hover:bg-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-300/35 sm:h-12 sm:w-12 sm:rounded-2xl"
                 aria-label="Tilføj udgift"
               >
-                <Plus size={20} strokeWidth={2} />
+                <PlusIcon size={20} />
               </button>
             </div>
           </header>
@@ -543,9 +549,8 @@ export default function ExpensesPage() {
               onClick={toggleAll}
               className="inline-flex items-center gap-2 text-sm text-slate-600 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
             >
-              <ChevronDown
+              <ChevronDownIcon
                 size={16}
-                strokeWidth={2}
                 className={`transition ${isAllCollapsed ? "rotate-0" : "rotate-180"}`}
               />
               {isAllCollapsed ? "Fold alle ud" : "Fold alle ind"}
@@ -577,9 +582,8 @@ export default function ExpensesPage() {
                       }
                       aria-label={`Skift visning for ${group.category}`}
                     >
-                      <ChevronDown
+                      <ChevronDownIcon
                         size={20}
-                        strokeWidth={2}
                         className={`text-slate-500 transition dark:text-slate-400 ${isCollapsed ? "-rotate-90" : "rotate-0"}`}
                       />
 
@@ -634,7 +638,7 @@ export default function ExpensesPage() {
                                     className="inline-flex items-center gap-1.5 text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
                                     aria-label="Rediger udgift"
                                   >
-                                    <Edit2 size={14} strokeWidth={2} />
+                                    <SquarePenIcon size={14} />
                                     Rediger
                                   </button>
                                   <button
@@ -643,7 +647,7 @@ export default function ExpensesPage() {
                                     className="inline-flex items-center gap-1.5 text-rose-400 transition hover:text-rose-300"
                                     aria-label="Slet udgift"
                                   >
-                                    <Trash2 size={14} strokeWidth={2} />
+                                    <DeleteIcon size={14} />
                                     Slet
                                   </button>
                                 </div>
@@ -797,9 +801,8 @@ export default function ExpensesPage() {
                 onClick={() => setIsAdvancedOpen((value) => !value)}
                 className="inline-flex items-center gap-1.5 text-sm text-slate-600 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-white sm:gap-2 sm:text-base"
               >
-                <ChevronRight
+                <ChevronRightIcon
                   size={18}
-                  strokeWidth={2}
                   className={`transition ${isAdvancedOpen ? "rotate-90" : "rotate-0"}`}
                 />
                 Avanceret

@@ -10,7 +10,7 @@ Budget App er en web-baseret applikation til at administrere og overvåge udgift
 
 - **Frontend:** [Next.js 16](https://nextjs.org) + React 19
 - **Styling:** [Tailwind CSS](https://tailwindcss.com)
-- **Icons:** [Lucide React](https://lucide.dev)
+- **Icons:** [lucide-animated](https://lucide-animated.com) via shadcn registry
 - **Database & Auth:** [Supabase](https://supabase.com)
 - **Sprog:** TypeScript
 - **Development Tools:** ESLint, Prettier
@@ -68,7 +68,8 @@ npm run dev
 ├── components/              # Reusable React komponenter
 │   ├── login-panel.tsx      # Login-formular
 │   ├── reset-password-panel.tsx
-│   └── bottom-nav.tsx       # Navigation
+│   ├── bottom-nav.tsx       # Navigation
+│   └── ui/                  # Lokale shadcn/lucide-animated komponenter
 ├── lib/
 │   └── supabase/            # Supabase konfiguration
 │       └── client.ts        # Supabase klient
@@ -88,7 +89,7 @@ npm run dev
 - ✅ Lokal datacache for færre gentagne databasekald
 - ✅ Mobil-venligt design
 - ✅ Dark mode UI
-- ✅ Lucide React icons
+- ✅ Animerede lucide-animated ikoner
 
 ## Udvikling
 
