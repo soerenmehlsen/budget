@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Building, ChevronDown, ChevronRight, Edit2, Plus, Settings, Trash2 } from "lucide-react";
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { BottomNav } from "@/components/bottom-nav";
 import {
   CACHE_KEYS,
@@ -559,8 +559,10 @@ export default function ExpensesPage() {
               const isCollapsed = collapsedCategories[group.category] === true;
 
               return (
-                <article
+                <motion.article
                   key={group.category}
+                  layout
+                  transition={{ duration: 0.24, ease: "easeOut" }}
                   className="overflow-hidden rounded-3xl border border-slate-200 bg-white dark:border-white/10 dark:bg-slate-800/70"
                 >
                   <div className="flex items-center justify-between gap-3 px-4 py-4 sm:px-6">
@@ -604,58 +606,66 @@ export default function ExpensesPage() {
                     </div>
                   </div>
 
-                  {!isCollapsed ? (
-                    <ul className="border-t border-slate-200 dark:border-white/10">
-                      {group.items.map((item) => (
-                        <li
-                          key={item.id}
-                          className="border-b border-slate-200 px-4 py-4 last:border-b-0 dark:border-white/10 sm:px-6 sm:py-5"
-                        >
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="min-w-0">
-                              <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">{item.name}</p>
-                              <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 sm:text-xl">
-                                {periodLabelToFrequencyText(item.periodLabel)}
-                              </p>
+                  <AnimatePresence initial={false}>
+                    {!isCollapsed ? (
+                      <motion.ul
+                        className="overflow-hidden border-t border-slate-200 dark:border-white/10"
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.24, ease: "easeOut" }}
+                      >
+                        {group.items.map((item) => (
+                          <li
+                            key={item.id}
+                            className="border-b border-slate-200 px-4 py-4 last:border-b-0 dark:border-white/10 sm:px-6 sm:py-5"
+                          >
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="min-w-0">
+                                <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">{item.name}</p>
+                                <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 sm:text-xl">
+                                  {periodLabelToFrequencyText(item.periodLabel)}
+                                </p>
 
-                              <div className="mt-2 flex items-center gap-3 text-xs">
-                                <button
-                                  type="button"
-                                  onClick={() => openEditExpenseModal(item)}
-                                  className="inline-flex items-center gap-1.5 text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
-                                  aria-label="Rediger udgift"
-                                >
-                                  <Edit2 size={14} strokeWidth={2} />
-                                  Rediger
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleDeleteExpense(item.id)}
-                                  className="inline-flex items-center gap-1.5 text-rose-400 transition hover:text-rose-300"
-                                  aria-label="Slet udgift"
-                                >
-                                  <Trash2 size={14} strokeWidth={2} />
-                                  Slet
-                                </button>
+                                <div className="mt-2 flex items-center gap-3 text-xs">
+                                  <button
+                                    type="button"
+                                    onClick={() => openEditExpenseModal(item)}
+                                    className="inline-flex items-center gap-1.5 text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
+                                    aria-label="Rediger udgift"
+                                  >
+                                    <Edit2 size={14} strokeWidth={2} />
+                                    Rediger
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteExpense(item.id)}
+                                    className="inline-flex items-center gap-1.5 text-rose-400 transition hover:text-rose-300"
+                                    aria-label="Slet udgift"
+                                  >
+                                    <Trash2 size={14} strokeWidth={2} />
+                                    Slet
+                                  </button>
+                                </div>
+                              </div>
+
+                              <div className="text-right">
+                                <p className="text font-semibold text-slate-900 dark:text-slate-100 sm:text-2xl">
+                                  {formatCompactDkk(item.amountMonthly)}
+                                </p>
+                                {typeof item.amountPeriod === "number" && item.periodLabel ? (
+                                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                                    {formatCompactDkk(item.amountPeriod)}/{item.periodLabel}
+                                  </p>
+                                ) : null}
                               </div>
                             </div>
-
-                            <div className="text-right">
-                              <p className="text font-semibold text-slate-900 dark:text-slate-100 sm:text-2xl">
-                                {formatCompactDkk(item.amountMonthly)}
-                              </p>
-                              {typeof item.amountPeriod === "number" && item.periodLabel ? (
-                                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                                  {formatCompactDkk(item.amountPeriod)}/{item.periodLabel}
-                                </p>
-                              ) : null}
-                            </div>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-                </article>
+                          </li>
+                        ))}
+                      </motion.ul>
+                    ) : null}
+                  </AnimatePresence>
+                </motion.article>
               );
             })}
           </div>

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { BottomNav } from "@/components/bottom-nav";
 import { CACHE_KEYS, readCachedData, writeCachedData } from "@/lib/data-cache";
 import { supabase } from "@/lib/supabase/client";
@@ -449,8 +450,10 @@ export default function DashboardPage() {
 
             <div className="mt-3 space-y-3 sm:mt-4 sm:space-y-4">
               {groupedExpenses.map((group) => (
-                <article
+                <motion.article
                   key={group.category}
+                  layout
+                  transition={{ duration: 0.24, ease: "easeOut" }}
                   className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 dark:border-white/15 dark:bg-slate-800/75 sm:rounded-3xl"
                 >
                   <div className="flex items-center justify-between gap-2 px-3 py-3 sm:gap-4 sm:px-6 sm:py-4">
@@ -460,27 +463,35 @@ export default function DashboardPage() {
                     </p>
                   </div>
 
-                  {!isCollapsed ? (
-                    <ul className="border-t border-slate-200 dark:border-white/10 px-3 py-2 sm:px-6 sm:py-4">
-                      {group.items.map((item) => (
-                        <li
-                          key={item.id}
-                          className="flex items-baseline justify-between gap-2 py-1 text-xs sm:gap-3 sm:py-1.5 sm:text-xl"
-                        >
-                          <span className="text-slate-700 dark:text-slate-300">{item.name}</span>
-                          <span className="text-slate-900 dark:text-slate-100">
-                            {formatMoney(item.amountMonthly * periodFactor)}
-                            {item.amountAnnual && periodView === "month" ? (
-                              <span className="ml-2 text-base text-slate-600 dark:text-slate-400">
-                                ({formatMoney(item.amountAnnual)}/år)
-                              </span>
-                            ) : null}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-                </article>
+                  <AnimatePresence initial={false}>
+                    {!isCollapsed ? (
+                      <motion.ul
+                        className="overflow-hidden border-t border-slate-200 px-3 py-2 dark:border-white/10 sm:px-6 sm:py-4"
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.24, ease: "easeOut" }}
+                      >
+                        {group.items.map((item) => (
+                          <li
+                            key={item.id}
+                            className="flex items-baseline justify-between gap-2 py-1 text-xs sm:gap-3 sm:py-1.5 sm:text-xl"
+                          >
+                            <span className="text-slate-700 dark:text-slate-300">{item.name}</span>
+                            <span className="text-slate-900 dark:text-slate-100">
+                              {formatMoney(item.amountMonthly * periodFactor)}
+                              {item.amountAnnual && periodView === "month" ? (
+                                <span className="ml-2 text-base text-slate-600 dark:text-slate-400">
+                                  ({formatMoney(item.amountAnnual)}/år)
+                                </span>
+                              ) : null}
+                            </span>
+                          </li>
+                        ))}
+                      </motion.ul>
+                    ) : null}
+                  </AnimatePresence>
+                </motion.article>
               ))}
             </div>
           </section>
