@@ -521,56 +521,56 @@ export default function IncomePage() {
       {isAddIncomeOpen ? (
         <div className="fixed inset-0 z-40 bg-black/45 backdrop-blur-[2px]" onClick={closeAddIncomeModal}>
           <section
-            className="absolute left-1/2 top-1/2 w-[calc(100%-1.5rem)] max-w-[680px] -translate-x-1/2 -translate-y-1/2 rounded-[1rem] border border-slate-200 bg-white p-5 shadow-[0_25px_80px_rgba(0,0,0,0.1)] max-h-[90vh] overflow-auto dark:border-white/10 dark:bg-slate-800 dark:shadow-[0_25px_80px_rgba(0,0,0,0.5)] sm:top-auto sm:bottom-20 sm:-translate-y-0 sm:rounded-[2rem] sm:p-7"
+            className="absolute left-1/2 top-1/2 w-[calc(100%-1rem)] max-w-[560px] -translate-x-1/2 -translate-y-1/2 rounded-[1rem] border border-slate-200 bg-white p-4 shadow-[0_25px_80px_rgba(0,0,0,0.1)] max-h-[82dvh] overflow-auto dark:border-white/10 dark:bg-slate-800 dark:shadow-[0_25px_80px_rgba(0,0,0,0.5)] sm:top-auto sm:bottom-20 sm:w-[calc(100%-2rem)] sm:max-w-[680px] sm:-translate-y-0 sm:rounded-[2rem] sm:p-7"
             onClick={(event) => event.stopPropagation()}
             role="dialog"
             aria-modal="true"
             aria-label={editingIncomeId ? "Rediger indkomst" : "Tilføj indkomst"}
           >
             <header className="flex items-start justify-between gap-4">
-              <h2 className="text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-white">
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-white sm:text-3xl">
                 {editingIncomeId ? "Rediger indkomst" : "Tilføj indkomst"}
               </h2>
               <button
                 type="button"
                 onClick={closeAddIncomeModal}
-                className="text-2xl sm:text-4xl leading-none text-slate-400 transition hover:text-slate-900 dark:hover:text-white"
+                className="text-xl leading-none text-slate-400 transition hover:text-slate-900 dark:hover:text-white sm:text-4xl"
                 aria-label="Luk"
               >
                 ×
               </button>
             </header>
 
-            <div className="mt-5 space-y-3 sm:space-y-4">
+            <div className="mt-4 space-y-2.5 sm:mt-5 sm:space-y-4">
               <label className="block">
-                <span className="mb-2 block text-xl font-medium text-slate-900 dark:text-slate-200">Navn</span>
+                <span className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-200 sm:mb-2 sm:text-xl">Navn</span>
                 <input
                   value={name}
                   onChange={(event) => setName(event.target.value)}
                   placeholder="f.eks. Løn"
-                  className="h-12 sm:h-16 w-full rounded-2xl border border-slate-300 bg-white px-5 text-xl sm:text-2xl text-slate-900 placeholder:text-slate-500 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20 dark:border-white/10 dark:bg-slate-600/65 dark:text-white dark:placeholder:text-slate-400"
+                  className="h-10 w-full rounded-2xl border border-slate-300 bg-white px-4 text-base text-slate-900 placeholder:text-slate-500 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20 dark:border-white/10 dark:bg-slate-600/65 dark:text-white dark:placeholder:text-slate-400 sm:h-16 sm:px-5 sm:text-2xl"
                 />
               </label>
 
               <label className="block">
-                <span className="mb-2 block text-xl font-medium text-slate-900 dark:text-slate-200">Beløb</span>
+                <span className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-200 sm:mb-2 sm:text-xl">Beløb</span>
                 <div className="relative">
                   <input
                     value={amount}
                     onChange={(event) => setAmount(event.target.value)}
                     placeholder="0,00"
                     inputMode="decimal"
-                    className="h-12 sm:h-16 w-full rounded-2xl border border-slate-300 bg-white px-5 pr-16 text-xl sm:text-2xl text-slate-900 placeholder:text-slate-500 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20 dark:border-white/10 dark:bg-slate-600/65 dark:text-white dark:placeholder:text-slate-400"
+                    className="h-10 w-full rounded-2xl border border-slate-300 bg-white px-4 pr-14 text-base text-slate-900 placeholder:text-slate-500 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20 dark:border-white/10 dark:bg-slate-600/65 dark:text-white dark:placeholder:text-slate-400 sm:h-16 sm:px-5 sm:pr-16 sm:text-2xl"
                   />
-                  <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-lg sm:text-xl text-slate-500 dark:text-slate-300">
+                  <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm text-slate-500 dark:text-slate-300 sm:right-5 sm:text-xl">
                     kr
                   </span>
                 </div>
               </label>
 
               <fieldset>
-                <legend className="mb-3 text-xl font-medium text-slate-900 dark:text-slate-200">Frekvens</legend>
-                <div className="grid grid-cols-2 gap-3">
+                <legend className="mb-2 text-base font-medium text-slate-900 dark:text-slate-200 sm:mb-3 sm:text-xl">Frekvens</legend>
+                <div className="grid grid-cols-2 gap-2 sm:gap-3">
                   {[
                     { value: "monthly", label: "Månedlig" },
                     { value: "quarterly", label: "Kvartalsvis" },
@@ -584,7 +584,7 @@ export default function IncomePage() {
                         key={option.value}
                         type="button"
                         onClick={() => setFrequency(option.value as Frequency)}
-                        className={`h-12 rounded-2xl border text-base font-medium transition sm:h-16 sm:text-xl ${
+                        className={`h-10 rounded-2xl border text-sm font-medium transition sm:h-16 sm:text-xl ${
                           isActive
                             ? "border-blue-400 bg-blue-500/20 text-blue-700 dark:text-blue-300"
                             : "border-slate-300 bg-slate-100 text-slate-700 hover:border-slate-400 dark:border-white/15 dark:bg-slate-700/40 dark:text-slate-300 dark:hover:border-white/25"
@@ -597,13 +597,13 @@ export default function IncomePage() {
                 </div>
               </fieldset>
 
-              {formError ? <p className="text-sm text-rose-600 dark:text-rose-300">{formError}</p> : null}
+              {formError ? <p className="text-xs text-rose-600 dark:text-rose-300 sm:text-sm">{formError}</p> : null}
 
               <button
                 type="button"
                 onClick={handleSaveIncome}
                 disabled={isSavingIncome}
-                className="mt-2 flex h-12 sm:h-16 w-full items-center justify-center rounded-2xl bg-blue-500 text-xl sm:text-2xl font-semibold text-white shadow-[0_20px_60px_rgba(59,130,246,0.35)] transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-70"
+                className="mt-1 flex h-10 w-full items-center justify-center rounded-2xl bg-blue-500 text-base font-semibold text-white shadow-[0_20px_60px_rgba(59,130,246,0.35)] transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-70 sm:mt-2 sm:h-16 sm:text-2xl"
               >
                 {isSavingIncome ? "Gemmer..." : editingIncomeId ? "Gem ændringer" : "✓ Gem"}
               </button>
