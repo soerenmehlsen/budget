@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Edit2, Plus, Settings, Trash2 } from "lucide-react";
+import { motion } from "motion/react";
 import { BottomNav } from "@/components/bottom-nav";
 import {
   CACHE_KEYS,
@@ -543,14 +544,24 @@ export default function IncomePage() {
       </div>
 
       {isAddIncomeOpen ? (
-        <div className="fixed inset-0 z-40 bg-black/45 backdrop-blur-[2px]" onClick={closeAddIncomeModal}>
-          <section
-            className="absolute left-1/2 top-1/2 w-[calc(100%-1rem)] max-w-[560px] -translate-x-1/2 -translate-y-1/2 rounded-[1rem] border border-slate-200 bg-white p-4 shadow-[0_25px_80px_rgba(0,0,0,0.1)] max-h-[82dvh] overflow-auto dark:border-white/10 dark:bg-slate-800 dark:shadow-[0_25px_80px_rgba(0,0,0,0.5)] sm:top-auto sm:bottom-20 sm:w-[calc(100%-2rem)] sm:max-w-[680px] sm:-translate-y-0 sm:rounded-[2rem] sm:p-7"
-            onClick={(event) => event.stopPropagation()}
-            role="dialog"
-            aria-modal="true"
-            aria-label={editingIncomeId ? "Rediger indkomst" : "Tilføj indkomst"}
-          >
+        <motion.div
+          className="fixed inset-0 z-40 bg-black/45 backdrop-blur-[2px]"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.18, ease: "easeOut" }}
+          onClick={closeAddIncomeModal}
+        >
+          <div className="absolute left-1/2 top-1/2 w-[calc(100%-1rem)] max-w-[560px] -translate-x-1/2 -translate-y-1/2 sm:top-auto sm:bottom-20 sm:w-[calc(100%-2rem)] sm:max-w-[680px] sm:-translate-y-0">
+            <motion.section
+              className="max-h-[82dvh] overflow-auto rounded-[1rem] border border-slate-200 bg-white p-4 shadow-[0_25px_80px_rgba(0,0,0,0.1)] dark:border-white/10 dark:bg-slate-800 dark:shadow-[0_25px_80px_rgba(0,0,0,0.5)] sm:rounded-[2rem] sm:p-7"
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              onClick={(event) => event.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-label={editingIncomeId ? "Rediger indkomst" : "Tilføj indkomst"}
+            >
             <header className="flex items-start justify-between gap-4">
               <h2 className="text-xl font-semibold text-slate-900 dark:text-white sm:text-3xl">
                 {editingIncomeId ? "Rediger indkomst" : "Tilføj indkomst"}
@@ -632,8 +643,9 @@ export default function IncomePage() {
                 {isSavingIncome ? "Gemmer..." : editingIncomeId ? "Gem ændringer" : "✓ Gem"}
               </button>
             </div>
-          </section>
-        </div>
+            </motion.section>
+          </div>
+        </motion.div>
       ) : null}
     </main>
   );
