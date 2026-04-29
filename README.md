@@ -63,6 +63,7 @@ npm run dev
 │   ├── layout.tsx           # Root layout
 │   ├── dashboard/           # Dashboard-side
 │   ├── expenses/            # Udgifter-administrasjon
+│   ├── income/              # Indkomst-administration
 │   └── reset-password/      # Nulstil adgangskode
 ├── components/              # Reusable React komponenter
 │   ├── login-panel.tsx      # Login-formular
@@ -81,6 +82,7 @@ npm run dev
 - ✅ Adgangskode-nulstilling
 - ✅ Dashboard med budget-oversigt
 - ✅ Registrering af udgifter
+- ✅ Registrering og redigering af indkomstkilder
 - ✅ Mobil-venligt design
 - ✅ Dark mode UI
 - ✅ Lucide React icons

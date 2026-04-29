@@ -200,7 +200,6 @@ export default function DashboardPage() {
   const router = useRouter();
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
-  const [email, setEmail] = useState<string | null>(null);
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [dataSource, setDataSource] = useState<"supabase" | "fallback">("fallback");
   const [periodView, setPeriodView] = useState<PeriodView>("month");
@@ -237,7 +236,6 @@ export default function DashboardPage() {
         return;
       }
 
-      setEmail(data.session.user.email ?? null);
       await loadDashboardData(data.session.user.id);
       setIsCheckingSession(false);
     };
@@ -252,7 +250,6 @@ export default function DashboardPage() {
           return;
         }
 
-        setEmail(session.user.email ?? null);
         void loadDashboardData(session.user.id);
         setIsCheckingSession(false);
       },

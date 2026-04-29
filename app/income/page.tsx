@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Settings, Plus, Trash2 } from "lucide-react";
+import { Edit2, Plus, Settings, Trash2 } from "lucide-react";
 import { BottomNav } from "@/components/bottom-nav";
 import { supabase } from "@/lib/supabase/client";
 
@@ -66,6 +66,7 @@ export default function IncomePage() {
   const [incomeItems, setIncomeItems] = useState<IncomeItem[]>([]);
   const [dataSource, setDataSource] = useState<"supabase" | "fallback">("fallback");
   const [isAddIncomeOpen, setIsAddIncomeOpen] = useState(false);
+  const [editingIncomeId, setEditingIncomeId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
@@ -160,14 +161,24 @@ export default function IncomePage() {
   const totalCount = incomeItems.length;
 
   const resetAddIncomeForm = () => {
+    setEditingIncomeId(null);
     setName("");
     setAmount("");
     setFormError(null);
   };
 
   const openAddIncomeModal = () => {
+    resetAddIncomeForm();
     setIsAddIncomeOpen(true);
     setFormError(null);
+  };
+
+  const openEditIncomeModal = (item: IncomeItem) => {
+    setEditingIncomeId(item.id);
+    setName(item.name);
+    setAmount(String(item.amountMonthly));
+    setFormError(null);
+    setIsAddIncomeOpen(true);
   };
 
   const closeAddIncomeModal = () => {
@@ -177,6 +188,7 @@ export default function IncomePage() {
 
   const handleSaveIncome = async () => {
     const parsedAmount = Number(amount.replace(",", "."));
+    const isEditingIncome = editingIncomeId !== null;
 
     if (!name.trim()) {
       setFormError("Navn er påkrævet.");
@@ -196,7 +208,10 @@ export default function IncomePage() {
     setIsSavingIncome(true);
     setFormError(null);
 
-    const nextSortOrder = incomeItems.length + 1;
+    const existingIncome = incomeItems.find((item) => item.id === editingIncomeId);
+    const nextSortOrder = isEditingIncome
+      ? existingIncome?.sortOrder ?? incomeItems.length
+      : incomeItems.length + 1;
 
     const payload = {
       user_id: userId,
@@ -205,26 +220,44 @@ export default function IncomePage() {
       sort_order: nextSortOrder,
     };
 
-    const { data, error } = await supabase
-      .from("income_sources")
-      .insert(payload)
-      .select("id, name, amount_monthly, sort_order")
-      .single();
+    const { data, error } = isEditingIncome
+      ? await supabase
+          .from("income_sources")
+          .update(payload)
+          .eq("id", editingIncomeId)
+          .eq("user_id", userId)
+          .select("id, name, amount_monthly, sort_order")
+          .single()
+      : await supabase
+          .from("income_sources")
+          .insert(payload)
+          .select("id, name, amount_monthly, sort_order")
+          .single();
 
     if (error) {
       setIsSavingIncome(false);
-      setFormError("Kunne ikke gemme indkomst. Tjek at tabellen income_sources findes.");
+      setFormError(
+        isEditingIncome
+          ? "Kunne ikke opdatere indkomst. Prøv igen."
+          : "Kunne ikke gemme indkomst. Tjek at tabellen income_sources findes.",
+      );
       return;
     }
 
-    const createdItem: IncomeItem = {
+    const savedItem: IncomeItem = {
       id: data.id ?? `income-${payload.name}`,
       name: data.name,
       amountMonthly: data.amount_monthly,
       sortOrder: typeof data.sort_order === "number" ? data.sort_order : null,
     };
 
-    setIncomeItems((current) => [...current, createdItem].sort(bySortOrderAndName));
+    setIncomeItems((current) => {
+      const nextItems = isEditingIncome
+        ? current.map((item) => (item.id === editingIncomeId ? savedItem : item))
+        : [...current, savedItem];
+
+      return nextItems.sort(bySortOrderAndName);
+    });
     setDataSource("supabase");
     setIsSavingIncome(false);
     closeAddIncomeModal();
@@ -301,13 +334,25 @@ export default function IncomePage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between mb-3">
                         <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Navn</p>
-                        <button
-                          type="button"
-                          disabled
-                          className="inline-flex items-center gap-1.5 text-rose-500 cursor-not-allowed opacity-50"
-                        >
-                          <Trash2 size={16} strokeWidth={2} />
-                        </button>
+                        <div className="flex items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() => openEditIncomeModal(item)}
+                            className="inline-flex items-center gap-1.5 text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
+                            aria-label="Rediger indkomst"
+                          >
+                            <Edit2 size={16} strokeWidth={2} />
+                            Rediger
+                          </button>
+                          <button
+                            type="button"
+                            disabled
+                            className="inline-flex items-center gap-1.5 text-rose-500 cursor-not-allowed opacity-50"
+                            aria-label="Slet indkomst"
+                          >
+                            <Trash2 size={16} strokeWidth={2} />
+                          </button>
+                        </div>
                       </div>
                       <input
                         value={item.name}
@@ -373,10 +418,12 @@ export default function IncomePage() {
             onClick={(event) => event.stopPropagation()}
             role="dialog"
             aria-modal="true"
-            aria-label="Tilføj indkomst"
+            aria-label={editingIncomeId ? "Rediger indkomst" : "Tilføj indkomst"}
           >
             <header className="flex items-start justify-between gap-4">
-              <h2 className="text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-white">Tilføj indkomst</h2>
+              <h2 className="text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-white">
+                {editingIncomeId ? "Rediger indkomst" : "Tilføj indkomst"}
+              </h2>
               <button
                 type="button"
                 onClick={closeAddIncomeModal}
@@ -422,7 +469,7 @@ export default function IncomePage() {
                 disabled={isSavingIncome}
                 className="mt-2 flex h-12 sm:h-16 w-full items-center justify-center rounded-2xl bg-blue-500 text-xl sm:text-2xl font-semibold text-white shadow-[0_20px_60px_rgba(59,130,246,0.35)] transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-70"
               >
-                {isSavingIncome ? "Gemmer..." : "✓ Gem"}
+                {isSavingIncome ? "Gemmer..." : editingIncomeId ? "Gem ændringer" : "✓ Gem"}
               </button>
             </div>
           </section>
