@@ -141,6 +141,19 @@ function periodLabelToFrequencyText(periodLabel: string | null | undefined) {
   }
 }
 
+function expenseItemToFrequency(item: ExpenseItem): Frequency {
+  switch (item.periodLabel) {
+    case "kvartal":
+      return "quarterly";
+    case "halvår":
+      return "halfYearly";
+    case "år":
+      return "yearly";
+    default:
+      return "monthly";
+  }
+}
+
 export default function ExpensesPage() {
   const router = useRouter();
   const [isCheckingSession, setIsCheckingSession] = useState(true);
@@ -152,6 +165,7 @@ export default function ExpensesPage() {
   const [dataSource, setDataSource] = useState<"supabase" | "fallback">("fallback");
   const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
+  const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [category, setCategory] = useState("Abonnementer");
   const [amount, setAmount] = useState("");
@@ -276,6 +290,7 @@ export default function ExpensesPage() {
     groupedExpenses.every((group) => collapsedCategories[group.category] === true);
 
   const resetAddExpenseForm = () => {
+    setEditingExpenseId(null);
     setName("");
     setCategory("Abonnementer");
     setAmount("");
@@ -285,12 +300,25 @@ export default function ExpensesPage() {
   };
 
   const openAddExpenseModal = (preferredCategory?: string) => {
+    resetAddExpenseForm();
+
     if (preferredCategory) {
       setCategory(preferredCategory);
     }
 
     setIsAddExpenseOpen(true);
     setFormError(null);
+  };
+
+  const openEditExpenseModal = (item: ExpenseItem) => {
+    setEditingExpenseId(item.id);
+    setName(item.name);
+    setCategory(item.category);
+    setAmount(String(item.amountPeriod ?? item.amountMonthly));
+    setFrequency(expenseItemToFrequency(item));
+    setIsAdvancedOpen(false);
+    setFormError(null);
+    setIsAddExpenseOpen(true);
   };
 
   const closeAddExpenseModal = () => {
@@ -311,6 +339,7 @@ export default function ExpensesPage() {
 
   const handleSaveExpense = async () => {
     const parsedAmount = Number(amount.replace(",", "."));
+    const isEditingExpense = editingExpenseId !== null;
 
     if (!name.trim()) {
       setFormError("Navn er påkrævet.");
@@ -334,7 +363,9 @@ export default function ExpensesPage() {
     const periodLabel = frequencyToPeriodLabel(frequency);
     const periodAmount = frequency === "monthly" ? null : parsedAmount;
 
-    const groupItems = expenseItems.filter((item) => item.category === category);
+    const groupItems = expenseItems.filter(
+      (item) => item.category === category && item.id !== editingExpenseId,
+    );
     const nextSortOrder = groupItems.length + 1;
 
     const payload = {
@@ -346,19 +377,31 @@ export default function ExpensesPage() {
       sort_order: nextSortOrder,
     };
 
-    const { data, error } = await supabase
-      .from("expense_items")
-      .insert(payload)
-      .select("id, category, name, amount_monthly, amount_annual, sort_order")
-      .single();
+    const { data, error } = isEditingExpense
+      ? await supabase
+          .from("expense_items")
+          .update(payload)
+          .eq("id", editingExpenseId)
+          .eq("user_id", userId)
+          .select("id, category, name, amount_monthly, amount_annual, sort_order")
+          .single()
+      : await supabase
+          .from("expense_items")
+          .insert(payload)
+          .select("id, category, name, amount_monthly, amount_annual, sort_order")
+          .single();
 
     if (error) {
       setIsSavingExpense(false);
-      setFormError("Kunne ikke gemme udgift. Tjek at tabellen expense_items findes.");
+      setFormError(
+        isEditingExpense
+          ? "Kunne ikke opdatere udgift. Tjek at tabellen expense_items findes."
+          : "Kunne ikke gemme udgift. Tjek at tabellen expense_items findes.",
+      );
       return;
     }
 
-    const createdItem: ExpenseItem = {
+    const savedItem: ExpenseItem = {
       id: data.id ?? `${payload.category}-${payload.name}`,
       category: data.category,
       name: data.name,
@@ -373,7 +416,13 @@ export default function ExpensesPage() {
       sortOrder: typeof data.sort_order === "number" ? data.sort_order : null,
     };
 
-    setExpenseItems((current) => [...current, createdItem].sort(bySortOrderAndName));
+    setExpenseItems((current) => {
+      const nextItems = isEditingExpense
+        ? current.map((item) => (item.id === editingExpenseId ? savedItem : item))
+        : [...current, savedItem];
+
+      return nextItems.sort(bySortOrderAndName);
+    });
     setDataSource("supabase");
     setIsSavingExpense(false);
     closeAddExpenseModal();
@@ -516,7 +565,9 @@ export default function ExpensesPage() {
                               <div className="mt-2 flex items-center gap-3 text-xs">
                                 <button
                                   type="button"
+                                  onClick={() => openEditExpenseModal(item)}
                                   className="inline-flex items-center gap-1.5 text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
+                                  aria-label="Rediger udgift"
                                 >
                                   <Edit2 size={14} strokeWidth={2} />
                                   Rediger
@@ -574,10 +625,12 @@ export default function ExpensesPage() {
             onClick={(event) => event.stopPropagation()}
             role="dialog"
             aria-modal="true"
-            aria-label="Tilføj udgift"
+            aria-label={editingExpenseId ? "Rediger udgift" : "Tilføj udgift"}
           >
             <header className="flex items-start justify-between gap-4">
-              <h2 className="text-xl font-semibold text-slate-900 dark:text-white sm:text-3xl">Tilføj udgift</h2>
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-white sm:text-3xl">
+                {editingExpenseId ? "Rediger udgift" : "Tilføj udgift"}
+              </h2>
               <button
                 type="button"
                 onClick={closeAddExpenseModal}
@@ -688,7 +741,11 @@ export default function ExpensesPage() {
                 disabled={isSavingExpense}
                 className="mt-1 flex h-10 w-full items-center justify-center rounded-2xl bg-blue-500 text-base font-semibold text-white shadow-[0_20px_60px_rgba(59,130,246,0.35)] transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-70 sm:mt-2 sm:h-16 sm:text-2xl"
               >
-                {isSavingExpense ? "Gemmer..." : "✓ Tilføj"}
+                {isSavingExpense
+                  ? "Gemmer..."
+                  : editingExpenseId
+                    ? "Gem ændringer"
+                    : "✓ Tilføj"}
               </button>
             </div>
           </section>
