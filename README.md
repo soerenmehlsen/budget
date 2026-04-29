@@ -72,6 +72,8 @@ npm run dev
 ├── lib/
 │   └── supabase/            # Supabase konfiguration
 │       └── client.ts        # Supabase klient
+├── supabase/
+│   └── migrations/          # Database-migrationer
 ├── public/                  # Statiske filer
 └── tsconfig.json           # TypeScript config
 ```
@@ -82,7 +84,7 @@ npm run dev
 - ✅ Adgangskode-nulstilling
 - ✅ Dashboard med budget-oversigt
 - ✅ Registrering af udgifter
-- ✅ Registrering, redigering og sletning af indkomstkilder
+- ✅ Registrering, redigering og sletning af indkomstkilder med frekvens
 - ✅ Mobil-venligt design
 - ✅ Dark mode UI
 - ✅ Lucide React icons

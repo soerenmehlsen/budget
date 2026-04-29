@@ -10,8 +10,12 @@ type IncomeItem = {
   id: string;
   name: string;
   amountMonthly: number;
+  amountPeriod?: number | null;
+  periodLabel?: string | null;
   sortOrder?: number | null;
 };
+
+type Frequency = "monthly" | "quarterly" | "halfYearly" | "yearly";
 
 const FALLBACK_INCOMES: IncomeItem[] = [
   {
@@ -56,6 +60,62 @@ function bySortOrderAndName(a: IncomeItem, b: IncomeItem) {
   return a.name.localeCompare(b.name, "da-DK");
 }
 
+function frequencyToPeriodLabel(frequency: Frequency) {
+  switch (frequency) {
+    case "monthly":
+      return "måned";
+    case "quarterly":
+      return "kvartal";
+    case "halfYearly":
+      return "halvår";
+    case "yearly":
+      return "år";
+    default:
+      return "måned";
+  }
+}
+
+function frequencyToMonthlyAmount(amount: number, frequency: Frequency) {
+  switch (frequency) {
+    case "monthly":
+      return amount;
+    case "quarterly":
+      return amount / 3;
+    case "halfYearly":
+      return amount / 6;
+    case "yearly":
+      return amount / 12;
+    default:
+      return amount;
+  }
+}
+
+function periodLabelToFrequencyText(periodLabel: string | null | undefined) {
+  switch (periodLabel) {
+    case "kvartal":
+      return "Kvartalsvis";
+    case "halvår":
+      return "Halvårlig";
+    case "år":
+      return "Årlig";
+    default:
+      return "Månedlig";
+  }
+}
+
+function incomeItemToFrequency(item: IncomeItem): Frequency {
+  switch (item.periodLabel) {
+    case "kvartal":
+      return "quarterly";
+    case "halvår":
+      return "halfYearly";
+    case "år":
+      return "yearly";
+    default:
+      return "monthly";
+  }
+}
+
 export default function IncomePage() {
   const router = useRouter();
   const [isCheckingSession, setIsCheckingSession] = useState(true);
@@ -69,6 +129,7 @@ export default function IncomePage() {
   const [editingIncomeId, setEditingIncomeId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
+  const [frequency, setFrequency] = useState<Frequency>("monthly");
   const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -79,7 +140,7 @@ export default function IncomePage() {
 
       const { data, error } = await supabase
         .from("income_sources")
-        .select("id, name, amount_monthly, sort_order")
+        .select("id, name, amount_monthly, amount_period, period_label, sort_order")
         .eq("user_id", signedInUserId)
         .order("sort_order", { ascending: true });
 
@@ -104,6 +165,8 @@ export default function IncomePage() {
           id: row.id ?? `income-${row.name}`,
           name: row.name,
           amountMonthly: row.amount_monthly,
+          amountPeriod: typeof row.amount_period === "number" ? row.amount_period : null,
+          periodLabel: typeof row.period_label === "string" ? row.period_label : null,
           sortOrder: typeof row.sort_order === "number" ? row.sort_order : null,
         }))
         .sort(bySortOrderAndName);
@@ -164,6 +227,7 @@ export default function IncomePage() {
     setEditingIncomeId(null);
     setName("");
     setAmount("");
+    setFrequency("monthly");
     setFormError(null);
   };
 
@@ -176,7 +240,8 @@ export default function IncomePage() {
   const openEditIncomeModal = (item: IncomeItem) => {
     setEditingIncomeId(item.id);
     setName(item.name);
-    setAmount(String(item.amountMonthly));
+    setAmount(String(item.amountPeriod ?? item.amountMonthly));
+    setFrequency(incomeItemToFrequency(item));
     setFormError(null);
     setIsAddIncomeOpen(true);
   };
@@ -212,11 +277,16 @@ export default function IncomePage() {
     const nextSortOrder = isEditingIncome
       ? existingIncome?.sortOrder ?? incomeItems.length
       : incomeItems.length + 1;
+    const monthlyAmount = frequencyToMonthlyAmount(parsedAmount, frequency);
+    const periodLabel = frequencyToPeriodLabel(frequency);
+    const periodAmount = frequency === "monthly" ? null : parsedAmount;
 
     const payload = {
       user_id: userId,
       name: name.trim(),
-      amount_monthly: parsedAmount,
+      amount_monthly: monthlyAmount,
+      amount_period: periodAmount,
+      period_label: periodAmount === null ? null : periodLabel,
       sort_order: nextSortOrder,
     };
 
@@ -226,12 +296,12 @@ export default function IncomePage() {
           .update(payload)
           .eq("id", editingIncomeId)
           .eq("user_id", userId)
-          .select("id, name, amount_monthly, sort_order")
+          .select("id, name, amount_monthly, amount_period, period_label, sort_order")
           .single()
       : await supabase
           .from("income_sources")
           .insert(payload)
-          .select("id, name, amount_monthly, sort_order")
+          .select("id, name, amount_monthly, amount_period, period_label, sort_order")
           .single();
 
     if (error) {
@@ -248,6 +318,8 @@ export default function IncomePage() {
       id: data.id ?? `income-${payload.name}`,
       name: data.name,
       amountMonthly: data.amount_monthly,
+      amountPeriod: typeof data.amount_period === "number" ? data.amount_period : periodAmount,
+      periodLabel: typeof data.period_label === "string" ? data.period_label : payload.period_label,
       sortOrder: typeof data.sort_order === "number" ? data.sort_order : null,
     };
 
@@ -394,20 +466,24 @@ export default function IncomePage() {
                       <div className="mt-4 grid grid-cols-2 gap-4">
                         <div>
                           <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">Beløb</p>
-                          <div className="h-12 sm:h-14 rounded-2xl border border-slate-200 bg-slate-50 px-4 flex items-center dark:border-white/10 dark:bg-slate-600/40">
-                            <p className="text-base sm:text-lg font-semibold text-slate-900 dark:text-white">
-                              {formatCompactDkk(item.amountMonthly)}
+                          <div className="min-h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 flex flex-col justify-center dark:border-white/10 dark:bg-slate-600/40 sm:min-h-14">
+                            <p className="text-base font-semibold text-slate-900 dark:text-white sm:text-lg">
+                              {formatCompactDkk(item.amountMonthly)}/md
                             </p>
+                            {typeof item.amountPeriod === "number" && item.periodLabel ? (
+                              <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                                {formatCompactDkk(item.amountPeriod)}/{item.periodLabel}
+                              </p>
+                            ) : null}
                           </div>
                         </div>
 
                         <div>
                           <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">Frekvens</p>
-                          <div className="h-12 sm:h-14 rounded-2xl border border-slate-200 bg-slate-50 px-4 flex items-center justify-between dark:border-white/10 dark:bg-slate-600/40">
-                            <p className="text-base sm:text-lg font-semibold text-slate-900 dark:text-white">Månedlig</p>
-                            <svg className="w-5 h-5 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                            </svg>
+                          <div className="h-12 sm:h-14 rounded-2xl border border-slate-200 bg-slate-50 px-4 flex items-center dark:border-white/10 dark:bg-slate-600/40">
+                            <p className="text-base sm:text-lg font-semibold text-slate-900 dark:text-white">
+                              {periodLabelToFrequencyText(item.periodLabel)}
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -491,6 +567,35 @@ export default function IncomePage() {
                   </span>
                 </div>
               </label>
+
+              <fieldset>
+                <legend className="mb-3 text-xl font-medium text-slate-900 dark:text-slate-200">Frekvens</legend>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { value: "monthly", label: "Månedlig" },
+                    { value: "quarterly", label: "Kvartalsvis" },
+                    { value: "halfYearly", label: "Halvårlig" },
+                    { value: "yearly", label: "Årlig" },
+                  ].map((option) => {
+                    const isActive = frequency === option.value;
+
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => setFrequency(option.value as Frequency)}
+                        className={`h-12 rounded-2xl border text-base font-medium transition sm:h-16 sm:text-xl ${
+                          isActive
+                            ? "border-blue-400 bg-blue-500/20 text-blue-700 dark:text-blue-300"
+                            : "border-slate-300 bg-slate-100 text-slate-700 hover:border-slate-400 dark:border-white/15 dark:bg-slate-700/40 dark:text-slate-300 dark:hover:border-white/25"
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </fieldset>
 
               {formError ? <p className="text-sm text-rose-600 dark:text-rose-300">{formError}</p> : null}
 
