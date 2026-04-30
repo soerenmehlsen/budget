@@ -127,6 +127,7 @@ Projektet deployes til [Vercel](https://vercel.com) via GitHub Actions.
    - `VERCEL_PROJECT_ID`
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   Hvis du bruger GitHub environment secrets, skal de ligge i environment `Production`.
 5. Push til `main` for at køre CI og deploye til production
 
 Pull requests kører `npm run lint` og `npm run build`, men deployer ikke.
