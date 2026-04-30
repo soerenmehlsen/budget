@@ -116,12 +116,18 @@ Krævet i `.env.local`:
 
 ## Deployment
 
-Projektet kan nemt deployes på [Vercel](https://vercel.com):
+Projektet deployes til [Vercel](https://vercel.com) via GitHub Actions.
 
 1. Push til GitHub
 2. Forbind repository til Vercel
 3. Tilføj miljøvariabler i Vercel dashboard
-4. Deploy!
+4. Tilføj disse GitHub repository secrets:
+   - `VERCEL_TOKEN`
+   - `VERCEL_ORG_ID`
+   - `VERCEL_PROJECT_ID`
+5. Push til `main` for at køre CI og deploye til production
+
+Pull requests kører `npm run lint` og `npm run build`, men deployer ikke.
 
 ## Licens
 
