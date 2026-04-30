@@ -89,10 +89,21 @@ const moneyFormatter = new Intl.NumberFormat("da-DK", {
 
 const CATEGORIES = [
   "Bolig",
+  "Mad",
   "Forbrug",
   "Transport",
   "Abonnementer",
   "Forsikring",
+  "Sundhed",
+  "Børn",
+  "Kæledyr",
+  "Fritid",
+  "Restaurant og cafe",
+  "Tøj og sko",
+  "Gaver",
+  "Rejser",
+  "Opsparing",
+  "Gæld",
   "Diverse",
 ];
 
