@@ -125,6 +125,8 @@ Projektet deployes til [Vercel](https://vercel.com) via GitHub Actions.
    - `VERCEL_TOKEN`
    - `VERCEL_ORG_ID`
    - `VERCEL_PROJECT_ID`
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 5. Push til `main` for at køre CI og deploye til production
 
 Pull requests kører `npm run lint` og `npm run build`, men deployer ikke.
