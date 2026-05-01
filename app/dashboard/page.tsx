@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AnimatePresence, motion } from "motion/react";
+import type { Transition } from "motion/react";
+import { motion } from "motion/react";
 import { BottomNav } from "@/components/bottom-nav";
 import { LogoutIcon, type LogoutIconHandle } from "@/components/ui/logout";
 import { CACHE_KEYS, readCachedData, writeCachedData } from "@/lib/data-cache";
@@ -10,6 +11,11 @@ import { supabase } from "@/lib/supabase/client";
 
 type PeriodView = "month" | "year";
 type SortMode = "alpha" | "highest";
+
+const collapseTransition: Transition = {
+  duration: 0.22,
+  ease: "easeOut",
+};
 
 type IncomeSource = {
   name: string;
@@ -424,7 +430,7 @@ export default function DashboardPage() {
           <section className="mt-6 sm:mt-7">
             <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-4">
               <h2 className="text-base font-semibold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
-                Udgifter per kategori
+                Udgifter pr. kategori
               </h2>
 
               <div className="flex items-center gap-2 sm:gap-3">
@@ -456,7 +462,7 @@ export default function DashboardPage() {
                 <motion.article
                   key={group.category}
                   layout
-                  transition={{ duration: 0.24, ease: "easeOut" }}
+                  transition={collapseTransition}
                   className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 dark:border-white/15 dark:bg-slate-800/75 sm:rounded-3xl"
                 >
                   <div className="flex items-center justify-between gap-2 px-3 py-3 sm:gap-4 sm:px-6 sm:py-4">
@@ -466,14 +472,21 @@ export default function DashboardPage() {
                     </p>
                   </div>
 
-                  <AnimatePresence initial={false}>
-                    {!isCollapsed ? (
+                  <motion.div
+                    className="grid overflow-hidden"
+                    initial={false}
+                    animate={{ gridTemplateRows: isCollapsed ? "0fr" : "1fr" }}
+                    transition={collapseTransition}
+                  >
+                    <div className="min-h-0 overflow-hidden">
                       <motion.ul
-                        className="overflow-hidden border-t border-slate-200 px-3 py-2 dark:border-white/10 sm:px-6 sm:py-4"
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.24, ease: "easeOut" }}
+                        className="border-t border-slate-200 px-3 py-2 dark:border-white/10 sm:px-6 sm:py-4"
+                        initial={false}
+                        animate={{
+                          opacity: isCollapsed ? 0 : 1,
+                          y: isCollapsed ? -4 : 0,
+                        }}
+                        transition={collapseTransition}
                       >
                         {group.items.map((item) => (
                           <li
@@ -492,8 +505,8 @@ export default function DashboardPage() {
                           </li>
                         ))}
                       </motion.ul>
-                    ) : null}
-                  </AnimatePresence>
+                    </div>
+                  </motion.div>
                 </motion.article>
               ))}
             </div>

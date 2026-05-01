@@ -184,7 +184,6 @@ export default function ExpensesPage() {
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [isLoadingExpenses, setIsLoadingExpenses] = useState(false);
   const [isSavingExpense, setIsSavingExpense] = useState(false);
-  const [email, setEmail] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [expenseItems, setExpenseItems] = useState<ExpenseItem[]>([]);
   const [dataSource, setDataSource] = useState<"supabase" | "fallback">("fallback");
@@ -270,7 +269,6 @@ export default function ExpensesPage() {
         return;
       }
 
-      setEmail(data.session.user.email ?? null);
       setUserId(data.session.user.id);
       await loadExpenses(data.session.user.id);
       setIsCheckingSession(false);
@@ -285,7 +283,6 @@ export default function ExpensesPage() {
           return;
         }
 
-        setEmail(session.user.email ?? null);
         setUserId(session.user.id);
         void loadExpenses(session.user.id);
         setIsCheckingSession(false);
@@ -694,8 +691,6 @@ export default function ExpensesPage() {
               Viser demo-tal. Opret data i tabellen expense_items for at få live-udgifter.
             </p>
           ) : null}
-
-          <p className="mt-4 text-xs text-slate-600 dark:text-slate-500">{email ?? ""}</p>
         </section>
 
         <BottomNav activeItem="Udgifter" />
@@ -836,7 +831,7 @@ export default function ExpensesPage() {
                   ? "Gemmer..."
                   : editingExpenseId
                     ? "Gem ændringer"
-                    : "✓ Tilføj"}
+                    : "Tilføj"}
               </button>
             </div>
             </motion.section>

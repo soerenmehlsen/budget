@@ -132,7 +132,6 @@ export default function IncomePage() {
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [isLoadingIncome, setIsLoadingIncome] = useState(false);
   const [isSavingIncome, setIsSavingIncome] = useState(false);
-  const [email, setEmail] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [incomeItems, setIncomeItems] = useState<IncomeItem[]>([]);
   const [dataSource, setDataSource] = useState<"supabase" | "fallback">("fallback");
@@ -212,7 +211,6 @@ export default function IncomePage() {
         return;
       }
 
-      setEmail(data.session.user.email ?? null);
       setUserId(data.session.user.id);
       await loadIncome(data.session.user.id);
       setIsCheckingSession(false);
@@ -227,7 +225,6 @@ export default function IncomePage() {
           return;
         }
 
-        setEmail(session.user.email ?? null);
         setUserId(session.user.id);
         void loadIncome(session.user.id);
         setIsCheckingSession(false);
@@ -419,15 +416,7 @@ export default function IncomePage() {
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3">
-              <AnimatedIconButton
-                type="button"
-                disabled
-                Icon={SettingsIcon}
-                iconSize={20}
-                className="grid h-11 w-11 place-items-center rounded-xl border border-slate-300 dark:border-white/15 bg-slate-100 dark:bg-slate-700/70 text-slate-500 dark:text-slate-400 sm:h-12 sm:w-12 sm:rounded-2xl"
-                aria-hidden="true"
-              />
-
+              
               <AnimatedIconButton
                 type="button"
                 onClick={openAddIncomeModal}
@@ -472,7 +461,7 @@ export default function IncomePage() {
                             onClick={() => openEditIncomeModal(item)}
                             Icon={SquarePenIcon}
                             iconSize={16}
-                            className="inline-flex items-center gap-1.5 text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
+                            className="inline-flex text-sm items-center gap-1.5 text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
                             aria-label="Rediger indkomst"
                           >
                             Rediger
@@ -497,8 +486,8 @@ export default function IncomePage() {
                         <div>
                           <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">Beløb</p>
                           <div className="min-h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 flex flex-col justify-center dark:border-white/10 dark:bg-slate-600/40 sm:min-h-14">
-                            <p className="text-base font-semibold text-slate-900 dark:text-white sm:text-lg">
-                              {formatCompactDkk(item.amountMonthly)}/md
+                            <p className="text-sm font-semibold text-slate-900 dark:text-white sm:text-lg">
+                              {formatCompactDkk(item.amountMonthly)}
                             </p>
                             {typeof item.amountPeriod === "number" && item.periodLabel ? (
                               <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
@@ -511,7 +500,7 @@ export default function IncomePage() {
                         <div>
                           <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">Frekvens</p>
                           <div className="h-12 sm:h-14 rounded-2xl border border-slate-200 bg-slate-50 px-4 flex items-center dark:border-white/10 dark:bg-slate-600/40">
-                            <p className="text-base sm:text-lg font-semibold text-slate-900 dark:text-white">
+                            <p className="text-sm sm:text-lg font-semibold text-slate-900 dark:text-white">
                               {periodLabelToFrequencyText(item.periodLabel)}
                             </p>
                           </div>
@@ -541,8 +530,6 @@ export default function IncomePage() {
               Viser demo-tal. Opret data i tabellen income_sources for at få live-indkomster.
             </p>
           ) : null}
-
-          <p className="mt-6 text-xs text-slate-600 dark:text-slate-500">{email ?? ""}</p>
         </section>
 
         <BottomNav activeItem="Indkomst" />
@@ -645,7 +632,7 @@ export default function IncomePage() {
                 disabled={isSavingIncome}
                 className="mt-1 flex h-10 w-full items-center justify-center rounded-2xl bg-blue-500 text-base font-semibold text-white shadow-[0_20px_60px_rgba(59,130,246,0.35)] transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-70 sm:mt-2 sm:h-16 sm:text-2xl"
               >
-                {isSavingIncome ? "Gemmer..." : editingIncomeId ? "Gem ændringer" : "✓ Gem"}
+                {isSavingIncome ? "Gemmer..." : editingIncomeId ? "Gem ændringer" : "Gem"}
               </button>
             </div>
             </motion.section>
