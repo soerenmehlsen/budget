@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import { BottomNav } from "@/components/bottom-nav";
+import { AnimatedIconButton } from "@/components/ui/animated-icon-button";
 import { DeleteIcon } from "@/components/ui/delete";
 import { PlusIcon } from "@/components/ui/plus";
 import { SettingsIcon } from "@/components/ui/settings";
@@ -418,23 +419,23 @@ export default function IncomePage() {
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3">
-              <button
+              <AnimatedIconButton
                 type="button"
                 disabled
+                Icon={SettingsIcon}
+                iconSize={20}
                 className="grid h-11 w-11 place-items-center rounded-xl border border-slate-300 dark:border-white/15 bg-slate-100 dark:bg-slate-700/70 text-slate-500 dark:text-slate-400 sm:h-12 sm:w-12 sm:rounded-2xl"
                 aria-hidden="true"
-              >
-                <SettingsIcon size={20} />
-              </button>
+              />
 
-              <button
+              <AnimatedIconButton
                 type="button"
                 onClick={openAddIncomeModal}
+                Icon={PlusIcon}
+                iconSize={20}
                 className="grid h-11 w-11 place-items-center rounded-xl border border-blue-400/30 bg-blue-500 text-white shadow-[0_15px_45px_rgba(59,130,246,0.35)] transition hover:bg-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-300/35 sm:h-12 sm:w-12 sm:rounded-2xl"
                 aria-label="Tilføj indkomst"
-              >
-                <PlusIcon size={20} />
-              </button>
+              />
             </div>
           </header>
 
@@ -466,23 +467,24 @@ export default function IncomePage() {
                       <div className="flex items-center justify-between mb-3">
                         <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Navn</p>
                         <div className="flex items-center gap-3">
-                          <button
+                          <AnimatedIconButton
                             type="button"
                             onClick={() => openEditIncomeModal(item)}
+                            Icon={SquarePenIcon}
+                            iconSize={16}
                             className="inline-flex items-center gap-1.5 text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
                             aria-label="Rediger indkomst"
                           >
-                            <SquarePenIcon size={16} />
                             Rediger
-                          </button>
-                          <button
+                          </AnimatedIconButton>
+                          <AnimatedIconButton
                             type="button"
                             onClick={() => handleDeleteIncome(item.id)}
+                            Icon={DeleteIcon}
+                            iconSize={16}
                             className="inline-flex items-center gap-1.5 text-rose-500 transition hover:text-rose-400"
                             aria-label="Slet indkomst"
-                          >
-                            <DeleteIcon size={16} />
-                          </button>
+                          />
                         </div>
                       </div>
                       <input

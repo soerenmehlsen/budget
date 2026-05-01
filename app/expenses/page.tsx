@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { BottomNav } from "@/components/bottom-nav";
+import { AnimatedIconButton } from "@/components/ui/animated-icon-button";
 import { ChevronDownIcon } from "@/components/ui/chevron-down";
 import { ChevronRightIcon } from "@/components/ui/chevron-right";
 import { DeleteIcon } from "@/components/ui/delete";
@@ -525,47 +526,46 @@ export default function ExpensesPage() {
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3">
-              <button
+              <AnimatedIconButton
                 type="button"
                 disabled
+                Icon={HomeIcon}
+                iconSize={20}
                 className="grid h-11 w-11 place-items-center rounded-xl border border-slate-300 bg-slate-100 text-slate-500 dark:border-white/15 dark:bg-slate-700/70 dark:text-slate-400 sm:h-12 sm:w-12 sm:rounded-2xl"
                 aria-hidden="true"
-              >
-                <HomeIcon size={20} />
-              </button>
+              />
 
-              <button
+              <AnimatedIconButton
                 type="button"
                 disabled
+                Icon={SettingsIcon}
+                iconSize={20}
                 className="grid h-11 w-11 place-items-center rounded-xl border border-slate-300 bg-slate-100 text-slate-500 dark:border-white/15 dark:bg-slate-700/70 dark:text-slate-400 sm:h-12 sm:w-12 sm:rounded-2xl"
                 aria-hidden="true"
-              >
-                <SettingsIcon size={20} />
-              </button>
+              />
 
-              <button
+              <AnimatedIconButton
                 type="button"
                 onClick={() => openAddExpenseModal()}
+                Icon={PlusIcon}
+                iconSize={20}
                 className="grid h-11 w-11 place-items-center rounded-xl border border-blue-400/30 bg-blue-500 text-white shadow-[0_15px_45px_rgba(59,130,246,0.35)] transition hover:bg-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-300/35 sm:h-12 sm:w-12 sm:rounded-2xl"
                 aria-label="Tilføj udgift"
-              >
-                <PlusIcon size={20} />
-              </button>
+              />
             </div>
           </header>
 
           <div className="mt-6 flex items-center justify-between">
-            <button
+            <AnimatedIconButton
               type="button"
               onClick={toggleAll}
+              Icon={ChevronDownIcon}
+              iconSize={16}
+              iconClassName={`transition ${isAllCollapsed ? "rotate-0" : "rotate-180"}`}
               className="inline-flex items-center gap-2 text-sm text-slate-600 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
             >
-              <ChevronDownIcon
-                size={16}
-                className={`transition ${isAllCollapsed ? "rotate-0" : "rotate-180"}`}
-              />
               {isAllCollapsed ? "Fold alle ud" : "Fold alle ind"}
-            </button>
+            </AnimatedIconButton>
 
             <p className="text-sm text-slate-700 dark:text-slate-300">{formatCompactDkk(totalExpensesMonthly)}/md</p>
           </div>
@@ -582,7 +582,7 @@ export default function ExpensesPage() {
                   className="overflow-hidden rounded-3xl border border-slate-200 bg-white dark:border-white/10 dark:bg-slate-800/70"
                 >
                   <div className="flex items-center justify-between gap-3 px-4 py-4 sm:px-6">
-                    <button
+                    <AnimatedIconButton
                       type="button"
                       className="flex min-w-0 items-center gap-3"
                       onClick={() =>
@@ -592,32 +592,30 @@ export default function ExpensesPage() {
                         }))
                       }
                       aria-label={`Skift visning for ${group.category}`}
+                      Icon={ChevronDownIcon}
+                      iconSize={20}
+                      iconClassName={`text-slate-500 transition dark:text-slate-400 ${isCollapsed ? "-rotate-90" : "rotate-0"}`}
                     >
-                      <ChevronDownIcon
-                        size={20}
-                        className={`text-slate-500 transition dark:text-slate-400 ${isCollapsed ? "-rotate-90" : "rotate-0"}`}
-                      />
-
                       <h2 className="truncate text font-semibold text-slate-900 dark:text-white">{group.category}</h2>
 
                       <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-semibold text-slate-700 dark:bg-slate-700 dark:text-slate-300">
                         {group.items.length}
                       </span>
-                    </button>
+                    </AnimatedIconButton>
 
                     <div className="flex items-center gap-3">
                       <p className="text-sm font-semibold text-slate-900 dark:text-white sm:text-2xl">
                         {formatCompactDkk(group.totalMonthly)}/md
                       </p>
 
-                      <button
+                      <AnimatedIconButton
                         type="button"
                         onClick={() => openAddExpenseModal(group.category)}
+                        Icon={PlusIcon}
+                        iconSize={20}
                         className="text-2xl leading-none text-slate-500 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
                         aria-label="Tilføj udgift i kategori"
-                      >
-                        +
-                      </button>
+                      />
                     </div>
                   </div>
 
@@ -643,24 +641,26 @@ export default function ExpensesPage() {
                                 </p>
 
                                 <div className="mt-2 flex items-center gap-3 text-xs">
-                                  <button
+                                  <AnimatedIconButton
                                     type="button"
                                     onClick={() => openEditExpenseModal(item)}
+                                    Icon={SquarePenIcon}
+                                    iconSize={14}
                                     className="inline-flex items-center gap-1.5 text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
                                     aria-label="Rediger udgift"
                                   >
-                                    <SquarePenIcon size={14} />
                                     Rediger
-                                  </button>
-                                  <button
+                                  </AnimatedIconButton>
+                                  <AnimatedIconButton
                                     type="button"
                                     onClick={() => handleDeleteExpense(item.id)}
+                                    Icon={DeleteIcon}
+                                    iconSize={14}
                                     className="inline-flex items-center gap-1.5 text-rose-400 transition hover:text-rose-300"
                                     aria-label="Slet udgift"
                                   >
-                                    <DeleteIcon size={14} />
                                     Slet
-                                  </button>
+                                  </AnimatedIconButton>
                                 </div>
                               </div>
 
@@ -807,17 +807,16 @@ export default function ExpensesPage() {
                 </div>
               </fieldset>
 
-              <button
+              <AnimatedIconButton
                 type="button"
                 onClick={() => setIsAdvancedOpen((value) => !value)}
+                Icon={ChevronRightIcon}
+                iconSize={18}
+                iconClassName={`transition ${isAdvancedOpen ? "rotate-90" : "rotate-0"}`}
                 className="inline-flex items-center gap-1.5 text-sm text-slate-600 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-white sm:gap-2 sm:text-base"
               >
-                <ChevronRightIcon
-                  size={18}
-                  className={`transition ${isAdvancedOpen ? "rotate-90" : "rotate-0"}`}
-                />
                 Avanceret
-              </button>
+              </AnimatedIconButton>
 
               {isAdvancedOpen ? (
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600 dark:border-white/10 dark:bg-slate-700/35 dark:text-slate-300 sm:px-4 sm:py-3 sm:text-sm">

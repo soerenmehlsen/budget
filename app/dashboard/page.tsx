@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { BottomNav } from "@/components/bottom-nav";
-import { LogoutIcon } from "@/components/ui/logout";
+import { LogoutIcon, type LogoutIconHandle } from "@/components/ui/logout";
 import { CACHE_KEYS, readCachedData, writeCachedData } from "@/lib/data-cache";
 import { supabase } from "@/lib/supabase/client";
 
@@ -200,6 +200,7 @@ async function fetchDashboardData(userId: string): Promise<{
 
 export default function DashboardPage() {
   const router = useRouter();
+  const logoutIconRef = useRef<LogoutIconHandle>(null);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
@@ -378,10 +379,12 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={handleSignOut}
+                onMouseEnter={() => logoutIconRef.current?.startAnimation()}
+                onMouseLeave={() => logoutIconRef.current?.stopAnimation()}
                 className="grid h-9 w-9 place-items-center rounded-xl border border-slate-300 bg-slate-100 text-slate-600 transition hover:bg-slate-200 dark:border-white/15 dark:bg-slate-800/70 dark:text-slate-200 dark:hover:bg-slate-700 focus:outline-none focus:ring-4 focus:ring-blue-400/20 sm:h-11 sm:w-11 sm:rounded-2xl"
                 aria-label="Log ud"
               >
-                <LogoutIcon size={20} />
+                <LogoutIcon ref={logoutIconRef} size={20} />
               </button>
             </div>
           </header>
