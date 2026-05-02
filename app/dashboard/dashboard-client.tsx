@@ -349,7 +349,7 @@ export function DashboardClient() {
       <div className="relative z-10 mx-auto w-full max-w-[860px] px-3 pb-28 pt-6 sm:px-6 sm:pt-8">
         <section className="mx-auto w-full rounded-[2rem] border border-slate-200 bg-slate-50/50 p-3 shadow-[0_30px_80px_rgba(0,0,0,0.04)] backdrop-blur-sm dark:border-white/10 dark:bg-slate-900/55 dark:shadow-[0_30px_80px_rgba(0,0,0,0.35)] sm:p-8">
           <header className="flex items-center justify-between gap-2 sm:gap-4">
-            <div>
+            <div className="pl-1 sm:pl-0">
               <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-4xl">Budget</h1>
               <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400 sm:mt-1 sm:text-sm">
                 {"Overblik"}

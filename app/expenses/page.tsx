@@ -8,9 +8,7 @@ import { AnimatedIconButton } from "@/components/ui/animated-icon-button";
 import { ChevronDownIcon } from "@/components/ui/chevron-down";
 import { ChevronRightIcon } from "@/components/ui/chevron-right";
 import { DeleteIcon } from "@/components/ui/delete";
-import { HomeIcon } from "@/components/ui/home";
 import { PlusIcon } from "@/components/ui/plus";
-import { SettingsIcon } from "@/components/ui/settings";
 import { SquarePenIcon } from "@/components/ui/square-pen";
 import {
   CACHE_KEYS,
@@ -516,31 +514,13 @@ export default function ExpensesPage() {
 
       <div className="relative z-10 mx-auto w-full max-w-[860px] px-3 pb-28 pt-6 sm:px-6 sm:pt-8">
         <section className="mx-auto w-full rounded-[2rem] border border-slate-200 bg-slate-50/50 p-3 shadow-[0_30px_80px_rgba(0,0,0,0.04)] backdrop-blur-sm dark:border-white/10 dark:bg-slate-900/55 dark:shadow-[0_30px_80px_rgba(0,0,0,0.35)] sm:p-8">
-          <header className="flex items-start justify-between gap-3 sm:gap-4">
+          <header className="flex items-start justify-between gap-3 px-1 sm:gap-4 sm:px-0">
             <div>
               <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-4xl">Udgifter</h1>
               <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400 sm:mt-1 sm:text-sm">{totalCount} faste udgifter</p>
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3">
-              <AnimatedIconButton
-                type="button"
-                disabled
-                Icon={HomeIcon}
-                iconSize={20}
-                className="grid h-11 w-11 place-items-center rounded-xl border border-slate-300 bg-slate-100 text-slate-500 dark:border-white/15 dark:bg-slate-700/70 dark:text-slate-400 sm:h-12 sm:w-12 sm:rounded-2xl"
-                aria-hidden="true"
-              />
-
-              <AnimatedIconButton
-                type="button"
-                disabled
-                Icon={SettingsIcon}
-                iconSize={20}
-                className="grid h-11 w-11 place-items-center rounded-xl border border-slate-300 bg-slate-100 text-slate-500 dark:border-white/15 dark:bg-slate-700/70 dark:text-slate-400 sm:h-12 sm:w-12 sm:rounded-2xl"
-                aria-hidden="true"
-              />
-
               <AnimatedIconButton
                 type="button"
                 onClick={() => openAddExpenseModal()}
