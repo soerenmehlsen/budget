@@ -6,7 +6,6 @@ import { motion } from "motion/react";
 import { BottomNav } from "@/components/bottom-nav";
 import { AnimatedIconButton } from "@/components/ui/animated-icon-button";
 import { DeleteIcon } from "@/components/ui/delete";
-import { PlusIcon } from "@/components/ui/plus";
 import { SquarePenIcon } from "@/components/ui/square-pen";
 import {
   CACHE_KEYS,
@@ -414,17 +413,6 @@ export default function IncomePage() {
               <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400 sm:mt-1 sm:text-sm">Indkomst efter skat (beregnes til månedlig)</p>
             </div>
 
-            <div className="flex items-center gap-2 sm:gap-3">
-              
-              <AnimatedIconButton
-                type="button"
-                onClick={openAddIncomeModal}
-                Icon={PlusIcon}
-                iconSize={20}
-                className="grid h-11 w-11 place-items-center rounded-xl border border-blue-400/30 bg-blue-500 text-white shadow-[0_15px_45px_rgba(59,130,246,0.35)] transition hover:bg-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-300/35 sm:h-12 sm:w-12 sm:rounded-2xl"
-                aria-label="Tilføj indkomst"
-              />
-            </div>
           </header>
 
           <div className="mt-8 rounded-3xl border border-emerald-300 bg-gradient-to-br from-emerald-400 via-emerald-500 to-green-500 p-4 text-emerald-50 shadow-[0_22px_70px_rgba(16,185,129,0.32)] sm:p-8">
