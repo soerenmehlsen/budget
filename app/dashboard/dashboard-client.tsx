@@ -6,6 +6,8 @@ import type { Transition } from "motion/react";
 import { motion } from "motion/react";
 import { BottomNav } from "@/components/bottom-nav";
 import { LogoutIcon, type LogoutIconHandle } from "@/components/ui/logout";
+import { TrendingUpIcon } from "@/components/ui/trending-up";
+import { WalletIcon } from "@/components/ui/wallet";
 import { CACHE_KEYS, readCachedData, writeCachedData } from "@/lib/data-cache";
 import { supabase } from "@/lib/supabase/client";
 
@@ -325,6 +327,13 @@ export function DashboardClient() {
 
   const freeToSpendPercent =
     totalIncome > 0 ? Math.max(0, (freeToSpend / totalIncome) * 100) : 0;
+  const hasPositiveFreeToSpend = freeToSpend >= 0;
+
+  const expenseSharePercent =
+    totalIncome > 0 ? Math.min(100, Math.max(0, (totalExpenses / totalIncome) * 100)) : 0;
+  const incomeSharePercent = totalIncome > 0 ? 100 : 0;
+  const incomeSourceCount = dashboardData?.incomeSources.length ?? 0;
+  const expenseItemCount = dashboardData?.expenseItems.length ?? 0;
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -402,27 +411,81 @@ export function DashboardClient() {
           ) : null}
 
           <section className="mt-4 grid grid-cols-2 gap-3 sm:mt-5 sm:gap-4">
-            <article className="rounded-2xl border border-slate-200 bg-white p-3 dark:border-white/15 dark:bg-slate-800/70 sm:rounded-3xl sm:p-5">
-              <p className="text-xl leading-none text-emerald-600 dark:text-emerald-400 sm:text-[32px]">↗</p>
-              <p className="mt-1 text-xs font-medium text-slate-700 dark:text-slate-300 sm:text-3xl">Indkomst</p>
-              <p className="mt-2 text-xl font-semibold text-slate-900 dark:text-white sm:mt-3 sm:text-5xl">
+            <article className="overflow-hidden rounded-2xl border border-emerald-200 bg-emerald-50/70 p-3 shadow-[0_18px_45px_rgba(16,185,129,0.12)] dark:border-emerald-400/20 dark:bg-emerald-400/10 sm:rounded-3xl sm:p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold uppercase text-emerald-700 dark:text-emerald-300 sm:text-sm">Indkomst</p>
+                  <p className="mt-1 text-[11px] font-medium text-emerald-700/75 dark:text-emerald-100/75 sm:text-sm">
+                    {incomeSourceCount} {incomeSourceCount === 1 ? "kilde" : "kilder"}
+                  </p>
+                </div>
+                <div className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-emerald-500 text-white shadow-[0_12px_28px_rgba(16,185,129,0.3)] sm:h-12 sm:w-12 sm:rounded-2xl">
+                  <TrendingUpIcon aria-hidden="true" size={20} />
+                </div>
+              </div>
+
+              <p className="mt-4 break-words text-lg font-semibold tracking-tight text-slate-950 dark:text-white sm:text-4xl">
                 {formatMoney(totalIncome)}
               </p>
+
+              <div className="mt-4">
+                <progress
+                  aria-label="Indkomstniveau"
+                  className="h-2 w-full overflow-hidden rounded-full bg-white accent-emerald-500 [&::-moz-progress-bar]:bg-emerald-500 [&::-webkit-progress-bar]:bg-white [&::-webkit-progress-value]:bg-emerald-500"
+                  max={100}
+                  value={incomeSharePercent}
+                />
+                <p className="mt-2 text-[11px] font-medium text-emerald-800 dark:text-emerald-100 sm:text-xs">
+                  Samlet {periodView === "month" ? "månedlig" : "årlig"} indkomst
+                </p>
+              </div>
             </article>
 
-            <article className="rounded-2xl border border-slate-200 bg-white p-3 dark:border-white/15 dark:bg-slate-800/70 sm:rounded-3xl sm:p-5">
-              <p className="text-xl leading-none text-rose-600 dark:text-rose-400 sm:text-[32px]">↘</p>
-              <p className="mt-1 text-xs font-medium text-slate-700 dark:text-slate-300 sm:text-3xl">Udgifter</p>
-              <p className="mt-2 text-xl font-semibold text-slate-900 dark:text-white sm:mt-3 sm:text-5xl">
+            <article className="overflow-hidden rounded-2xl border border-rose-200 bg-rose-50/70 p-3 shadow-[0_18px_45px_rgba(244,63,94,0.1)] dark:border-rose-400/20 dark:bg-rose-400/10 sm:rounded-3xl sm:p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold uppercase text-rose-700 dark:text-rose-300 sm:text-sm">Udgifter</p>
+                  <p className="mt-1 text-[11px] font-medium text-rose-700/75 dark:text-rose-100/75 sm:text-sm">
+                    {expenseItemCount} faste udgifter
+                  </p>
+                </div>
+                <div className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-rose-500 text-white shadow-[0_12px_28px_rgba(244,63,94,0.28)] sm:h-12 sm:w-12 sm:rounded-2xl">
+                  <WalletIcon aria-hidden="true" size={20} />
+                </div>
+              </div>
+
+              <p className="mt-4 break-words text-lg font-semibold tracking-tight text-slate-950 dark:text-white sm:text-4xl">
                 {formatMoney(totalExpenses)}
               </p>
+
+              <div className="mt-4">
+                <progress
+                  aria-label="Udgifters andel af indkomst"
+                  className="h-2 w-full overflow-hidden rounded-full bg-white accent-rose-500 [&::-moz-progress-bar]:bg-rose-500 [&::-webkit-progress-bar]:bg-white [&::-webkit-progress-value]:bg-rose-500"
+                  max={100}
+                  value={expenseSharePercent}
+                />
+                <p className="mt-2 text-[11px] font-medium text-rose-800 dark:text-rose-100 sm:text-xs">
+                  {percentFormatter.format(expenseSharePercent)}% af indkomst
+                </p>
+              </div>
             </article>
           </section>
 
-          <section className="mt-4 rounded-2xl bg-gradient-to-br from-emerald-400 via-emerald-500 to-green-500 p-4 text-emerald-50 shadow-[0_22px_70px_rgba(16,185,129,0.32)] sm:mt-5 sm:rounded-[1.75rem] sm:p-6">
-            <p className="text-lg font-medium sm:text-4xl">Rådighedsbeløb/{periodView === "month" ? "md" : "år"}</p>
-            <p className="mt-2 text-3xl font-semibold sm:mt-3 sm:text-6xl">{formatMoney(freeToSpend)}</p>
-            <p className="mt-2 text-xs font-medium sm:mt-3 sm:text-3xl">
+          <section
+            className={`mt-4 rounded-2xl p-4 text-white sm:mt-5 sm:rounded-[1.75rem] sm:p-6 ${
+              hasPositiveFreeToSpend
+                ? "bg-gradient-to-br from-emerald-400 via-emerald-500 to-green-500 shadow-[0_22px_70px_rgba(16,185,129,0.32)]"
+                : "bg-gradient-to-br from-rose-400 via-rose-500 to-red-500 shadow-[0_22px_70px_rgba(244,63,94,0.26)]"
+            }`}
+          >
+            <p className="text-lg font-medium sm:text-4xl">
+              Rådighedsbeløb {periodView === "month" ? "pr. måned" : "pr. år"}
+            </p>
+            <p className="mt-2 break-words text-3xl font-semibold sm:mt-3 sm:text-6xl">
+              {formatMoney(freeToSpend)}
+            </p>
+            <p className="mt-2 text-xs font-medium text-white/90 sm:mt-3 sm:text-3xl">
               {percentFormatter.format(freeToSpendPercent)}% af indkomst
             </p>
           </section>
