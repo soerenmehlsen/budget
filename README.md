@@ -81,7 +81,7 @@ npm run dev
 
 ## Features
 
-- ✅ Bruger-autentificering (login/logout)
+- ✅ Bruger-autentificering (opret bruger/login/logout)
 - ✅ Adgangskode-nulstilling
 - ✅ Dashboard med budget-oversigt
 - ✅ Registrering af udgifter
