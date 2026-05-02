@@ -2,6 +2,8 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { EyeIcon } from "@/components/ui/eye";
+import { EyeOffIcon } from "@/components/ui/eye-off";
 import { supabase } from "../lib/supabase/client";
 
 function getFriendlyAuthError(errorMessage: string) {
@@ -30,6 +32,7 @@ export default function LoginPanel() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSendingReset, setIsSendingReset] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -184,7 +187,7 @@ export default function LoginPanel() {
             <path d="M7 10.5h0" />
             <path d="M4 11.5c0 4.1 3.7 7.5 8 7.5s8-3.4 8-7.5-3.7-7.5-8-7.5-8 3.4-8 7.5Z" />
           </svg>
-          <span>Se hvad der er tilbage hver måned</span>
+          <span>Se dit rådighedsbeløb hver måned</span>
         </li>
       </ul>
 
@@ -201,39 +204,37 @@ export default function LoginPanel() {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             placeholder="E-mail"
-            className="h-14 w-full rounded-2xl border border-slate-300 bg-white px-5 pr-14 text-base text-slate-900 outline-none transition placeholder:text-slate-500 dark:border-white/10 dark:bg-slate-800/75 dark:text-white dark:placeholder:text-slate-400 focus:border-blue-400 dark:focus:bg-slate-800 focus:ring-4 focus:ring-blue-500/15"
+            className="h-14 w-full rounded-2xl border border-slate-300 bg-white px-5 text-base text-slate-900 outline-none transition placeholder:text-slate-500 dark:border-white/10 dark:bg-slate-800/75 dark:text-white dark:placeholder:text-slate-400 focus:border-blue-400 dark:focus:bg-slate-800 focus:ring-4 focus:ring-blue-500/15"
           />
-          <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-500 dark:text-slate-400">
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 24 24"
-              className="h-6 w-6"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h11A2.5 2.5 0 0 1 20 7.5v9A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5v-9Z" />
-              <path d="m6 8 6 5 6-5" />
-            </svg>
-          </div>
         </div>
 
-        <div>
+        <div className="relative">
           <label className="sr-only" htmlFor="password">
             Adgangskode
           </label>
           <input
             id="password"
             name="password"
-            type="password"
+            type={showPassword ? "text" : "password"}
             autoComplete="current-password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             placeholder="Adgangskode"
-            className="h-14 w-full rounded-2xl border border-slate-300 bg-white px-5 text-base text-slate-900 outline-none transition placeholder:text-slate-500 dark:border-white/10 dark:bg-slate-800/75 dark:text-white dark:placeholder:text-slate-400 focus:border-blue-400 dark:focus:bg-slate-800 focus:ring-4 focus:ring-blue-500/15"
+            className="h-14 w-full rounded-2xl border border-slate-300 bg-white px-5 pr-14 text-base text-slate-900 outline-none transition placeholder:text-slate-500 dark:border-white/10 dark:bg-slate-800/75 dark:text-white dark:placeholder:text-slate-400 focus:border-blue-400 dark:focus:bg-slate-800 focus:ring-4 focus:ring-blue-500/15"
           />
+          <button
+            type="button"
+            aria-label={showPassword ? "Skjul adgangskode" : "Vis adgangskode"}
+            aria-pressed={showPassword}
+            onClick={() => setShowPassword((current) => !current)}
+            className="absolute inset-y-0 right-4 flex items-center text-slate-500 transition hover:text-slate-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/15 dark:text-slate-400 dark:hover:text-slate-200"
+          >
+            {showPassword ? (
+              <EyeOffIcon aria-hidden="true" size={24} />
+            ) : (
+              <EyeIcon aria-hidden="true" size={24} />
+            )}
+          </button>
         </div>
 
         {errorMessage ? (

@@ -61,7 +61,7 @@ npm run dev
 ├── app/                      # Next.js App Router
 │   ├── page.tsx             # Login-side (startside)
 │   ├── layout.tsx           # Root layout
-│   ├── dashboard/           # Dashboard-side
+│   ├── dashboard/           # Dashboard-side med server entry og client UI
 │   ├── expenses/            # Udgifter-administrasjon
 │   ├── income/              # Indkomst-administration
 │   └── reset-password/      # Nulstil adgangskode
