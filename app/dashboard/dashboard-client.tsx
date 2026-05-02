@@ -357,11 +357,11 @@ export function DashboardClient() {
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3">
-              <div className="rounded-2xl bg-slate-200 dark:bg-slate-700/70 p-0.5">
+              <div className="rounded-2xl bg-slate-200 p-0.5 dark:bg-slate-700/70">
                 <button
                   type="button"
                   onClick={() => setPeriodView("month")}
-                  className={`h-8 rounded-lg px-2 text-xs font-semibold transition sm:h-10 sm:rounded-xl sm:px-4 sm:text-lg ${
+                  className={`h-8 min-w-16 rounded-xl px-2 text-xs font-semibold transition sm:h-10 sm:min-w-0 sm:px-4 sm:text-lg ${
                     periodView === "month"
                       ? "bg-white text-slate-900 dark:bg-slate-600 dark:text-white"
                       : "text-slate-500 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
@@ -372,7 +372,7 @@ export function DashboardClient() {
                 <button
                   type="button"
                   onClick={() => setPeriodView("year")}
-                  className={`h-8 rounded-lg px-2 text-xs font-semibold transition sm:h-10 sm:rounded-xl sm:px-4 sm:text-lg ${
+                  className={`h-8 min-w-16 rounded-xl px-2 text-xs font-semibold transition sm:h-10 sm:min-w-0 sm:px-4 sm:text-lg ${
                     periodView === "year"
                       ? "bg-white text-slate-900 dark:bg-slate-600 dark:text-white"
                       : "text-slate-500 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
@@ -496,11 +496,7 @@ export function DashboardClient() {
                             <span className="text-slate-700 dark:text-slate-300">{item.name}</span>
                             <span className="text-slate-900 dark:text-slate-100">
                               {formatMoney(item.amountMonthly * periodFactor)}
-                              {item.amountAnnual && periodView === "month" ? (
-                                <span className="ml-2 text-base text-slate-600 dark:text-slate-400">
-                                  ({formatMoney(item.amountAnnual)}/år)
-                                </span>
-                              ) : null}
+                              {item.amountAnnual && periodView === "month"}
                             </span>
                           </li>
                         ))}
