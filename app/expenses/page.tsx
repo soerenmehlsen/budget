@@ -883,7 +883,7 @@ export default function ExpensesPage() {
               </AnimatedIconButton>
 
               {isAdvancedOpen ? (
-                <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-xs text-slate-600 dark:border-white/10 dark:bg-slate-700/35 dark:text-slate-300 sm:px-4 sm:py-4 sm:text-sm">
+                <div className=" space-y-3 rounded-2xl py-3 text-xs text-slate-600 dark:text-slate-300 sm:py-4 sm:text-sm">
                   <label className="block">
                     <span className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-200 sm:text-base">
                       Bankkonto
