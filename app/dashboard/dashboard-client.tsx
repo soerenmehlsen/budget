@@ -551,46 +551,6 @@ export function DashboardClient() {
             </p>
           </section>
 
-          <section className="mt-4 rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)] backdrop-blur-sm dark:border-white/10 dark:bg-slate-800/70 sm:mt-5 sm:rounded-[1.75rem] sm:p-5 lg:rounded-2xl">
-            <div className="flex flex-wrap items-start justify-between gap-2">
-              <div>
-                <h2 className="text-base font-semibold tracking-tight text-slate-900 dark:text-white sm:text-lg">
-                  Fast overførsel
-                </h2>
-                <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 sm:text-sm">
-                  Beløb der skal overføres til dine konti baseret på faste udgifter.
-                </p>
-              </div>
-              <p className="text-sm font-semibold text-slate-900 dark:text-white sm:text-base">
-                {formatMoney(totalTransfers)}
-                /{periodView === "month" ? "md" : "år"}
-              </p>
-            </div>
-
-            {transferTargets.length > 0 ? (
-              <div className="mt-4 space-y-2">
-                {transferTargets.map((account) => (
-                  <div
-                    key={account.id}
-                    className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-white/10 dark:bg-slate-700/45"
-                  >
-                    <p className="min-w-0 truncate font-semibold text-slate-900 dark:text-white">
-                      {account.name}
-                    </p>
-                    <p className="text-slate-700 dark:text-slate-200">
-                      {formatMoney(account.amountMonthly * periodFactor)}/{periodView === "month" ? "md" : "år"}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">
-                Der er endnu ingen udgifter knyttet til bankkonti. Vælg en konto under
-                avanceret på <Link href="/expenses" className="font-semibold text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300">Udgifter</Link>.
-              </p>
-            )}
-          </section>
-
           <section className="mt-6 sm:mt-7">
             <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-4">
               <h2 className="text-base font-semibold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
@@ -670,6 +630,39 @@ export function DashboardClient() {
                 </motion.article>
               ))}
             </div>
+          </section>
+
+          <section className="mt-6 rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)] backdrop-blur-sm dark:border-white/10 dark:bg-slate-800/70 sm:mt-7 sm:rounded-[1.75rem] sm:p-5 lg:rounded-2xl">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div>
+                <h2 className="text-base font-semibold tracking-tight text-slate-900 dark:text-white sm:text-lg">
+                  Fast overførsel
+                </h2>
+              </div>
+            </div>
+
+            {transferTargets.length > 0 ? (
+              <div className="mt-4 space-y-2">
+                {transferTargets.map((account) => (
+                  <div
+                    key={account.id}
+                    className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-white/10 dark:bg-slate-700/45"
+                  >
+                    <p className="min-w-0 truncate font-semibold text-slate-900 dark:text-white">
+                      {account.name}
+                    </p>
+                    <p className="text-slate-700 dark:text-slate-200">
+                      {formatMoney(account.amountMonthly * periodFactor)}/{periodView === "month" ? "md" : "år"}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">
+                Der er ingen udgifter knyttet til en bankkonti. Vælg en konto under
+                avanceret på en <Link href="/expenses" className="font-semibold text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300">Udgift</Link>.
+              </p>
+            )}
           </section>
 
           {isLoadingDashboard ? (

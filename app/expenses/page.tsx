@@ -701,7 +701,7 @@ export default function ExpensesPage() {
                                 </p>
                                 {item.bankAccountId ? (
                                   <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 sm:text-sm">
-                                    Konto: {bankAccountLookup.get(item.bankAccountId) ?? "Ukendt konto"}
+                                     {bankAccountLookup.get(item.bankAccountId) ?? "Ukendt konto"}
                                   </p>
                                 ) : null}
 
