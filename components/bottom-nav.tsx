@@ -5,7 +5,6 @@ import { useRef } from "react";
 import Link from "next/link";
 
 import { HomeIcon } from "@/components/ui/home";
-import { InfoIcon } from "@/components/ui/info";
 import { TrendingUpIcon } from "@/components/ui/trending-up";
 import { UserIcon } from "@/components/ui/user";
 import { WalletIcon } from "@/components/ui/wallet";
@@ -34,7 +33,7 @@ const NAV_ITEMS: {
   { label: "Oversigt", href: "/dashboard", Icon: HomeIcon },
   { label: "Udgifter", href: "/expenses", Icon: WalletIcon },
   { label: "Indkomst", href: "/income", Icon: TrendingUpIcon },
-  { label: "Konto", href: null, Icon: UserIcon },
+  { label: "Konto", href: "/account", Icon: UserIcon },
 ];
 
 function BottomNavItem({

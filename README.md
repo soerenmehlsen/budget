@@ -64,6 +64,7 @@ npm run dev
 │   ├── dashboard/           # Dashboard-side med server entry og client UI
 │   ├── expenses/            # Udgifter-administrasjon
 │   ├── income/              # Indkomst-administration
+│   ├── account/             # Konto-side med bankkonti, feedback og logout
 │   └── reset-password/      # Nulstil adgangskode
 ├── components/              # Reusable React komponenter
 │   ├── login-panel.tsx      # Login-formular
@@ -74,7 +75,7 @@ npm run dev
 │   └── supabase/            # Supabase konfiguration
 │       └── client.ts        # Supabase klient
 ├── supabase/
-│   └── migrations/          # Database-migrationer
+│   └── migrations/          # Database-migrationer inkl. bankkonti og feedback
 ├── public/                  # Statiske filer
 └── tsconfig.json           # TypeScript config
 ```
@@ -86,6 +87,7 @@ npm run dev
 - ✅ Dashboard med budget-oversigt
 - ✅ Registrering af udgifter
 - ✅ Registrering, redigering og sletning af indkomstkilder med frekvens
+- ✅ Konto-side med bankkonti, feedback og logout
 - ✅ Lokal datacache med frisk Supabase-synkronisering ved sideindlæsning
 - ✅ Mobil-venligt design
 - ✅ Dark mode UI
