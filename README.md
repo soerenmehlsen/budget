@@ -93,6 +93,7 @@ npm run dev
 - ✅ Mobil-venligt design
 - ✅ Dark mode UI
 - ✅ Animerede lucide-animated ikoner
+- ✅ App-ikon når den gemmes på telefonen
 
 ## Udvikling
 
