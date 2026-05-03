@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { BottomNav } from "@/components/bottom-nav";
@@ -20,6 +21,12 @@ import { supabase } from "@/lib/supabase/client";
 
 type Frequency = "monthly" | "quarterly" | "halfYearly" | "yearly";
 
+type BankAccount = {
+  id: string;
+  name: string;
+  sortOrder?: number | null;
+};
+
 type ExpenseItem = {
   id: string;
   category: string;
@@ -28,6 +35,7 @@ type ExpenseItem = {
   amountPeriod?: number | null;
   periodLabel?: string | null;
   sortOrder?: number | null;
+  bankAccountId?: string | null;
 };
 
 const FALLBACK_EXPENSES: ExpenseItem[] = [
@@ -184,6 +192,9 @@ export default function ExpensesPage() {
   const [isSavingExpense, setIsSavingExpense] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [expenseItems, setExpenseItems] = useState<ExpenseItem[]>([]);
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
+  const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
+  const [bankAccountError, setBankAccountError] = useState<string | null>(null);
   const [dataSource, setDataSource] = useState<"supabase" | "fallback">("fallback");
   const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
@@ -192,6 +203,7 @@ export default function ExpensesPage() {
   const [category, setCategory] = useState("Abonnementer");
   const [amount, setAmount] = useState("");
   const [frequency, setFrequency] = useState<Frequency>("monthly");
+  const [bankAccountId, setBankAccountId] = useState("");
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -210,7 +222,7 @@ export default function ExpensesPage() {
 
       const { data, error } = await supabase
         .from("expense_items")
-        .select("id, category, name, amount_monthly, amount_annual, sort_order")
+        .select("id, category, name, amount_monthly, amount_annual, sort_order, bank_account_id")
         .eq("user_id", signedInUserId)
         .order("category", { ascending: true })
         .order("sort_order", { ascending: true });
@@ -244,6 +256,7 @@ export default function ExpensesPage() {
           amountPeriod: typeof row.amount_annual === "number" ? row.amount_annual : null,
           periodLabel: typeof row.amount_annual === "number" ? "år" : null,
           sortOrder: typeof row.sort_order === "number" ? row.sort_order : null,
+          bankAccountId: typeof row.bank_account_id === "string" ? row.bank_account_id : null,
         }))
         .sort(bySortOrderAndName);
 
@@ -251,6 +264,49 @@ export default function ExpensesPage() {
       setDataSource("supabase");
       writeCachedData(CACHE_KEYS.expenses, signedInUserId, mapped, "supabase");
       setIsLoadingExpenses(false);
+    };
+
+    const loadBankAccounts = async (signedInUserId: string) => {
+      setIsLoadingAccounts(true);
+      setBankAccountError(null);
+
+      const { data, error } = await supabase
+        .from("bank_accounts")
+        .select("id, name, sort_order")
+        .eq("user_id", signedInUserId)
+        .order("sort_order", { ascending: true });
+
+      if (!isMounted) {
+        return;
+      }
+
+      if (error) {
+        setBankAccountError("Kunne ikke hente bankkonti. Tjek at tabellen bank_accounts findes.");
+        setBankAccounts([]);
+        setIsLoadingAccounts(false);
+        return;
+      }
+
+      const mapped = (data ?? [])
+        .filter((row) => typeof row.id === "string" && typeof row.name === "string")
+        .map((row) => ({
+          id: row.id,
+          name: row.name,
+          sortOrder: typeof row.sort_order === "number" ? row.sort_order : null,
+        }))
+        .sort((a, b) => {
+          const orderA = a.sortOrder ?? Number.MAX_SAFE_INTEGER;
+          const orderB = b.sortOrder ?? Number.MAX_SAFE_INTEGER;
+
+          if (orderA !== orderB) {
+            return orderA - orderB;
+          }
+
+          return a.name.localeCompare(b.name, "da-DK");
+        });
+
+      setBankAccounts(mapped);
+      setIsLoadingAccounts(false);
     };
 
     const syncSession = async () => {
@@ -266,7 +322,10 @@ export default function ExpensesPage() {
       }
 
       setUserId(data.session.user.id);
-      await loadExpenses(data.session.user.id);
+      await Promise.all([
+        loadExpenses(data.session.user.id),
+        loadBankAccounts(data.session.user.id),
+      ]);
       setIsCheckingSession(false);
     };
 
@@ -280,7 +339,10 @@ export default function ExpensesPage() {
         }
 
         setUserId(session.user.id);
-        void loadExpenses(session.user.id);
+        void Promise.all([
+          loadExpenses(session.user.id),
+          loadBankAccounts(session.user.id),
+        ]);
         setIsCheckingSession(false);
       },
     );
@@ -316,6 +378,16 @@ export default function ExpensesPage() {
 
   const totalCount = expenseItems.length;
 
+  const bankAccountLookup = useMemo(() => {
+    const lookup = new Map<string, string>();
+
+    for (const account of bankAccounts) {
+      lookup.set(account.id, account.name);
+    }
+
+    return lookup;
+  }, [bankAccounts]);
+
   const isAllCollapsed =
     groupedExpenses.length > 0 &&
     groupedExpenses.every((group) => collapsedCategories[group.category] === true);
@@ -326,6 +398,7 @@ export default function ExpensesPage() {
     setCategory("Abonnementer");
     setAmount("");
     setFrequency("monthly");
+    setBankAccountId("");
     setIsAdvancedOpen(false);
     setFormError(null);
   };
@@ -347,6 +420,7 @@ export default function ExpensesPage() {
     setCategory(item.category);
     setAmount(String(item.amountPeriod ?? item.amountMonthly));
     setFrequency(expenseItemToFrequency(item));
+    setBankAccountId(item.bankAccountId ?? "");
     setIsAdvancedOpen(false);
     setFormError(null);
     setIsAddExpenseOpen(true);
@@ -406,6 +480,7 @@ export default function ExpensesPage() {
       amount_monthly: monthlyAmount,
       amount_annual: periodAmount,
       sort_order: nextSortOrder,
+      bank_account_id: bankAccountId || null,
     };
 
     const { data, error } = isEditingExpense
@@ -414,12 +489,12 @@ export default function ExpensesPage() {
           .update(payload)
           .eq("id", editingExpenseId)
           .eq("user_id", userId)
-          .select("id, category, name, amount_monthly, amount_annual, sort_order")
+            .select("id, category, name, amount_monthly, amount_annual, sort_order, bank_account_id")
           .single()
       : await supabase
           .from("expense_items")
           .insert(payload)
-          .select("id, category, name, amount_monthly, amount_annual, sort_order")
+            .select("id, category, name, amount_monthly, amount_annual, sort_order, bank_account_id")
           .single();
 
     if (error) {
@@ -445,6 +520,10 @@ export default function ExpensesPage() {
             : periodLabel
           : null,
       sortOrder: typeof data.sort_order === "number" ? data.sort_order : null,
+      bankAccountId:
+        typeof data.bank_account_id === "string"
+          ? data.bank_account_id
+          : bankAccountId || null,
     };
 
     const nextExpenseItems = (
@@ -620,6 +699,11 @@ export default function ExpensesPage() {
                                 <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 sm:text-sm">
                                   {periodLabelToFrequencyText(item.periodLabel)}
                                 </p>
+                                {item.bankAccountId ? (
+                                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 sm:text-sm">
+                                    Konto: {bankAccountLookup.get(item.bankAccountId) ?? "Ukendt konto"}
+                                  </p>
+                                ) : null}
 
                                 <div className="mt-2 flex items-center gap-3 text-xs">
                                   <AnimatedIconButton
@@ -793,8 +877,38 @@ export default function ExpensesPage() {
               </AnimatedIconButton>
 
               {isAdvancedOpen ? (
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600 dark:border-white/10 dark:bg-slate-700/35 dark:text-slate-300 sm:px-4 sm:py-3 sm:text-sm">
-                  Beløbet bliver automatisk omregnet til månedlig værdi.
+                <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-xs text-slate-600 dark:border-white/10 dark:bg-slate-700/35 dark:text-slate-300 sm:px-4 sm:py-4 sm:text-sm">
+                  <label className="block">
+                    <span className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-200 sm:text-base">
+                      Bankkonto
+                    </span>
+                    <select
+                      value={bankAccountId}
+                      onChange={(event) => setBankAccountId(event.target.value)}
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-4 text-base text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20 dark:border-white/15 dark:bg-slate-600/70 dark:text-white sm:h-11 sm:text-base"
+                    >
+                      <option value="">Ingen konto</option>
+                      {bankAccounts.map((account) => (
+                        <option key={account.id} value={account.id}>
+                          {account.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  {isLoadingAccounts ? (
+                    <p>Henter bankkonti...</p>
+                  ) : null}
+
+                  {bankAccountError ? <p className="text-rose-500">{bankAccountError}</p> : null}
+
+                  {!isLoadingAccounts && bankAccounts.length === 0 ? (
+                    <p>
+                      Ingen bankkonti endnu. <Link href="/account" className="font-semibold text-blue-600 hover:text-blue-500">Tilføj en konto</Link>.
+                    </p>
+                  ) : null}
+
+                  <p>Beløbet bliver automatisk omregnet til månedlig værdi.</p>
                 </div>
               ) : null}
 

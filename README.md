@@ -88,6 +88,7 @@ npm run dev
 - ✅ Registrering af udgifter
 - ✅ Registrering, redigering og sletning af indkomstkilder med frekvens
 - ✅ Konto-side med bankkonti, feedback og logout
+- ✅ Fast overførsel pr. konto baseret på faste udgifter
 - ✅ Lokal datacache med frisk Supabase-synkronisering ved sideindlæsning
 - ✅ Mobil-venligt design
 - ✅ Dark mode UI

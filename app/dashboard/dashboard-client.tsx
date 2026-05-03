@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Transition } from "motion/react";
 import { motion } from "motion/react";
@@ -24,6 +25,12 @@ type IncomeSource = {
   amountMonthly: number;
 };
 
+type BankAccount = {
+  id: string;
+  name: string;
+  sortOrder?: number | null;
+};
+
 type ExpenseItem = {
   id: string;
   category: string;
@@ -31,12 +38,14 @@ type ExpenseItem = {
   amountMonthly: number;
   amountAnnual?: number | null;
   sortOrder?: number | null;
+  bankAccountId?: string | null;
 };
 
 type DashboardData = {
   profileName?: string | null;
   incomeSources: IncomeSource[];
   expenseItems: ExpenseItem[];
+  bankAccounts: BankAccount[];
 };
 
 const FALLBACK_DASHBOARD_DATA: DashboardData = {
@@ -108,6 +117,7 @@ const FALLBACK_DASHBOARD_DATA: DashboardData = {
       sortOrder: 3,
     },
   ],
+  bankAccounts: [],
 };
 
 const moneyFormatter = new Intl.NumberFormat("da-DK", {
@@ -140,7 +150,7 @@ async function fetchDashboardData(userId: string): Promise<{
   data: DashboardData;
   source: "supabase" | "fallback";
 }> {
-  const [profileResult, incomeResult, expenseResult] = await Promise.all([
+  const [profileResult, incomeResult, expenseResult, bankAccountResult] = await Promise.all([
     supabase.from("profiles").select("display_name").eq("id", userId).maybeSingle(),
     supabase
       .from("income_sources")
@@ -149,7 +159,12 @@ async function fetchDashboardData(userId: string): Promise<{
       .order("name", { ascending: true }),
     supabase
       .from("expense_items")
-      .select("id, category, name, amount_monthly, amount_annual, sort_order")
+      .select("id, category, name, amount_monthly, amount_annual, sort_order, bank_account_id")
+      .eq("user_id", userId)
+      .order("sort_order", { ascending: true }),
+    supabase
+      .from("bank_accounts")
+      .select("id, name, sort_order")
       .eq("user_id", userId)
       .order("sort_order", { ascending: true }),
   ]);
@@ -186,8 +201,31 @@ async function fetchDashboardData(userId: string): Promise<{
             amountAnnual:
               typeof row.amount_annual === "number" ? row.amount_annual : null,
             sortOrder: typeof row.sort_order === "number" ? row.sort_order : null,
+            bankAccountId:
+              typeof row.bank_account_id === "string" ? row.bank_account_id : null,
           }))
           .sort(bySortOrderAndName);
+
+  const bankAccounts =
+    bankAccountResult.error || !bankAccountResult.data
+      ? []
+      : bankAccountResult.data
+          .filter((row) => typeof row.id === "string" && typeof row.name === "string")
+          .map((row) => ({
+            id: row.id,
+            name: row.name,
+            sortOrder: typeof row.sort_order === "number" ? row.sort_order : null,
+          }))
+          .sort((a, b) => {
+            const orderA = a.sortOrder ?? Number.MAX_SAFE_INTEGER;
+            const orderB = b.sortOrder ?? Number.MAX_SAFE_INTEGER;
+
+            if (orderA !== orderB) {
+              return orderA - orderB;
+            }
+
+            return a.name.localeCompare(b.name, "da-DK");
+          });
 
   const hasSupabaseData =
     !incomeResult.error &&
@@ -201,6 +239,7 @@ async function fetchDashboardData(userId: string): Promise<{
       profileName,
       incomeSources,
       expenseItems,
+      bankAccounts,
     },
     source: hasSupabaseData ? "supabase" : "fallback",
   };
@@ -304,6 +343,31 @@ export function DashboardClient() {
       });
   }, [dashboardData?.expenseItems, sortMode]);
 
+  const transferTargets = useMemo(() => {
+    const expenses = dashboardData?.expenseItems ?? [];
+    const accounts = dashboardData?.bankAccounts ?? [];
+    const totals = new Map<string, number>();
+
+    for (const item of expenses) {
+      if (!item.bankAccountId) {
+        continue;
+      }
+
+      totals.set(
+        item.bankAccountId,
+        (totals.get(item.bankAccountId) ?? 0) + item.amountMonthly,
+      );
+    }
+
+    return accounts
+      .map((account) => ({
+        id: account.id,
+        name: account.name,
+        amountMonthly: totals.get(account.id) ?? 0,
+      }))
+      .filter((account) => account.amountMonthly > 0);
+  }, [dashboardData?.bankAccounts, dashboardData?.expenseItems]);
+
   const periodFactor = periodView === "year" ? 12 : 1;
 
   const totalIncome = useMemo(
@@ -319,6 +383,15 @@ export function DashboardClient() {
     () =>
       groupedExpenses.reduce((sum, group) => sum + group.totalMonthly, 0) * periodFactor,
     [groupedExpenses, periodFactor],
+  );
+
+  const totalTransfers = useMemo(
+    () =>
+      transferTargets.reduce(
+        (sum, account) => sum + account.amountMonthly,
+        0,
+      ) * periodFactor,
+    [transferTargets, periodFactor],
   );
 
   const freeToSpend = totalIncome - totalExpenses;
@@ -476,6 +549,46 @@ export function DashboardClient() {
             <p className="mt-2 text-xs font-medium text-blue-800 dark:text-blue-100 sm:text-base">
               {percentFormatter.format(freeToSpendPercent)}% af indkomst
             </p>
+          </section>
+
+          <section className="mt-4 rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)] backdrop-blur-sm dark:border-white/10 dark:bg-slate-800/70 sm:mt-5 sm:rounded-[1.75rem] sm:p-5 lg:rounded-2xl">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div>
+                <h2 className="text-base font-semibold tracking-tight text-slate-900 dark:text-white sm:text-lg">
+                  Fast overførsel
+                </h2>
+                <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 sm:text-sm">
+                  Beløb der skal overføres til dine konti baseret på faste udgifter.
+                </p>
+              </div>
+              <p className="text-sm font-semibold text-slate-900 dark:text-white sm:text-base">
+                {formatMoney(totalTransfers)}
+                /{periodView === "month" ? "md" : "år"}
+              </p>
+            </div>
+
+            {transferTargets.length > 0 ? (
+              <div className="mt-4 space-y-2">
+                {transferTargets.map((account) => (
+                  <div
+                    key={account.id}
+                    className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-white/10 dark:bg-slate-700/45"
+                  >
+                    <p className="min-w-0 truncate font-semibold text-slate-900 dark:text-white">
+                      {account.name}
+                    </p>
+                    <p className="text-slate-700 dark:text-slate-200">
+                      {formatMoney(account.amountMonthly * periodFactor)}/{periodView === "month" ? "md" : "år"}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">
+                Der er endnu ingen udgifter knyttet til bankkonti. Vælg en konto under
+                avanceret på <Link href="/expenses" className="font-semibold text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300">Udgifter</Link>.
+              </p>
+            )}
           </section>
 
           <section className="mt-6 sm:mt-7">
