@@ -865,6 +865,12 @@ export default function ExpensesPage() {
                 </div>
               </fieldset>
 
+              {frequency !== "monthly" ? (
+                <div className="rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-100 sm:text-sm">
+                  <span className="font-semibold">Tip:</span> Beløbet bliver automatisk omregnet til månedlig værdi.
+                </div>
+              ) : null}
+
               <AnimatedIconButton
                 type="button"
                 onClick={() => setIsAdvancedOpen((value) => !value)}
@@ -908,7 +914,6 @@ export default function ExpensesPage() {
                     </p>
                   ) : null}
 
-                  <p>Beløbet bliver automatisk omregnet til månedlig værdi.</p>
                 </div>
               ) : null}
 
