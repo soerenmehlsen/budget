@@ -325,7 +325,6 @@ export function DashboardClient() {
 
   const freeToSpendPercent =
     totalIncome > 0 ? Math.max(0, (freeToSpend / totalIncome) * 100) : 0;
-  const hasPositiveFreeToSpend = freeToSpend >= 0;
 
   const expenseSharePercent =
     totalIncome > 0 ? Math.min(100, Math.max(0, (totalExpenses / totalIncome) * 100)) : 0;
@@ -467,20 +466,14 @@ export function DashboardClient() {
             </article>
           </section>
 
-          <section
-            className={`mt-4 rounded-2xl p-4 text-white sm:mt-5 sm:rounded-[1.75rem] sm:p-5 lg:rounded-2xl ${
-              hasPositiveFreeToSpend
-                ? "bg-gradient-to-br from-emerald-400 via-emerald-500 to-green-500 shadow-[0_22px_70px_rgba(16,185,129,0.32)]"
-                : "bg-gradient-to-br from-rose-400 via-rose-500 to-red-500 shadow-[0_22px_70px_rgba(244,63,94,0.26)]"
-            }`}
-          >
-            <p className="text-lg font-medium sm:text-2xl lg:text-lg">
+          <section className="mt-4 rounded-2xl border border-blue-200 bg-blue-50/70 p-4 shadow-[0_18px_45px_rgba(37,99,235,0.12)] dark:border-blue-400/20 dark:bg-blue-400/10 sm:mt-5 sm:rounded-[1.75rem] sm:p-5 lg:rounded-2xl">
+            <p className="text-lg font-medium text-blue-700 dark:text-blue-300 sm:text-2xl lg:text-lg">
               Rådighedsbeløb {periodView === "month" ? "pr. måned" : "pr. år"}
             </p>
-            <p className="mt-2 break-words text-3xl font-semibold sm:text-4xl">
+            <p className="mt-2 break-words text-3xl font-semibold text-slate-950 dark:text-white sm:text-4xl">
               {formatMoney(freeToSpend)}
             </p>
-            <p className="mt-2 text-xs font-medium text-white/90 sm:text-base">
+            <p className="mt-2 text-xs font-medium text-blue-800 dark:text-blue-100 sm:text-base">
               {percentFormatter.format(freeToSpendPercent)}% af indkomst
             </p>
           </section>

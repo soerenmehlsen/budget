@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import { BottomNav } from "@/components/bottom-nav";
@@ -233,13 +233,6 @@ export default function IncomePage() {
     };
   }, [router]);
 
-  const totalIncomeMonthly = useMemo(
-    () => incomeItems.reduce((sum, item) => sum + item.amountMonthly, 0),
-    [incomeItems],
-  );
-
-  const totalCount = incomeItems.length;
-
   const resetAddIncomeForm = () => {
     setEditingIncomeId(null);
     setName("");
@@ -412,16 +405,6 @@ export default function IncomePage() {
             </div>
 
           </header>
-
-          <div className="mt-6 rounded-2xl border border-emerald-300 bg-gradient-to-br from-emerald-400 via-emerald-500 to-green-500 p-4 text-emerald-50 shadow-[0_22px_70px_rgba(16,185,129,0.32)] sm:p-5 lg:mt-6 lg:rounded-2xl lg:p-5">
-            <p className="text-sm font-medium text-emerald-50 sm:text-base">Samlet månedlig indkomst</p>
-            <div className="mt-2 flex items-center justify-between">
-              <p className="text-3xl font-bold text-white sm:text-4xl">
-                {formatCompactDkk(totalIncomeMonthly)}
-              </p>
-              <p className="text-lg font-semibold text-emerald-50 sm:text-base">{totalCount} kilder</p>
-            </div>
-          </div>
 
           {dataSource === "fallback" ? (
             <p className="mt-6 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-100">
