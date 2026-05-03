@@ -350,18 +350,14 @@ export default function LoginPanel() {
             type="button"
             disabled={isSendingReset}
             onClick={handleForgotPassword}
-            className="text-sm font-medium text-slate-600 dark:text-slate-400 transition hover:text-slate-800 dark:hover:text-slate-200 disabled:cursor-not-allowed disabled:opacity-70"
+            className="mx-auto block text-sm font-medium text-slate-600 transition hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-70 dark:text-slate-400 dark:hover:text-slate-200"
           >
             {isSendingReset ? "Sender nulstillingslink..." : "Glemt adgangskode?"}
           </button>
-          <p className="text-xs leading-5 text-slate-600 dark:text-slate-500">
-            Brug den e-mail, du logger ind med. Hvis du har glemt adgangskoden,
-            sender jeg et link til at oprette en ny.
-          </p>
           <button
             type="button"
             onClick={() => switchMode("signup")}
-            className="text-sm font-semibold text-blue-600 transition hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+            className="mx-auto block text-sm font-semibold text-blue-600 transition hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
           >
             Opret ny bruger
           </button>
