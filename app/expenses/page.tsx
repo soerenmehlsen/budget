@@ -204,8 +204,6 @@ export default function ExpensesPage() {
       if (cached) {
         setExpenseItems(cached.data);
         setDataSource(cached.source);
-        setIsLoadingExpenses(false);
-        return;
       }
 
       setIsLoadingExpenses(true);

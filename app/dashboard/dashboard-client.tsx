@@ -226,8 +226,6 @@ export function DashboardClient() {
       if (cached) {
         setDashboardData(cached.data);
         setDataSource(cached.source);
-        setIsLoadingDashboard(false);
-        return;
       }
 
       setIsLoadingDashboard(true);

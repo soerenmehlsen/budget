@@ -86,7 +86,7 @@ npm run dev
 - ✅ Dashboard med budget-oversigt
 - ✅ Registrering af udgifter
 - ✅ Registrering, redigering og sletning af indkomstkilder med frekvens
-- ✅ Lokal datacache for færre gentagne databasekald
+- ✅ Lokal datacache med frisk Supabase-synkronisering ved sideindlæsning
 - ✅ Mobil-venligt design
 - ✅ Dark mode UI
 - ✅ Animerede lucide-animated ikoner

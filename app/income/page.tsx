@@ -149,8 +149,6 @@ export default function IncomePage() {
       if (cached) {
         setIncomeItems(cached.data);
         setDataSource(cached.source);
-        setIsLoadingIncome(false);
-        return;
       }
 
       setIsLoadingIncome(true);
