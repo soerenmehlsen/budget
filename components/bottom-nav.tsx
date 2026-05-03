@@ -11,7 +11,7 @@ import { UserIcon } from "@/components/ui/user";
 import { WalletIcon } from "@/components/ui/wallet";
 import { cn } from "@/lib/utils";
 
-type NavItemLabel = "Oversigt" | "Udgifter" | "Indkomst" | "Om" | "Konto";
+type NavItemLabel = "Oversigt" | "Udgifter" | "Indkomst" | "Konto";
 
 type BottomNavProps = {
   activeItem?: NavItemLabel;
@@ -34,7 +34,6 @@ const NAV_ITEMS: {
   { label: "Oversigt", href: "/dashboard", Icon: HomeIcon },
   { label: "Udgifter", href: "/expenses", Icon: WalletIcon },
   { label: "Indkomst", href: "/income", Icon: TrendingUpIcon },
-  { label: "Om", href: null, Icon: InfoIcon },
   { label: "Konto", href: null, Icon: UserIcon },
 ];
 
@@ -51,7 +50,7 @@ function BottomNavItem({
 }) {
   const iconRef = useRef<NavIconHandle>(null);
   const className = cn(
-    "flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-1 text-xs font-medium transition-colors sm:rounded-2xl sm:px-4 sm:py-2 sm:text-sm",
+    "flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-1 text-xs font-medium transition-colors sm:rounded-2xl sm:px-4 sm:py-2 sm:text-sm lg:flex-none lg:flex-row lg:gap-2 lg:px-3 lg:py-2",
     isActive
       ? "bg-blue-100 text-blue-600 dark:bg-blue-500/25 dark:text-blue-300"
       : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
@@ -100,22 +99,51 @@ function BottomNavItem({
 
 export function BottomNav({ activeItem = "Oversigt" }: BottomNavProps) {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-slate-50/90 backdrop-blur-sm dark:border-white/10 dark:bg-slate-900/90 px-2 py-2 sm:px-3 sm:py-3">
-      <div className="mx-auto flex w-full max-w-[860px] items-center justify-between">
-        {NAV_ITEMS.map(({ label, href, Icon }) => {
-          const isActive = label === activeItem;
+    <>
+      <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-slate-50/90 px-2 py-2 backdrop-blur-sm dark:border-white/10 dark:bg-slate-900/90 sm:px-3 sm:py-3 lg:hidden">
+        <div className="mx-auto flex w-full max-w-[860px] items-center justify-between">
+          {NAV_ITEMS.map(({ label, href, Icon }) => {
+            const isActive = label === activeItem;
 
-          return (
-            <BottomNavItem
-              key={label}
-              label={label}
-              href={href}
-              Icon={Icon}
-              isActive={isActive}
-            />
-          );
-        })}
-      </div>
-    </nav>
+            return (
+              <BottomNavItem
+                key={label}
+                label={label}
+                href={href}
+                Icon={Icon}
+                isActive={isActive}
+              />
+            );
+          })}
+        </div>
+      </nav>
+
+      <nav className="fixed inset-x-0 top-0 z-20 hidden border-b border-slate-200 bg-white/88 px-8 py-3 backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/82 lg:block">
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between">
+          <Link
+            href="/dashboard"
+            className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+          >
+            Budget
+          </Link>
+
+          <div className="flex items-center gap-2">
+            {NAV_ITEMS.map(({ label, href, Icon }) => {
+              const isActive = label === activeItem;
+
+              return (
+                <BottomNavItem
+                  key={label}
+                  label={label}
+                  href={href}
+                  Icon={Icon}
+                  isActive={isActive}
+                />
+              );
+            })}
+          </div>
+        </div>
+      </nav>
+    </>
   );
 }

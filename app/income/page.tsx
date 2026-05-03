@@ -403,39 +403,39 @@ export default function IncomePage() {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.04),_transparent_38%),radial-gradient(circle_at_bottom,_rgba(37,99,235,0.02),_transparent_35%)] dark:bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.18),_transparent_38%),radial-gradient(circle_at_bottom,_rgba(37,99,235,0.08),_transparent_35%)]" />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.95)_0%,rgba(255,255,255,0.98)_100%)] dark:bg-[linear-gradient(180deg,rgba(9,17,31,0.88)_0%,rgba(9,17,31,0.97)_100%)]" />
 
-      <div className="relative z-10 mx-auto w-full max-w-[860px] px-3 pb-28 pt-6 sm:px-5 sm:pt-6 lg:px-6 lg:pt-8">
-        <section className="mx-auto w-full rounded-[2rem] border border-slate-200 bg-slate-50/50 p-3 shadow-[0_30px_80px_rgba(0,0,0,0.04)] backdrop-blur-sm dark:border-white/10 dark:bg-slate-900/55 dark:shadow-[0_30px_80px_rgba(0,0,0,0.35)] sm:p-5 lg:p-6">
+      <div className="relative z-10 mx-auto w-full max-w-[860px] px-3 pb-28 pt-6 sm:px-5 sm:pt-6 lg:max-w-7xl lg:px-8 lg:pb-12 lg:pt-20">
+        <section className="mx-auto w-full rounded-[2rem] border border-slate-200 bg-slate-50/50 p-3 shadow-[0_30px_80px_rgba(0,0,0,0.04)] backdrop-blur-sm dark:border-white/10 dark:bg-slate-900/55 dark:shadow-[0_30px_80px_rgba(0,0,0,0.35)] sm:p-5 lg:rounded-[1.5rem] lg:p-5">
           <header className="flex items-start justify-between gap-3 px-1 sm:gap-4 sm:px-0">
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl lg:text-4xl">Indkomst</h1>
+              <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl">Indkomst</h1>
               <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400 sm:mt-1 sm:text-sm">Indkomst efter skat (beregnes til månedlig)</p>
             </div>
 
           </header>
 
-          <div className="mt-6 rounded-2xl border border-emerald-300 bg-gradient-to-br from-emerald-400 via-emerald-500 to-green-500 p-4 text-emerald-50 shadow-[0_22px_70px_rgba(16,185,129,0.32)] sm:p-5 lg:mt-8 lg:rounded-3xl lg:p-8">
-            <p className="text-sm font-medium text-emerald-50 sm:text-base lg:text-xl">Samlet månedlig indkomst</p>
+          <div className="mt-6 rounded-2xl border border-emerald-300 bg-gradient-to-br from-emerald-400 via-emerald-500 to-green-500 p-4 text-emerald-50 shadow-[0_22px_70px_rgba(16,185,129,0.32)] sm:p-5 lg:mt-6 lg:rounded-2xl lg:p-5">
+            <p className="text-sm font-medium text-emerald-50 sm:text-base">Samlet månedlig indkomst</p>
             <div className="mt-2 flex items-center justify-between">
-              <p className="text-3xl font-bold text-white sm:text-4xl lg:text-5xl">
+              <p className="text-3xl font-bold text-white sm:text-4xl">
                 {formatCompactDkk(totalIncomeMonthly)}
               </p>
-              <p className="text-lg font-semibold text-emerald-50 sm:text-base lg:text-xl">{totalCount} kilder</p>
+              <p className="text-lg font-semibold text-emerald-50 sm:text-base">{totalCount} kilder</p>
             </div>
           </div>
 
-          <div className="mt-6 rounded-2xl border border-blue-200 dark:border-blue-400/20 bg-blue-50 dark:bg-blue-400/10 px-4 py-3">
-            <p className="text-sm text-blue-800 dark:text-blue-100">
-              <span className="font-semibold">Tip:</span> Indtast din netto-løn (efter skat, AM-bidrag mv.). Det beløb du faktisk får udbetalt hver måned.
+          {dataSource === "fallback" ? (
+            <p className="mt-6 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-100">
+              Viser test data. Tilføj selv din <span className="font-semibold">indkomst</span> for at få overblik over din økonomi.
             </p>
-          </div>
+          ) : null}
 
-          <div className="mt-6 space-y-3 sm:space-y-4">
+          <div className="mt-6 space-y-3 sm:space-y-4 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
             {incomeItems.map((item) => (
               <article
                 key={item.id}
-                className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-white/10 dark:bg-slate-800/70 lg:rounded-3xl"
+                className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-white/10 dark:bg-slate-800/70"
               >
-                <div className="px-4 py-3 lg:px-6 lg:py-5">
+                <div className="px-4 py-3">
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between mb-3">
@@ -464,14 +464,14 @@ export default function IncomePage() {
                       <input
                         value={item.name}
                         disabled
-                        className="h-11 w-full rounded-2xl border border-slate-300 bg-slate-100 px-4 text-base font-semibold text-slate-900 disabled:cursor-not-allowed dark:border-white/10 dark:bg-slate-600/40 dark:text-white sm:h-12 sm:text-lg lg:h-14 lg:text-xl"
+                        className="h-11 w-full rounded-2xl border border-slate-300 bg-slate-100 px-4 text-base font-semibold text-slate-900 disabled:cursor-not-allowed dark:border-white/10 dark:bg-slate-600/40 dark:text-white sm:h-12 sm:text-lg lg:text-base"
                       />
 
-                      <div className="mt-3 grid grid-cols-2 gap-3 lg:mt-4 lg:gap-4">
+                      <div className="mt-3 grid grid-cols-2 gap-3">
                         <div>
                           <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">Beløb</p>
                           <div className="flex min-h-11 flex-col justify-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 dark:border-white/10 dark:bg-slate-600/40 sm:min-h-12 lg:min-h-14">
-                            <p className="text-sm font-semibold text-slate-900 dark:text-white sm:text-base lg:text-lg">
+                            <p className="text-sm font-semibold text-slate-900 dark:text-white sm:text-base">
                               {formatCompactDkk(item.amountMonthly)}
                             </p>
                             {typeof item.amountPeriod === "number" && item.periodLabel ? (
@@ -484,8 +484,8 @@ export default function IncomePage() {
 
                         <div>
                           <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">Frekvens</p>
-                          <div className="flex h-11 items-center rounded-2xl border border-slate-200 bg-slate-50 px-4 dark:border-white/10 dark:bg-slate-600/40 sm:h-12 lg:h-14">
-                            <p className="text-sm font-semibold text-slate-900 dark:text-white sm:text-base lg:text-lg">
+                          <div className="flex h-11 items-center rounded-2xl border border-slate-200 bg-slate-50 px-4 dark:border-white/10 dark:bg-slate-600/40 sm:h-12">
+                            <p className="text-sm font-semibold text-slate-900 dark:text-white sm:text-base">
                               {periodLabelToFrequencyText(item.periodLabel)}
                             </p>
                           </div>
@@ -501,7 +501,7 @@ export default function IncomePage() {
           <button
             type="button"
             onClick={openAddIncomeModal}
-            className="mt-6 w-full rounded-2xl border-2 border-dashed border-slate-300 py-4 text-center text-slate-700 transition hover:border-slate-400 dark:border-white/20 dark:text-white dark:hover:border-white/40 lg:py-6"
+            className="mt-6 w-full rounded-2xl border-2 border-dashed border-slate-300 py-4 text-center text-slate-700 transition hover:border-slate-400 dark:border-white/20 dark:text-white dark:hover:border-white/40"
           >
             <span className="text-2xl">+</span> Tilføj indtægtskilde
           </button>
@@ -510,11 +510,11 @@ export default function IncomePage() {
             <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">Opdaterer indkomster...</p>
           ) : null}
 
-          {dataSource === "fallback" ? (
-            <p className="mt-4 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-100">
-              Viser demo-tal. Opret data i tabellen income_sources for at få live-indkomster.
+          <div className="mt-4 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 dark:border-blue-400/20 dark:bg-blue-400/10">
+            <p className="text-sm text-blue-800 dark:text-blue-100">
+              <span className="font-semibold">Tip:</span> Indtast din netto-løn (efter skat, AM-bidrag mv.). Det beløb du faktisk får udbetalt hver måned.
             </p>
-          ) : null}
+          </div>
         </section>
 
         <BottomNav activeItem="Indkomst" />
@@ -528,9 +528,9 @@ export default function IncomePage() {
           transition={{ duration: 0.18, ease: "easeOut" }}
           onClick={closeAddIncomeModal}
         >
-          <div className="absolute left-1/2 top-1/2 w-[calc(100%-1rem)] max-w-[560px] -translate-x-1/2 -translate-y-1/2 sm:top-auto sm:bottom-20 sm:w-[calc(100%-2rem)] sm:max-w-[600px] sm:-translate-y-0 lg:max-w-[680px]">
+          <div className="absolute left-1/2 top-1/2 w-[calc(100%-1rem)] max-w-[560px] -translate-x-1/2 -translate-y-1/2 sm:top-auto sm:bottom-20 sm:w-[calc(100%-2rem)] sm:max-w-[600px] sm:-translate-y-0 lg:bottom-auto lg:top-1/2 lg:max-w-[620px] lg:-translate-y-1/2">
             <motion.section
-              className="max-h-[82dvh] overflow-auto rounded-[1rem] border border-slate-200 bg-white p-4 shadow-[0_25px_80px_rgba(0,0,0,0.1)] dark:border-white/10 dark:bg-slate-800 dark:shadow-[0_25px_80px_rgba(0,0,0,0.5)] sm:rounded-[1.5rem] sm:p-5 lg:rounded-[2rem] lg:p-7"
+              className="max-h-[82dvh] overflow-auto rounded-[1rem] border border-slate-200 bg-white p-4 shadow-[0_25px_80px_rgba(0,0,0,0.1)] dark:border-white/10 dark:bg-slate-800 dark:shadow-[0_25px_80px_rgba(0,0,0,0.5)] sm:rounded-[1.5rem] sm:p-5 lg:rounded-[1.5rem]"
               initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
@@ -540,13 +540,13 @@ export default function IncomePage() {
               aria-label={editingIncomeId ? "Rediger indkomst" : "Tilføj indkomst"}
             >
             <header className="flex items-start justify-between gap-4">
-              <h2 className="text-xl font-semibold text-slate-900 dark:text-white sm:text-2xl lg:text-3xl">
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-white sm:text-2xl">
                 {editingIncomeId ? "Rediger indkomst" : "Tilføj indkomst"}
               </h2>
               <button
                 type="button"
                 onClick={closeAddIncomeModal}
-                className="text-xl leading-none text-slate-400 transition hover:text-slate-900 dark:hover:text-white sm:text-2xl lg:text-4xl"
+                className="text-xl leading-none text-slate-400 transition hover:text-slate-900 dark:hover:text-white sm:text-2xl"
                 aria-label="Luk"
               >
                 ×
@@ -555,33 +555,33 @@ export default function IncomePage() {
 
             <div className="mt-4 space-y-2.5 sm:mt-5 sm:space-y-3 lg:space-y-4">
               <label className="block">
-                <span className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-200 sm:text-base lg:mb-2 lg:text-xl">Navn</span>
+                <span className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-200 sm:text-base">Navn</span>
                 <input
                   value={name}
                   onChange={(event) => setName(event.target.value)}
                   placeholder="f.eks. Løn"
-                  className="h-10 w-full rounded-2xl border border-slate-300 bg-white px-4 text-base text-slate-900 placeholder:text-slate-500 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20 dark:border-white/10 dark:bg-slate-600/65 dark:text-white dark:placeholder:text-slate-400 sm:h-12 sm:px-4 sm:text-lg lg:h-16 lg:px-5 lg:text-2xl"
+                  className="h-10 w-full rounded-2xl border border-slate-300 bg-white px-4 text-base text-slate-900 placeholder:text-slate-500 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20 dark:border-white/10 dark:bg-slate-600/65 dark:text-white dark:placeholder:text-slate-400 sm:h-12 sm:px-4 sm:text-lg"
                 />
               </label>
 
               <label className="block">
-                <span className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-200 sm:text-base lg:mb-2 lg:text-xl">Beløb</span>
+                <span className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-200 sm:text-base">Beløb</span>
                 <div className="relative">
                   <input
                     value={amount}
                     onChange={(event) => setAmount(event.target.value)}
                     placeholder="0,00"
                     inputMode="decimal"
-                    className="h-10 w-full rounded-2xl border border-slate-300 bg-white px-4 pr-14 text-base text-slate-900 placeholder:text-slate-500 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20 dark:border-white/10 dark:bg-slate-600/65 dark:text-white dark:placeholder:text-slate-400 sm:h-12 sm:px-4 sm:pr-14 sm:text-lg lg:h-16 lg:px-5 lg:pr-16 lg:text-2xl"
+                    className="h-10 w-full rounded-2xl border border-slate-300 bg-white px-4 pr-14 text-base text-slate-900 placeholder:text-slate-500 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20 dark:border-white/10 dark:bg-slate-600/65 dark:text-white dark:placeholder:text-slate-400 sm:h-12 sm:px-4 sm:pr-14 sm:text-lg"
                   />
-                  <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm text-slate-500 dark:text-slate-300 sm:text-base lg:right-5 lg:text-xl">
+                  <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm text-slate-500 dark:text-slate-300 sm:text-base">
                     kr
                   </span>
                 </div>
               </label>
 
               <fieldset>
-                <legend className="mb-2 text-base font-medium text-slate-900 dark:text-slate-200 sm:text-base lg:mb-3 lg:text-xl">Frekvens</legend>
+                <legend className="mb-2 text-base font-medium text-slate-900 dark:text-slate-200 sm:text-base">Frekvens</legend>
                 <div className="grid grid-cols-2 gap-2 sm:gap-3">
                   {[
                     { value: "monthly", label: "Månedlig" },
@@ -596,7 +596,7 @@ export default function IncomePage() {
                         key={option.value}
                         type="button"
                         onClick={() => setFrequency(option.value as Frequency)}
-                        className={`h-10 rounded-2xl border text-sm font-medium transition sm:h-12 sm:text-base lg:h-16 lg:text-xl ${
+                        className={`h-10 rounded-2xl border text-sm font-medium transition sm:h-12 sm:text-base ${
                           isActive
                             ? "border-blue-400 bg-blue-500/20 text-blue-700 dark:text-blue-300"
                             : "border-slate-300 bg-slate-100 text-slate-700 hover:border-slate-400 dark:border-white/15 dark:bg-slate-700/40 dark:text-slate-300 dark:hover:border-white/25"
@@ -615,7 +615,7 @@ export default function IncomePage() {
                 type="button"
                 onClick={handleSaveIncome}
                 disabled={isSavingIncome}
-                className="mt-1 flex h-10 w-full items-center justify-center rounded-2xl bg-blue-500 text-base font-semibold text-white shadow-[0_20px_60px_rgba(59,130,246,0.35)] transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-70 sm:mt-2 sm:h-12 sm:text-lg lg:h-16 lg:text-2xl"
+                className="mt-1 flex h-10 w-full items-center justify-center rounded-2xl bg-blue-500 text-base font-semibold text-white shadow-[0_20px_60px_rgba(59,130,246,0.35)] transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-70 sm:mt-2 sm:h-12 sm:text-lg"
               >
                 {isSavingIncome ? "Gemmer..." : editingIncomeId ? "Gem ændringer" : "Gem"}
               </button>

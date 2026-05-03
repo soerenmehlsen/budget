@@ -510,11 +510,11 @@ export default function ExpensesPage() {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.04),_transparent_38%),radial-gradient(circle_at_bottom,_rgba(37,99,235,0.02),_transparent_35%)] dark:bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.18),_transparent_38%),radial-gradient(circle_at_bottom,_rgba(37,99,235,0.08),_transparent_35%)]" />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.95)_0%,rgba(255,255,255,0.98)_100%)] dark:bg-[linear-gradient(180deg,rgba(9,17,31,0.88)_0%,rgba(9,17,31,0.97)_100%)]" />
 
-      <div className="relative z-10 mx-auto w-full max-w-[860px] px-3 pb-28 pt-6 sm:px-5 sm:pt-6 lg:px-6 lg:pt-8">
-        <section className="mx-auto w-full rounded-[2rem] border border-slate-200 bg-slate-50/50 p-3 shadow-[0_30px_80px_rgba(0,0,0,0.04)] backdrop-blur-sm dark:border-white/10 dark:bg-slate-900/55 dark:shadow-[0_30px_80px_rgba(0,0,0,0.35)] sm:p-5 lg:p-6">
+      <div className="relative z-10 mx-auto w-full max-w-[860px] px-3 pb-28 pt-6 sm:px-5 sm:pt-6 lg:max-w-7xl lg:px-8 lg:pb-12 lg:pt-20">
+        <section className="mx-auto w-full rounded-[2rem] border border-slate-200 bg-slate-50/50 p-3 shadow-[0_30px_80px_rgba(0,0,0,0.04)] backdrop-blur-sm dark:border-white/10 dark:bg-slate-900/55 dark:shadow-[0_30px_80px_rgba(0,0,0,0.35)] sm:p-5 lg:rounded-[1.5rem] lg:p-5">
           <header className="flex items-start justify-between gap-3 px-1 sm:gap-4 sm:px-0">
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl lg:text-4xl">Udgifter</h1>
+              <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl">Udgifter</h1>
               <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400 sm:mt-1 sm:text-sm">{totalCount} faste udgifter</p>
             </div>
 
@@ -524,11 +524,17 @@ export default function ExpensesPage() {
                 onClick={() => openAddExpenseModal()}
                 Icon={PlusIcon}
                 iconSize={20}
-                className="grid h-10 w-10 place-items-center rounded-xl border border-blue-400/30 bg-blue-500 text-white shadow-[0_15px_45px_rgba(59,130,246,0.35)] transition hover:bg-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-300/35 lg:h-12 lg:w-12 lg:rounded-2xl"
+                className="grid h-10 w-10 place-items-center rounded-xl border border-blue-400/30 bg-blue-500 text-white shadow-[0_15px_45px_rgba(59,130,246,0.35)] transition hover:bg-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-300/35"
                 aria-label="Tilføj udgift"
               />
             </div>
           </header>
+
+          {dataSource === "fallback" ? (
+            <p className="mt-4 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-100">
+              Viser test data. Tilføj selv dine <span className="font-semibold">udgifter</span> for at få overblik over dine egne udgifter.
+            </p>
+          ) : null}
 
           <div className="mt-5 flex items-center justify-between sm:mt-6">
             <AnimatedIconButton
@@ -545,7 +551,7 @@ export default function ExpensesPage() {
             <p className="text-sm text-slate-700 dark:text-slate-300">{formatCompactDkk(totalExpensesMonthly)}/md</p>
           </div>
 
-          <div className="mt-4 space-y-3 sm:space-y-4">
+          <div className="mt-4 space-y-3 sm:space-y-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-4 lg:space-y-0">
             {groupedExpenses.map((group) => {
               const isCollapsed = collapsedCategories[group.category] === true;
 
@@ -554,9 +560,9 @@ export default function ExpensesPage() {
                   key={group.category}
                   layout
                   transition={{ duration: 0.24, ease: "easeOut" }}
-                  className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-white/10 dark:bg-slate-800/70 lg:rounded-3xl"
+                  className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-white/10 dark:bg-slate-800/70"
                 >
-                  <div className="flex items-center justify-between gap-3 px-4 py-3 lg:px-6 lg:py-4">
+                  <div className="flex items-center justify-between gap-3 px-4 py-3">
                     <AnimatedIconButton
                       type="button"
                       className="flex min-w-0 items-center gap-3"
@@ -571,7 +577,7 @@ export default function ExpensesPage() {
                       iconSize={20}
                       iconClassName={`text-slate-500 transition dark:text-slate-400 ${isCollapsed ? "-rotate-90" : "rotate-0"}`}
                     >
-                      <h2 className="truncate text-sm font-semibold text-slate-900 dark:text-white sm:text-base lg:text-lg">{group.category}</h2>
+                      <h2 className="truncate text-sm font-semibold text-slate-900 dark:text-white sm:text-base">{group.category}</h2>
 
                       <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-semibold text-slate-700 dark:bg-slate-700 dark:text-slate-300">
                         {group.items.length}
@@ -579,7 +585,7 @@ export default function ExpensesPage() {
                     </AnimatedIconButton>
 
                     <div className="flex items-center gap-3">
-                      <p className="text-sm font-semibold text-slate-900 dark:text-white sm:text-base lg:text-xl">
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white sm:text-base">
                         {formatCompactDkk(group.totalMonthly)}/md
                       </p>
 
@@ -606,12 +612,12 @@ export default function ExpensesPage() {
                         {group.items.map((item) => (
                           <li
                             key={item.id}
-                            className="border-b border-slate-200 px-4 py-3 last:border-b-0 dark:border-white/10 lg:px-6 lg:py-5"
+                            className="border-b border-slate-200 px-4 py-3 last:border-b-0 dark:border-white/10"
                           >
                             <div className="flex items-start justify-between gap-4">
                               <div className="min-w-0">
                                 <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">{item.name}</p>
-                                <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 sm:text-sm lg:text-base">
+                                <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 sm:text-sm">
                                   {periodLabelToFrequencyText(item.periodLabel)}
                                 </p>
 
@@ -640,7 +646,7 @@ export default function ExpensesPage() {
                               </div>
 
                               <div className="text-right">
-                                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 sm:text-base lg:text-xl">
+                                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 sm:text-base">
                                   {formatCompactDkk(item.amountMonthly)}
                                 </p>
                                 {typeof item.amountPeriod === "number" && item.periodLabel ? (
@@ -664,11 +670,6 @@ export default function ExpensesPage() {
             <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">Opdaterer udgifter...</p>
           ) : null}
 
-          {dataSource === "fallback" ? (
-            <p className="mt-4 rounded-2xl border border-blue-200 dark:border-blue-400/20 bg-blue-50 dark:bg-blue-400/10 px-4 py-3 text-sm text-blue-800 dark:text-blue-100">
-              Viser demo-tal. Opret data i tabellen expense_items for at få live-udgifter.
-            </p>
-          ) : null}
         </section>
 
         <BottomNav activeItem="Udgifter" />
@@ -682,9 +683,9 @@ export default function ExpensesPage() {
           transition={{ duration: 0.18, ease: "easeOut" }}
           onClick={closeAddExpenseModal}
         >
-          <div className="absolute left-1/2 top-1/2 w-[calc(100%-1rem)] max-w-[560px] -translate-x-1/2 -translate-y-1/2 sm:top-auto sm:bottom-20 sm:w-[calc(100%-2rem)] sm:max-w-[600px] sm:-translate-y-0 lg:max-w-[680px]">
+          <div className="absolute left-1/2 top-1/2 w-[calc(100%-1rem)] max-w-[560px] -translate-x-1/2 -translate-y-1/2 sm:top-auto sm:bottom-20 sm:w-[calc(100%-2rem)] sm:max-w-[600px] sm:-translate-y-0 lg:bottom-auto lg:top-1/2 lg:max-w-[620px] lg:-translate-y-1/2">
             <motion.section
-              className="max-h-[82dvh] overflow-auto rounded-[1rem] border border-slate-200 bg-white p-4 shadow-[0_25px_80px_rgba(0,0,0,0.1)] dark:border-white/10 dark:bg-slate-800 dark:shadow-[0_25px_80px_rgba(0,0,0,0.5)] sm:rounded-[1.5rem] sm:p-5 lg:rounded-[2rem] lg:p-7"
+              className="max-h-[82dvh] overflow-auto rounded-[1rem] border border-slate-200 bg-white p-4 shadow-[0_25px_80px_rgba(0,0,0,0.1)] dark:border-white/10 dark:bg-slate-800 dark:shadow-[0_25px_80px_rgba(0,0,0,0.5)] sm:rounded-[1.5rem] sm:p-5 lg:rounded-[1.5rem]"
               initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
@@ -694,13 +695,13 @@ export default function ExpensesPage() {
               aria-label={editingExpenseId ? "Rediger udgift" : "Tilføj udgift"}
             >
             <header className="flex items-start justify-between gap-4">
-              <h2 className="text-xl font-semibold text-slate-900 dark:text-white sm:text-2xl lg:text-3xl">
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-white sm:text-2xl">
                 {editingExpenseId ? "Rediger udgift" : "Tilføj udgift"}
               </h2>
               <button
                 type="button"
                 onClick={closeAddExpenseModal}
-                className="text-xl leading-none text-slate-400 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white sm:text-2xl lg:text-4xl"
+                className="text-xl leading-none text-slate-400 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white sm:text-2xl"
                 aria-label="Luk"
               >
                 ×
@@ -709,21 +710,21 @@ export default function ExpensesPage() {
 
             <div className="mt-4 space-y-2.5 sm:mt-5 sm:space-y-3 lg:space-y-4">
               <label className="block">
-                <span className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-200 sm:text-base lg:mb-2 lg:text-xl">Navn</span>
+                <span className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-200 sm:text-base">Navn</span>
                 <input
                   value={name}
                   onChange={(event) => setName(event.target.value)}
                   placeholder="f.eks. Huslån"
-                  className="h-10 w-full rounded-2xl border border-slate-300 bg-white px-4 text-base text-slate-900 placeholder:text-slate-500 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20 dark:border-white/10 dark:bg-slate-600/65 dark:text-white dark:placeholder:text-slate-400 sm:h-12 sm:px-4 sm:text-lg lg:h-16 lg:px-5 lg:text-2xl"
+                  className="h-10 w-full rounded-2xl border border-slate-300 bg-white px-4 text-base text-slate-900 placeholder:text-slate-500 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20 dark:border-white/10 dark:bg-slate-600/65 dark:text-white dark:placeholder:text-slate-400 sm:h-12 sm:px-4 sm:text-lg"
                 />
               </label>
 
               <label className="block">
-                <span className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-200 sm:text-base lg:mb-2 lg:text-xl">Kategori</span>
+                <span className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-200 sm:text-base">Kategori</span>
                 <select
                   value={category}
                   onChange={(event) => setCategory(event.target.value)}
-                  className="h-10 w-full rounded-xl border border-slate-300 bg-white px-4 text-base text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20 dark:border-white/15 dark:bg-slate-600/70 dark:text-white sm:h-11 sm:text-base lg:h-12 lg:text-xl"
+                  className="h-10 w-full rounded-xl border border-slate-300 bg-white px-4 text-base text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20 dark:border-white/15 dark:bg-slate-600/70 dark:text-white sm:h-11 sm:text-base"
                 >
                   {Array.from(new Set([...CATEGORIES, ...groupedExpenses.map((group) => group.category)])).map(
                     (option) => (
@@ -736,23 +737,23 @@ export default function ExpensesPage() {
               </label>
 
               <label className="block">
-                <span className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-200 sm:text-base lg:mb-2 lg:text-xl">Beløb</span>
+                <span className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-200 sm:text-base">Beløb</span>
                 <div className="relative">
                   <input
                     value={amount}
                     onChange={(event) => setAmount(event.target.value)}
                     placeholder="0,00"
                     inputMode="decimal"
-                    className="h-10 w-full rounded-2xl border border-slate-300 bg-white px-4 pr-14 text-base text-slate-900 placeholder:text-slate-500 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20 dark:border-white/10 dark:bg-slate-600/65 dark:text-white dark:placeholder:text-slate-400 sm:h-12 sm:px-4 sm:pr-14 sm:text-lg lg:h-16 lg:px-5 lg:pr-16 lg:text-2xl"
+                    className="h-10 w-full rounded-2xl border border-slate-300 bg-white px-4 pr-14 text-base text-slate-900 placeholder:text-slate-500 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20 dark:border-white/10 dark:bg-slate-600/65 dark:text-white dark:placeholder:text-slate-400 sm:h-12 sm:px-4 sm:pr-14 sm:text-lg"
                   />
-                  <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm text-slate-500 dark:text-slate-300 sm:text-base lg:right-5 lg:text-xl">
+                  <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm text-slate-500 dark:text-slate-300 sm:text-base">
                     kr
                   </span>
                 </div>
               </label>
 
               <fieldset>
-                <legend className="mb-2 text-base font-medium text-slate-900 dark:text-slate-200 sm:text-base lg:mb-3 lg:text-xl">Frekvens</legend>
+                <legend className="mb-2 text-base font-medium text-slate-900 dark:text-slate-200 sm:text-base">Frekvens</legend>
                 <div className="grid grid-cols-2 gap-2 sm:gap-3">
                   {[
                     { value: "monthly", label: "Månedlig" },
@@ -767,7 +768,7 @@ export default function ExpensesPage() {
                         key={option.value}
                         type="button"
                         onClick={() => setFrequency(option.value as Frequency)}
-                        className={`h-10 rounded-2xl border text-sm font-medium transition sm:h-12 sm:text-base lg:h-16 lg:text-xl ${
+                        className={`h-10 rounded-2xl border text-sm font-medium transition sm:h-12 sm:text-base ${
                           isActive
                             ? "border-blue-400 bg-blue-500/20 text-blue-700 dark:text-blue-300"
                             : "border-slate-300 bg-slate-100 text-slate-700 hover:border-slate-400 dark:border-white/15 dark:bg-slate-700/40 dark:text-slate-300 dark:hover:border-white/25"
@@ -803,7 +804,7 @@ export default function ExpensesPage() {
                 type="button"
                 onClick={handleSaveExpense}
                 disabled={isSavingExpense}
-                className="mt-1 flex h-10 w-full items-center justify-center rounded-2xl bg-blue-500 text-base font-semibold text-white shadow-[0_20px_60px_rgba(59,130,246,0.35)] transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-70 sm:mt-2 sm:h-12 sm:text-lg lg:h-16 lg:text-2xl"
+                className="mt-1 flex h-10 w-full items-center justify-center rounded-2xl bg-blue-500 text-base font-semibold text-white shadow-[0_20px_60px_rgba(59,130,246,0.35)] transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-70 sm:mt-2 sm:h-12 sm:text-lg"
               >
                 {isSavingExpense
                   ? "Gemmer..."
