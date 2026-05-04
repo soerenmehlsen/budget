@@ -17,26 +17,18 @@ import {
   readCachedData,
   writeCachedData,
 } from "@/lib/data-cache";
+import {
+  createExpense,
+  deleteExpense,
+  fetchBankAccounts,
+  fetchExpenses,
+  updateExpense,
+  type BankAccount,
+  type ExpenseItem,
+} from "@/services/expenseService";
 import { supabase } from "@/lib/supabase/client";
 
 type Frequency = "monthly" | "quarterly" | "halfYearly" | "yearly";
-
-type BankAccount = {
-  id: string;
-  name: string;
-  sortOrder?: number | null;
-};
-
-type ExpenseItem = {
-  id: string;
-  category: string;
-  name: string;
-  amountMonthly: number;
-  amountPeriod?: number | null;
-  periodLabel?: string | null;
-  sortOrder?: number | null;
-  bankAccountId?: string | null;
-};
 
 const FALLBACK_EXPENSES: ExpenseItem[] = [
   {
@@ -220,49 +212,27 @@ export default function ExpensesPage() {
 
       setIsLoadingExpenses(true);
 
-      const { data, error } = await supabase
-        .from("expense_items")
-        .select("id, category, name, amount_monthly, amount_annual, sort_order, bank_account_id")
-        .eq("user_id", signedInUserId)
-        .order("category", { ascending: true })
-        .order("sort_order", { ascending: true });
+      try {
+        const items = await fetchExpenses(signedInUserId);
 
-      if (!isMounted) {
-        return;
-      }
+        if (!isMounted) return;
 
-      if (error || !data || data.length === 0) {
+        if (items.length === 0) {
+          setExpenseItems(FALLBACK_EXPENSES);
+          setDataSource("fallback");
+          writeCachedData(CACHE_KEYS.expenses, signedInUserId, FALLBACK_EXPENSES, "fallback");
+        } else {
+          const sorted = [...items].sort(bySortOrderAndName);
+          setExpenseItems(sorted);
+          setDataSource("supabase");
+          writeCachedData(CACHE_KEYS.expenses, signedInUserId, sorted, "supabase");
+        }
+      } catch {
+        if (!isMounted) return;
         setExpenseItems(FALLBACK_EXPENSES);
         setDataSource("fallback");
-        if (!error) {
-          writeCachedData(CACHE_KEYS.expenses, signedInUserId, FALLBACK_EXPENSES, "fallback");
-        }
-        setIsLoadingExpenses(false);
-        return;
       }
 
-      const mapped = data
-        .filter(
-          (row) =>
-            typeof row.amount_monthly === "number" &&
-            typeof row.category === "string" &&
-            typeof row.name === "string",
-        )
-        .map((row) => ({
-          id: row.id ?? `${row.category}-${row.name}`,
-          category: row.category,
-          name: row.name,
-          amountMonthly: row.amount_monthly,
-          amountPeriod: typeof row.amount_annual === "number" ? row.amount_annual : null,
-          periodLabel: typeof row.amount_annual === "number" ? "år" : null,
-          sortOrder: typeof row.sort_order === "number" ? row.sort_order : null,
-          bankAccountId: typeof row.bank_account_id === "string" ? row.bank_account_id : null,
-        }))
-        .sort(bySortOrderAndName);
-
-      setExpenseItems(mapped);
-      setDataSource("supabase");
-      writeCachedData(CACHE_KEYS.expenses, signedInUserId, mapped, "supabase");
       setIsLoadingExpenses(false);
     };
 
@@ -270,42 +240,16 @@ export default function ExpensesPage() {
       setIsLoadingAccounts(true);
       setBankAccountError(null);
 
-      const { data, error } = await supabase
-        .from("bank_accounts")
-        .select("id, name, sort_order")
-        .eq("user_id", signedInUserId)
-        .order("sort_order", { ascending: true });
-
-      if (!isMounted) {
-        return;
-      }
-
-      if (error) {
+      try {
+        const accounts = await fetchBankAccounts(signedInUserId);
+        if (!isMounted) return;
+        setBankAccounts(accounts);
+      } catch {
+        if (!isMounted) return;
         setBankAccountError("Kunne ikke hente bankkonti. Tjek at tabellen bank_accounts findes.");
         setBankAccounts([]);
-        setIsLoadingAccounts(false);
-        return;
       }
 
-      const mapped = (data ?? [])
-        .filter((row) => typeof row.id === "string" && typeof row.name === "string")
-        .map((row) => ({
-          id: row.id,
-          name: row.name,
-          sortOrder: typeof row.sort_order === "number" ? row.sort_order : null,
-        }))
-        .sort((a, b) => {
-          const orderA = a.sortOrder ?? Number.MAX_SAFE_INTEGER;
-          const orderB = b.sortOrder ?? Number.MAX_SAFE_INTEGER;
-
-          if (orderA !== orderB) {
-            return orderA - orderB;
-          }
-
-          return a.name.localeCompare(b.name, "da-DK");
-        });
-
-      setBankAccounts(mapped);
       setIsLoadingAccounts(false);
     };
 
@@ -473,31 +417,24 @@ export default function ExpensesPage() {
     );
     const nextSortOrder = groupItems.length + 1;
 
-    const payload = {
-      user_id: userId,
+    const saveParams = {
+      userId,
       category,
       name: name.trim(),
-      amount_monthly: monthlyAmount,
-      amount_annual: periodAmount,
-      sort_order: nextSortOrder,
-      bank_account_id: bankAccountId || null,
+      amountMonthly: monthlyAmount,
+      amountPeriod: periodAmount,
+      periodLabel: frequency === "monthly" ? null : periodLabel,
+      sortOrder: nextSortOrder,
+      bankAccountId: bankAccountId || null,
     };
 
-    const { data, error } = isEditingExpense
-      ? await supabase
-          .from("expense_items")
-          .update(payload)
-          .eq("id", editingExpenseId)
-          .eq("user_id", userId)
-            .select("id, category, name, amount_monthly, amount_annual, sort_order, bank_account_id")
-          .single()
-      : await supabase
-          .from("expense_items")
-          .insert(payload)
-            .select("id, category, name, amount_monthly, amount_annual, sort_order, bank_account_id")
-          .single();
+    let savedItem: ExpenseItem;
 
-    if (error) {
+    try {
+      savedItem = isEditingExpense
+        ? await updateExpense(editingExpenseId, userId, saveParams)
+        : await createExpense(saveParams);
+    } catch {
       setIsSavingExpense(false);
       setFormError(
         isEditingExpense
@@ -506,25 +443,6 @@ export default function ExpensesPage() {
       );
       return;
     }
-
-    const savedItem: ExpenseItem = {
-      id: data.id ?? `${payload.category}-${payload.name}`,
-      category: data.category,
-      name: data.name,
-      amountMonthly: data.amount_monthly,
-      amountPeriod: typeof data.amount_annual === "number" ? data.amount_annual : periodAmount,
-      periodLabel:
-        typeof data.amount_annual === "number"
-          ? frequency === "yearly"
-            ? "år"
-            : periodLabel
-          : null,
-      sortOrder: typeof data.sort_order === "number" ? data.sort_order : null,
-      bankAccountId:
-        typeof data.bank_account_id === "string"
-          ? data.bank_account_id
-          : bankAccountId || null,
-    };
 
     const nextExpenseItems = (
       isEditingExpense
@@ -552,13 +470,9 @@ export default function ExpensesPage() {
       return;
     }
 
-    const { error } = await supabase
-      .from("expense_items")
-      .delete()
-      .eq("id", expenseId)
-      .eq("user_id", userId);
-
-    if (error) {
+    try {
+      await deleteExpense(expenseId, userId);
+    } catch {
       setFormError("Kunne ikke slette udgift. Prøv igen.");
       return;
     }

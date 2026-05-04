@@ -13,16 +13,14 @@ import {
   readCachedData,
   writeCachedData,
 } from "@/lib/data-cache";
+import {
+  createIncome,
+  deleteIncome,
+  fetchIncome,
+  updateIncome,
+  type IncomeItem,
+} from "@/services/incomeService";
 import { supabase } from "@/lib/supabase/client";
-
-type IncomeItem = {
-  id: string;
-  name: string;
-  amountMonthly: number;
-  amountPeriod?: number | null;
-  periodLabel?: string | null;
-  sortOrder?: number | null;
-};
 
 type Frequency = "monthly" | "quarterly" | "halfYearly" | "yearly";
 
@@ -153,45 +151,27 @@ export default function IncomePage() {
 
       setIsLoadingIncome(true);
 
-      const { data, error } = await supabase
-        .from("income_sources")
-        .select("id, name, amount_monthly, amount_period, period_label, sort_order")
-        .eq("user_id", signedInUserId)
-        .order("sort_order", { ascending: true });
+      try {
+        const items = await fetchIncome(signedInUserId);
 
-      if (!isMounted) {
-        return;
-      }
+        if (!isMounted) return;
 
-      if (error || !data || data.length === 0) {
+        if (items.length === 0) {
+          setIncomeItems(FALLBACK_INCOMES);
+          setDataSource("fallback");
+          writeCachedData(CACHE_KEYS.income, signedInUserId, FALLBACK_INCOMES, "fallback");
+        } else {
+          const sorted = [...items].sort(bySortOrderAndName);
+          setIncomeItems(sorted);
+          setDataSource("supabase");
+          writeCachedData(CACHE_KEYS.income, signedInUserId, sorted, "supabase");
+        }
+      } catch {
+        if (!isMounted) return;
         setIncomeItems(FALLBACK_INCOMES);
         setDataSource("fallback");
-        if (!error) {
-          writeCachedData(CACHE_KEYS.income, signedInUserId, FALLBACK_INCOMES, "fallback");
-        }
-        setIsLoadingIncome(false);
-        return;
       }
 
-      const mapped = data
-        .filter(
-          (row) =>
-            typeof row.amount_monthly === "number" &&
-            typeof row.name === "string",
-        )
-        .map((row) => ({
-          id: row.id ?? `income-${row.name}`,
-          name: row.name,
-          amountMonthly: row.amount_monthly,
-          amountPeriod: typeof row.amount_period === "number" ? row.amount_period : null,
-          periodLabel: typeof row.period_label === "string" ? row.period_label : null,
-          sortOrder: typeof row.sort_order === "number" ? row.sort_order : null,
-        }))
-        .sort(bySortOrderAndName);
-
-      setIncomeItems(mapped);
-      setDataSource("supabase");
-      writeCachedData(CACHE_KEYS.income, signedInUserId, mapped, "supabase");
       setIsLoadingIncome(false);
     };
 
@@ -291,30 +271,22 @@ export default function IncomePage() {
     const periodLabel = frequencyToPeriodLabel(frequency);
     const periodAmount = frequency === "monthly" ? null : parsedAmount;
 
-    const payload = {
-      user_id: userId,
+    const saveParams = {
+      userId,
       name: name.trim(),
-      amount_monthly: monthlyAmount,
-      amount_period: periodAmount,
-      period_label: periodAmount === null ? null : periodLabel,
-      sort_order: nextSortOrder,
+      amountMonthly: monthlyAmount,
+      amountPeriod: periodAmount,
+      periodLabel: periodAmount === null ? null : periodLabel,
+      sortOrder: nextSortOrder,
     };
 
-    const { data, error } = isEditingIncome
-      ? await supabase
-          .from("income_sources")
-          .update(payload)
-          .eq("id", editingIncomeId)
-          .eq("user_id", userId)
-          .select("id, name, amount_monthly, amount_period, period_label, sort_order")
-          .single()
-      : await supabase
-          .from("income_sources")
-          .insert(payload)
-          .select("id, name, amount_monthly, amount_period, period_label, sort_order")
-          .single();
+    let savedItem: IncomeItem;
 
-    if (error) {
+    try {
+      savedItem = isEditingIncome
+        ? await updateIncome(editingIncomeId, userId, saveParams)
+        : await createIncome(saveParams);
+    } catch {
       setIsSavingIncome(false);
       setFormError(
         isEditingIncome
@@ -323,15 +295,6 @@ export default function IncomePage() {
       );
       return;
     }
-
-    const savedItem: IncomeItem = {
-      id: data.id ?? `income-${payload.name}`,
-      name: data.name,
-      amountMonthly: data.amount_monthly,
-      amountPeriod: typeof data.amount_period === "number" ? data.amount_period : periodAmount,
-      periodLabel: typeof data.period_label === "string" ? data.period_label : payload.period_label,
-      sortOrder: typeof data.sort_order === "number" ? data.sort_order : null,
-    };
 
     const nextIncomeItems = (
       isEditingIncome
@@ -359,13 +322,9 @@ export default function IncomePage() {
       return;
     }
 
-    const { error } = await supabase
-      .from("income_sources")
-      .delete()
-      .eq("id", incomeId)
-      .eq("user_id", userId);
-
-    if (error) {
+    try {
+      await deleteIncome(incomeId, userId);
+    } catch {
       setFormError("Kunne ikke slette indkomst. Prøv igen.");
       return;
     }
