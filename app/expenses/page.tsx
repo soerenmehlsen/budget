@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { BottomNav } from "@/components/bottom-nav";
 import { AnimatedIconButton } from "@/components/ui/animated-icon-button";
@@ -11,77 +10,9 @@ import { ChevronRightIcon } from "@/components/ui/chevron-right";
 import { DeleteIcon } from "@/components/ui/delete";
 import { PlusIcon } from "@/components/ui/plus";
 import { SquarePenIcon } from "@/components/ui/square-pen";
-import {
-  CACHE_KEYS,
-  invalidateDashboardCache,
-  readCachedData,
-  writeCachedData,
-} from "@/lib/data-cache";
-import {
-  createExpense,
-  deleteExpense,
-  fetchBankAccounts,
-  fetchExpenses,
-  updateExpense,
-} from "@/services/expenseService";
-import { supabase } from "@/lib/supabase/client";
-import type { BankAccount, ExpenseItem, Frequency } from "@/types/budget";
-
-const FALLBACK_EXPENSES: ExpenseItem[] = [
-  {
-    id: "house-rent",
-    category: "Bolig",
-    name: "Husleje/boliglån",
-    amountMonthly: 12000,
-    sortOrder: 1,
-  },
-  {
-    id: "house-tax",
-    category: "Bolig",
-    name: "Ejendomsskat",
-    amountMonthly: 1500,
-    amountPeriod: 18000,
-    periodLabel: "år",
-    sortOrder: 2,
-  },
-  {
-    id: "utility-heat",
-    category: "Forbrug",
-    name: "Varme",
-    amountMonthly: 800,
-    sortOrder: 1,
-  },
-  {
-    id: "utility-electricity",
-    category: "Forbrug",
-    name: "El",
-    amountMonthly: 600,
-    sortOrder: 2,
-  },
-  {
-    id: "utility-water",
-    category: "Forbrug",
-    name: "Vand",
-    amountMonthly: 800,
-    amountPeriod: 2400,
-    periodLabel: "kvartal",
-    sortOrder: 3,
-  },
-  {
-    id: "utility-internet",
-    category: "Forbrug",
-    name: "Internet",
-    amountMonthly: 299,
-    sortOrder: 4,
-  },
-];
-
-const moneyFormatter = new Intl.NumberFormat("da-DK", {
-  style: "currency",
-  currency: "DKK",
-  maximumFractionDigits: 2,
-  minimumFractionDigits: 2,
-});
+import { useSession } from "@/hooks/useSession";
+import { useExpenses } from "@/hooks/useExpenses";
+import type { ExpenseItem, Frequency } from "@/types/budget";
 
 const CATEGORIES = [
   "Bolig",
@@ -103,88 +34,73 @@ const CATEGORIES = [
   "Diverse",
 ];
 
+const moneyFormatter = new Intl.NumberFormat("da-DK", {
+  style: "currency",
+  currency: "DKK",
+  maximumFractionDigits: 2,
+  minimumFractionDigits: 2,
+});
+
 function formatCompactDkk(amount: number) {
   return `${moneyFormatter.format(amount).replace("DKK", "kr").trim()}`;
 }
 
-function bySortOrderAndName(a: ExpenseItem, b: ExpenseItem) {
-  const orderA = a.sortOrder ?? Number.MAX_SAFE_INTEGER;
-  const orderB = b.sortOrder ?? Number.MAX_SAFE_INTEGER;
-
-  if (orderA !== orderB) {
-    return orderA - orderB;
-  }
-
-  return a.name.localeCompare(b.name, "da-DK");
-}
-
 function frequencyToPeriodLabel(frequency: Frequency) {
   switch (frequency) {
-    case "monthly":
-      return "måned";
-    case "quarterly":
-      return "kvartal";
-    case "halfYearly":
-      return "halvår";
-    case "yearly":
-      return "år";
-    default:
-      return "måned";
+    case "monthly": return "måned";
+    case "quarterly": return "kvartal";
+    case "halfYearly": return "halvår";
+    case "yearly": return "år";
+    default: return "måned";
   }
 }
 
 function frequencyToMonthlyAmount(amount: number, frequency: Frequency) {
   switch (frequency) {
-    case "monthly":
-      return amount;
-    case "quarterly":
-      return amount / 3;
-    case "halfYearly":
-      return amount / 6;
-    case "yearly":
-      return amount / 12;
-    default:
-      return amount;
+    case "monthly": return amount;
+    case "quarterly": return amount / 3;
+    case "halfYearly": return amount / 6;
+    case "yearly": return amount / 12;
+    default: return amount;
   }
 }
 
 function periodLabelToFrequencyText(periodLabel: string | null | undefined) {
   switch (periodLabel) {
-    case "kvartal":
-      return "Kvartalsvis";
-    case "halvår":
-      return "Halvårlig";
-    case "år":
-      return "Årlig";
-    default:
-      return "Månedlig";
+    case "kvartal": return "Kvartalsvis";
+    case "halvår": return "Halvårlig";
+    case "år": return "Årlig";
+    default: return "Månedlig";
   }
 }
 
 function expenseItemToFrequency(item: ExpenseItem): Frequency {
   switch (item.periodLabel) {
-    case "kvartal":
-      return "quarterly";
-    case "halvår":
-      return "halfYearly";
-    case "år":
-      return "yearly";
-    default:
-      return "monthly";
+    case "kvartal": return "quarterly";
+    case "halvår": return "halfYearly";
+    case "år": return "yearly";
+    default: return "monthly";
   }
 }
 
 export default function ExpensesPage() {
-  const router = useRouter();
-  const [isCheckingSession, setIsCheckingSession] = useState(true);
-  const [isLoadingExpenses, setIsLoadingExpenses] = useState(false);
-  const [isSavingExpense, setIsSavingExpense] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [expenseItems, setExpenseItems] = useState<ExpenseItem[]>([]);
-  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
-  const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
-  const [bankAccountError, setBankAccountError] = useState<string | null>(null);
-  const [dataSource, setDataSource] = useState<"supabase" | "fallback">("fallback");
+  const { userId, isCheckingSession } = useSession();
+  const {
+    groupedExpenses,
+    bankAccounts,
+    bankAccountLookup,
+    dataSource,
+    isLoading,
+    isLoadingAccounts,
+    isSaving,
+    bankAccountError,
+    totalMonthly,
+    totalCount,
+    addExpense,
+    updateExpense,
+    removeExpense,
+  } = useExpenses(userId);
+
   const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
@@ -196,144 +112,11 @@ export default function ExpensesPage() {
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadExpenses = async (signedInUserId: string) => {
-      const cached = readCachedData<ExpenseItem[]>(CACHE_KEYS.expenses, signedInUserId);
-
-      if (cached) {
-        setExpenseItems(cached.data);
-        setDataSource(cached.source);
-      }
-
-      setIsLoadingExpenses(true);
-
-      try {
-        const items = await fetchExpenses(signedInUserId);
-
-        if (!isMounted) return;
-
-        if (items.length === 0) {
-          setExpenseItems(FALLBACK_EXPENSES);
-          setDataSource("fallback");
-          writeCachedData(CACHE_KEYS.expenses, signedInUserId, FALLBACK_EXPENSES, "fallback");
-        } else {
-          const sorted = [...items].sort(bySortOrderAndName);
-          setExpenseItems(sorted);
-          setDataSource("supabase");
-          writeCachedData(CACHE_KEYS.expenses, signedInUserId, sorted, "supabase");
-        }
-      } catch {
-        if (!isMounted) return;
-        setExpenseItems(FALLBACK_EXPENSES);
-        setDataSource("fallback");
-      }
-
-      setIsLoadingExpenses(false);
-    };
-
-    const loadBankAccounts = async (signedInUserId: string) => {
-      setIsLoadingAccounts(true);
-      setBankAccountError(null);
-
-      try {
-        const accounts = await fetchBankAccounts(signedInUserId);
-        if (!isMounted) return;
-        setBankAccounts(accounts);
-      } catch {
-        if (!isMounted) return;
-        setBankAccountError("Kunne ikke hente bankkonti. Tjek at tabellen bank_accounts findes.");
-        setBankAccounts([]);
-      }
-
-      setIsLoadingAccounts(false);
-    };
-
-    const syncSession = async () => {
-      const { data } = await supabase.auth.getSession();
-
-      if (!isMounted) {
-        return;
-      }
-
-      if (!data.session) {
-        router.replace("/");
-        return;
-      }
-
-      setUserId(data.session.user.id);
-      await Promise.all([
-        loadExpenses(data.session.user.id),
-        loadBankAccounts(data.session.user.id),
-      ]);
-      setIsCheckingSession(false);
-    };
-
-    void syncSession();
-
-    const { data: subscription } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (!session) {
-          router.replace("/");
-          return;
-        }
-
-        setUserId(session.user.id);
-        void Promise.all([
-          loadExpenses(session.user.id),
-          loadBankAccounts(session.user.id),
-        ]);
-        setIsCheckingSession(false);
-      },
-    );
-
-    return () => {
-      isMounted = false;
-      subscription.subscription.unsubscribe();
-    };
-  }, [router]);
-
-  const groupedExpenses = useMemo(() => {
-    const grouped = new Map<string, ExpenseItem[]>();
-
-    for (const item of expenseItems) {
-      const bucket = grouped.get(item.category) ?? [];
-      bucket.push(item);
-      grouped.set(item.category, bucket);
-    }
-
-    return Array.from(grouped.entries())
-      .map(([groupCategory, items]) => ({
-        category: groupCategory,
-        items: [...items].sort(bySortOrderAndName),
-        totalMonthly: items.reduce((total, item) => total + item.amountMonthly, 0),
-      }))
-      .sort((a, b) => a.category.localeCompare(b.category, "da-DK"));
-  }, [expenseItems]);
-
-  const totalExpensesMonthly = useMemo(
-    () => groupedExpenses.reduce((sum, group) => sum + group.totalMonthly, 0),
-    [groupedExpenses],
-  );
-
-  const totalCount = expenseItems.length;
-
-  const bankAccountLookup = useMemo(() => {
-    const lookup = new Map<string, string>();
-
-    for (const account of bankAccounts) {
-      lookup.set(account.id, account.name);
-    }
-
-    return lookup;
-  }, [bankAccounts]);
-
   const isAllCollapsed =
     groupedExpenses.length > 0 &&
     groupedExpenses.every((group) => collapsedCategories[group.category] === true);
 
-  const resetAddExpenseForm = () => {
+  const resetForm = () => {
     setEditingExpenseId(null);
     setName("");
     setCategory("Abonnementer");
@@ -345,14 +128,9 @@ export default function ExpensesPage() {
   };
 
   const openAddExpenseModal = (preferredCategory?: string) => {
-    resetAddExpenseForm();
-
-    if (preferredCategory) {
-      setCategory(preferredCategory);
-    }
-
+    resetForm();
+    if (preferredCategory) setCategory(preferredCategory);
     setIsAddExpenseOpen(true);
-    setFormError(null);
   };
 
   const openEditExpenseModal = (item: ExpenseItem) => {
@@ -367,121 +145,59 @@ export default function ExpensesPage() {
     setIsAddExpenseOpen(true);
   };
 
-  const closeAddExpenseModal = () => {
+  const closeModal = () => {
     setIsAddExpenseOpen(false);
-    resetAddExpenseForm();
+    resetForm();
   };
 
   const toggleAll = () => {
     const nextValue = !isAllCollapsed;
     const nextState: Record<string, boolean> = {};
-
-    for (const group of groupedExpenses) {
-      nextState[group.category] = nextValue;
-    }
-
+    for (const group of groupedExpenses) nextState[group.category] = nextValue;
     setCollapsedCategories(nextState);
   };
 
   const handleSaveExpense = async () => {
     const parsedAmount = Number(amount.replace(",", "."));
-    const isEditingExpense = editingExpenseId !== null;
 
-    if (!name.trim()) {
-      setFormError("Navn er påkrævet.");
-      return;
-    }
+    if (!name.trim()) { setFormError("Navn er påkrævet."); return; }
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) { setFormError("Beløb skal være større end 0."); return; }
 
-    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
-      setFormError("Beløb skal være større end 0.");
-      return;
-    }
-
-    if (!userId) {
-      setFormError("Kunne ikke finde bruger. Prøv igen.");
-      return;
-    }
-
-    setIsSavingExpense(true);
     setFormError(null);
 
-    const monthlyAmount = frequencyToMonthlyAmount(parsedAmount, frequency);
-    const periodLabel = frequencyToPeriodLabel(frequency);
-    const periodAmount = frequency === "monthly" ? null : parsedAmount;
-
-    const groupItems = expenseItems.filter(
-      (item) => item.category === category && item.id !== editingExpenseId,
-    );
-    const nextSortOrder = groupItems.length + 1;
-
-    const saveParams = {
-      userId,
+    const values = {
       category,
       name: name.trim(),
-      amountMonthly: monthlyAmount,
-      amountPeriod: periodAmount,
-      periodLabel: frequency === "monthly" ? null : periodLabel,
-      sortOrder: nextSortOrder,
+      amountMonthly: frequencyToMonthlyAmount(parsedAmount, frequency),
+      amountPeriod: frequency === "monthly" ? null : parsedAmount,
+      periodLabel: frequency === "monthly" ? null : frequencyToPeriodLabel(frequency),
       bankAccountId: bankAccountId || null,
     };
 
-    let savedItem: ExpenseItem;
-
     try {
-      savedItem = isEditingExpense
-        ? await updateExpense(editingExpenseId, userId, saveParams)
-        : await createExpense(saveParams);
+      if (editingExpenseId) {
+        await updateExpense(editingExpenseId, values);
+      } else {
+        await addExpense(values);
+      }
+      closeModal();
     } catch {
-      setIsSavingExpense(false);
       setFormError(
-        isEditingExpense
+        editingExpenseId
           ? "Kunne ikke opdatere udgift. Tjek at tabellen expense_items findes."
           : "Kunne ikke gemme udgift. Tjek at tabellen expense_items findes.",
       );
-      return;
     }
-
-    const nextExpenseItems = (
-      isEditingExpense
-        ? expenseItems.map((item) => (item.id === editingExpenseId ? savedItem : item))
-        : [...expenseItems, savedItem]
-    ).sort(bySortOrderAndName);
-
-    setExpenseItems(nextExpenseItems);
-    writeCachedData(CACHE_KEYS.expenses, userId, nextExpenseItems, "supabase");
-    invalidateDashboardCache(userId);
-    setDataSource("supabase");
-    setIsSavingExpense(false);
-    closeAddExpenseModal();
   };
 
   const handleDeleteExpense = async (expenseId: string) => {
-    if (!userId) {
-      setFormError("Kunne ikke finde bruger. Prøv igen.");
-      return;
-    }
-
-    const isConfirmed = window.confirm("Vil du slette denne udgift?");
-
-    if (!isConfirmed) {
-      return;
-    }
+    if (!window.confirm("Vil du slette denne udgift?")) return;
 
     try {
-      await deleteExpense(expenseId, userId);
+      await removeExpense(expenseId);
+      if (editingExpenseId === expenseId) closeModal();
     } catch {
       setFormError("Kunne ikke slette udgift. Prøv igen.");
-      return;
-    }
-
-    const nextExpenseItems = expenseItems.filter((item) => item.id !== expenseId);
-    setExpenseItems(nextExpenseItems);
-    writeCachedData(CACHE_KEYS.expenses, userId, nextExpenseItems, "supabase");
-    invalidateDashboardCache(userId);
-    setDataSource("supabase");
-
-    if (editingExpenseId === expenseId) {
-      closeAddExpenseModal();
     }
   };
 
@@ -538,7 +254,7 @@ export default function ExpensesPage() {
               {isAllCollapsed ? "Fold alle ud" : "Fold alle ind"}
             </AnimatedIconButton>
 
-            <p className="text-sm text-slate-700 dark:text-slate-300">{formatCompactDkk(totalExpensesMonthly)}/md</p>
+            <p className="text-sm text-slate-700 dark:text-slate-300">{formatCompactDkk(totalMonthly)}/md</p>
           </div>
 
           <div className="mt-4 space-y-3 sm:space-y-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-4 lg:space-y-0">
@@ -612,7 +328,7 @@ export default function ExpensesPage() {
                                 </p>
                                 {item.bankAccountId ? (
                                   <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 sm:text-sm">
-                                     {bankAccountLookup.get(item.bankAccountId) ?? "Ukendt konto"}
+                                    {bankAccountLookup.get(item.bankAccountId) ?? "Ukendt konto"}
                                   </p>
                                 ) : null}
 
@@ -661,7 +377,7 @@ export default function ExpensesPage() {
             })}
           </div>
 
-          {isLoadingExpenses ? (
+          {isLoading ? (
             <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">Opdaterer udgifter...</p>
           ) : null}
 
@@ -676,7 +392,7 @@ export default function ExpensesPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.18, ease: "easeOut" }}
-          onClick={closeAddExpenseModal}
+          onClick={closeModal}
         >
           <div className="absolute left-1/2 top-1/2 w-[calc(100%-1rem)] max-w-[560px] -translate-x-1/2 -translate-y-1/2 sm:top-auto sm:bottom-20 sm:w-[calc(100%-2rem)] sm:max-w-[600px] sm:-translate-y-0 lg:bottom-auto lg:top-1/2 lg:max-w-[620px] lg:-translate-y-1/2">
             <motion.section
@@ -695,7 +411,7 @@ export default function ExpensesPage() {
               </h2>
               <button
                 type="button"
-                onClick={closeAddExpenseModal}
+                onClick={closeModal}
                 className="text-xl leading-none text-slate-400 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white sm:text-2xl"
                 aria-label="Luk"
               >
@@ -794,7 +510,7 @@ export default function ExpensesPage() {
               </AnimatedIconButton>
 
               {isAdvancedOpen ? (
-                <div className=" space-y-3 rounded-2xl py-3 text-xs text-slate-600 dark:text-slate-300 sm:py-4 sm:text-sm">
+                <div className="space-y-3 rounded-2xl py-3 text-xs text-slate-600 dark:text-slate-300 sm:py-4 sm:text-sm">
                   <label className="block">
                     <span className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-200 sm:text-base">
                       Bankkonto
@@ -824,7 +540,6 @@ export default function ExpensesPage() {
                       Ingen bankkonti endnu. <Link href="/account" className="font-semibold text-blue-600 hover:text-blue-500">Tilføj en konto</Link>.
                     </p>
                   ) : null}
-
                 </div>
               ) : null}
 
@@ -833,10 +548,10 @@ export default function ExpensesPage() {
               <button
                 type="button"
                 onClick={handleSaveExpense}
-                disabled={isSavingExpense}
+                disabled={isSaving}
                 className="mt-1 flex h-10 w-full items-center justify-center rounded-2xl bg-blue-500 text-base font-semibold text-white shadow-[0_20px_60px_rgba(59,130,246,0.35)] transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-70 sm:mt-2 sm:h-12 sm:text-lg"
               >
-                {isSavingExpense
+                {isSaving
                   ? "Gemmer..."
                   : editingExpenseId
                     ? "Gem ændringer"

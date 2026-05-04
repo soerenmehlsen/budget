@@ -1,47 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { motion } from "motion/react";
 import { BottomNav } from "@/components/bottom-nav";
 import { AnimatedIconButton } from "@/components/ui/animated-icon-button";
 import { DeleteIcon } from "@/components/ui/delete";
 import { SquarePenIcon } from "@/components/ui/square-pen";
-import {
-  CACHE_KEYS,
-  invalidateDashboardCache,
-  readCachedData,
-  writeCachedData,
-} from "@/lib/data-cache";
-import {
-  createIncome,
-  deleteIncome,
-  fetchIncome,
-  updateIncome,
-} from "@/services/incomeService";
-import { supabase } from "@/lib/supabase/client";
-import type { Frequency, IncomeItem } from "@/types/budget";
-
-const FALLBACK_INCOMES: IncomeItem[] = [
-  {
-    id: "salary-person1",
-    name: "Person 1",
-    amountMonthly: 28000,
-    sortOrder: 1,
-  },
-  {
-    id: "salary-person2",
-    name: "Person 2",
-    amountMonthly: 22000,
-    sortOrder: 2,
-  },
-  {
-    id: "bonus",
-    name: "Bonus",
-    amountMonthly: 5000,
-    sortOrder: 3,
-  },
-];
+import { useSession } from "@/hooks/useSession";
+import { useIncome } from "@/hooks/useIncome";
+import type { IncomeItem, Frequency } from "@/types/budget";
 
 const moneyFormatter = new Intl.NumberFormat("da-DK", {
   style: "currency",
@@ -54,81 +21,48 @@ function formatCompactDkk(amount: number) {
   return `${moneyFormatter.format(amount).replace("DKK", "kr").trim()}`;
 }
 
-function bySortOrderAndName(a: IncomeItem, b: IncomeItem) {
-  const orderA = a.sortOrder ?? Number.MAX_SAFE_INTEGER;
-  const orderB = b.sortOrder ?? Number.MAX_SAFE_INTEGER;
-
-  if (orderA !== orderB) {
-    return orderA - orderB;
-  }
-
-  return a.name.localeCompare(b.name, "da-DK");
-}
-
 function frequencyToPeriodLabel(frequency: Frequency) {
   switch (frequency) {
-    case "monthly":
-      return "måned";
-    case "quarterly":
-      return "kvartal";
-    case "halfYearly":
-      return "halvår";
-    case "yearly":
-      return "år";
-    default:
-      return "måned";
+    case "monthly": return "måned";
+    case "quarterly": return "kvartal";
+    case "halfYearly": return "halvår";
+    case "yearly": return "år";
+    default: return "måned";
   }
 }
 
 function frequencyToMonthlyAmount(amount: number, frequency: Frequency) {
   switch (frequency) {
-    case "monthly":
-      return amount;
-    case "quarterly":
-      return amount / 3;
-    case "halfYearly":
-      return amount / 6;
-    case "yearly":
-      return amount / 12;
-    default:
-      return amount;
+    case "monthly": return amount;
+    case "quarterly": return amount / 3;
+    case "halfYearly": return amount / 6;
+    case "yearly": return amount / 12;
+    default: return amount;
   }
 }
 
 function periodLabelToFrequencyText(periodLabel: string | null | undefined) {
   switch (periodLabel) {
-    case "kvartal":
-      return "Kvartalsvis";
-    case "halvår":
-      return "Halvårlig";
-    case "år":
-      return "Årlig";
-    default:
-      return "Månedlig";
+    case "kvartal": return "Kvartalsvis";
+    case "halvår": return "Halvårlig";
+    case "år": return "Årlig";
+    default: return "Månedlig";
   }
 }
 
 function incomeItemToFrequency(item: IncomeItem): Frequency {
   switch (item.periodLabel) {
-    case "kvartal":
-      return "quarterly";
-    case "halvår":
-      return "halfYearly";
-    case "år":
-      return "yearly";
-    default:
-      return "monthly";
+    case "kvartal": return "quarterly";
+    case "halvår": return "halfYearly";
+    case "år": return "yearly";
+    default: return "monthly";
   }
 }
 
 export default function IncomePage() {
-  const router = useRouter();
-  const [isCheckingSession, setIsCheckingSession] = useState(true);
-  const [isLoadingIncome, setIsLoadingIncome] = useState(false);
-  const [isSavingIncome, setIsSavingIncome] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [incomeItems, setIncomeItems] = useState<IncomeItem[]>([]);
-  const [dataSource, setDataSource] = useState<"supabase" | "fallback">("fallback");
+  const { userId, isCheckingSession } = useSession();
+  const { incomeItems, dataSource, isLoading, isSaving, addIncome, updateIncome, removeIncome } = useIncome(userId);
+
   const [isAddIncomeOpen, setIsAddIncomeOpen] = useState(false);
   const [editingIncomeId, setEditingIncomeId] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -136,82 +70,7 @@ export default function IncomePage() {
   const [frequency, setFrequency] = useState<Frequency>("monthly");
   const [formError, setFormError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadIncome = async (signedInUserId: string) => {
-      const cached = readCachedData<IncomeItem[]>(CACHE_KEYS.income, signedInUserId);
-
-      if (cached) {
-        setIncomeItems(cached.data);
-        setDataSource(cached.source);
-      }
-
-      setIsLoadingIncome(true);
-
-      try {
-        const items = await fetchIncome(signedInUserId);
-
-        if (!isMounted) return;
-
-        if (items.length === 0) {
-          setIncomeItems(FALLBACK_INCOMES);
-          setDataSource("fallback");
-          writeCachedData(CACHE_KEYS.income, signedInUserId, FALLBACK_INCOMES, "fallback");
-        } else {
-          const sorted = [...items].sort(bySortOrderAndName);
-          setIncomeItems(sorted);
-          setDataSource("supabase");
-          writeCachedData(CACHE_KEYS.income, signedInUserId, sorted, "supabase");
-        }
-      } catch {
-        if (!isMounted) return;
-        setIncomeItems(FALLBACK_INCOMES);
-        setDataSource("fallback");
-      }
-
-      setIsLoadingIncome(false);
-    };
-
-    const syncSession = async () => {
-      const { data } = await supabase.auth.getSession();
-
-      if (!isMounted) {
-        return;
-      }
-
-      if (!data.session) {
-        router.replace("/");
-        return;
-      }
-
-      setUserId(data.session.user.id);
-      await loadIncome(data.session.user.id);
-      setIsCheckingSession(false);
-    };
-
-    void syncSession();
-
-    const { data: subscription } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (!session) {
-          router.replace("/");
-          return;
-        }
-
-        setUserId(session.user.id);
-        void loadIncome(session.user.id);
-        setIsCheckingSession(false);
-      },
-    );
-
-    return () => {
-      isMounted = false;
-      subscription.subscription.unsubscribe();
-    };
-  }, [router]);
-
-  const resetAddIncomeForm = () => {
+  const resetForm = () => {
     setEditingIncomeId(null);
     setName("");
     setAmount("");
@@ -220,9 +79,8 @@ export default function IncomePage() {
   };
 
   const openAddIncomeModal = () => {
-    resetAddIncomeForm();
+    resetForm();
     setIsAddIncomeOpen(true);
-    setFormError(null);
   };
 
   const openEditIncomeModal = (item: IncomeItem) => {
@@ -234,107 +92,50 @@ export default function IncomePage() {
     setIsAddIncomeOpen(true);
   };
 
-  const closeAddIncomeModal = () => {
+  const closeModal = () => {
     setIsAddIncomeOpen(false);
-    resetAddIncomeForm();
+    resetForm();
   };
 
   const handleSaveIncome = async () => {
     const parsedAmount = Number(amount.replace(",", "."));
-    const isEditingIncome = editingIncomeId !== null;
 
-    if (!name.trim()) {
-      setFormError("Navn er påkrævet.");
-      return;
-    }
+    if (!name.trim()) { setFormError("Navn er påkrævet."); return; }
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) { setFormError("Beløb skal være større end 0."); return; }
 
-    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
-      setFormError("Beløb skal være større end 0.");
-      return;
-    }
-
-    if (!userId) {
-      setFormError("Kunne ikke finde bruger. Prøv igen.");
-      return;
-    }
-
-    setIsSavingIncome(true);
     setFormError(null);
 
-    const existingIncome = incomeItems.find((item) => item.id === editingIncomeId);
-    const nextSortOrder = isEditingIncome
-      ? existingIncome?.sortOrder ?? incomeItems.length
-      : incomeItems.length + 1;
-    const monthlyAmount = frequencyToMonthlyAmount(parsedAmount, frequency);
-    const periodLabel = frequencyToPeriodLabel(frequency);
-    const periodAmount = frequency === "monthly" ? null : parsedAmount;
-
-    const saveParams = {
-      userId,
+    const values = {
       name: name.trim(),
-      amountMonthly: monthlyAmount,
-      amountPeriod: periodAmount,
-      periodLabel: periodAmount === null ? null : periodLabel,
-      sortOrder: nextSortOrder,
+      amountMonthly: frequencyToMonthlyAmount(parsedAmount, frequency),
+      amountPeriod: frequency === "monthly" ? null : parsedAmount,
+      periodLabel: frequency === "monthly" ? null : frequencyToPeriodLabel(frequency),
     };
 
-    let savedItem: IncomeItem;
-
     try {
-      savedItem = isEditingIncome
-        ? await updateIncome(editingIncomeId, userId, saveParams)
-        : await createIncome(saveParams);
+      if (editingIncomeId) {
+        await updateIncome(editingIncomeId, values);
+      } else {
+        await addIncome(values);
+      }
+      closeModal();
     } catch {
-      setIsSavingIncome(false);
       setFormError(
-        isEditingIncome
+        editingIncomeId
           ? "Kunne ikke opdatere indkomst. Prøv igen."
           : "Kunne ikke gemme indkomst. Tjek at tabellen income_sources findes.",
       );
-      return;
     }
-
-    const nextIncomeItems = (
-      isEditingIncome
-        ? incomeItems.map((item) => (item.id === editingIncomeId ? savedItem : item))
-        : [...incomeItems, savedItem]
-    ).sort(bySortOrderAndName);
-
-    setIncomeItems(nextIncomeItems);
-    writeCachedData(CACHE_KEYS.income, userId, nextIncomeItems, "supabase");
-    invalidateDashboardCache(userId);
-    setDataSource("supabase");
-    setIsSavingIncome(false);
-    closeAddIncomeModal();
   };
 
   const handleDeleteIncome = async (incomeId: string) => {
-    if (!userId) {
-      setFormError("Kunne ikke finde bruger. Prøv igen.");
-      return;
-    }
-
-    const isConfirmed = window.confirm("Vil du slette denne indtægtskilde?");
-
-    if (!isConfirmed) {
-      return;
-    }
+    if (!window.confirm("Vil du slette denne indtægtskilde?")) return;
 
     try {
-      await deleteIncome(incomeId, userId);
+      await removeIncome(incomeId);
+      if (editingIncomeId === incomeId) closeModal();
     } catch {
       setFormError("Kunne ikke slette indkomst. Prøv igen.");
-      return;
-    }
-
-    const nextIncomeItems = incomeItems.filter((item) => item.id !== incomeId);
-    setIncomeItems(nextIncomeItems);
-    writeCachedData(CACHE_KEYS.income, userId, nextIncomeItems, "supabase");
-    invalidateDashboardCache(userId);
-    setDataSource("supabase");
-
-    if (editingIncomeId === incomeId) {
-      closeAddIncomeModal();
     }
   };
 
@@ -360,7 +161,6 @@ export default function IncomePage() {
               <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl">Indkomst</h1>
               <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400 sm:mt-1 sm:text-sm">Indkomst efter skat (beregnes til månedlig)</p>
             </div>
-
           </header>
 
           {dataSource === "fallback" ? (
@@ -446,7 +246,7 @@ export default function IncomePage() {
             <span className="text-2xl">+</span> Tilføj indtægtskilde
           </button>
 
-          {isLoadingIncome ? (
+          {isLoading ? (
             <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">Opdaterer indkomster...</p>
           ) : null}
 
@@ -466,7 +266,7 @@ export default function IncomePage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.18, ease: "easeOut" }}
-          onClick={closeAddIncomeModal}
+          onClick={closeModal}
         >
           <div className="absolute left-1/2 top-1/2 w-[calc(100%-1rem)] max-w-[560px] -translate-x-1/2 -translate-y-1/2 sm:top-auto sm:bottom-20 sm:w-[calc(100%-2rem)] sm:max-w-[600px] sm:-translate-y-0 lg:bottom-auto lg:top-1/2 lg:max-w-[620px] lg:-translate-y-1/2">
             <motion.section
@@ -485,7 +285,7 @@ export default function IncomePage() {
               </h2>
               <button
                 type="button"
-                onClick={closeAddIncomeModal}
+                onClick={closeModal}
                 className="text-xl leading-none text-slate-400 transition hover:text-slate-900 dark:hover:text-white sm:text-2xl"
                 aria-label="Luk"
               >
@@ -554,10 +354,10 @@ export default function IncomePage() {
               <button
                 type="button"
                 onClick={handleSaveIncome}
-                disabled={isSavingIncome}
+                disabled={isSaving}
                 className="mt-1 flex h-10 w-full items-center justify-center rounded-2xl bg-blue-500 text-base font-semibold text-white shadow-[0_20px_60px_rgba(59,130,246,0.35)] transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-70 sm:mt-2 sm:h-12 sm:text-lg"
               >
-                {isSavingIncome ? "Gemmer..." : editingIncomeId ? "Gem ændringer" : "Gem"}
+                {isSaving ? "Gemmer..." : editingIncomeId ? "Gem ændringer" : "Gem"}
               </button>
             </div>
             </motion.section>
