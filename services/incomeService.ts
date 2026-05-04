@@ -1,13 +1,7 @@
 import { supabase } from "@/lib/supabase/client";
+import type { IncomeItem } from "@/types/budget";
 
-export type IncomeItem = {
-  id: string;
-  name: string;
-  amountMonthly: number;
-  amountPeriod?: number | null;
-  periodLabel?: string | null;
-  sortOrder?: number | null;
-};
+export type { IncomeItem };
 
 export type IncomeSaveParams = {
   userId: string;

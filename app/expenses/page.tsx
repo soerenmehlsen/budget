@@ -23,12 +23,9 @@ import {
   fetchBankAccounts,
   fetchExpenses,
   updateExpense,
-  type BankAccount,
-  type ExpenseItem,
 } from "@/services/expenseService";
 import { supabase } from "@/lib/supabase/client";
-
-type Frequency = "monthly" | "quarterly" | "halfYearly" | "yearly";
+import type { BankAccount, ExpenseItem, Frequency } from "@/types/budget";
 
 const FALLBACK_EXPENSES: ExpenseItem[] = [
   {

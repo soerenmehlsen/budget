@@ -18,11 +18,9 @@ import {
   deleteIncome,
   fetchIncome,
   updateIncome,
-  type IncomeItem,
 } from "@/services/incomeService";
 import { supabase } from "@/lib/supabase/client";
-
-type Frequency = "monthly" | "quarterly" | "halfYearly" | "yearly";
+import type { Frequency, IncomeItem } from "@/types/budget";
 
 const FALLBACK_INCOMES: IncomeItem[] = [
   {

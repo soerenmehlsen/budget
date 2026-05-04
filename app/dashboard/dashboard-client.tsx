@@ -30,6 +30,7 @@ import { TrendingUpIcon } from "@/components/ui/trending-up";
 import { WalletIcon } from "@/components/ui/wallet";
 import { CACHE_KEYS, readCachedData, writeCachedData } from "@/lib/data-cache";
 import { supabase } from "@/lib/supabase/client";
+import type { BankAccount } from "@/types/budget";
 
 type PeriodView = "month" | "year";
 type SortMode = "alpha" | "highest";
@@ -42,12 +43,6 @@ const collapseTransition: Transition = {
 type IncomeSource = {
   name: string;
   amountMonthly: number;
-};
-
-type BankAccount = {
-  id: string;
-  name: string;
-  sortOrder?: number | null;
 };
 
 type ExpenseItem = {

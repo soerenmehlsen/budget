@@ -8,12 +8,7 @@ import { DeleteIcon } from "@/components/ui/delete";
 import { LogoutIcon, type LogoutIconHandle } from "@/components/ui/logout";
 import { PlusIcon } from "@/components/ui/plus";
 import { supabase } from "@/lib/supabase/client";
-
-type BankAccount = {
-  id: string;
-  name: string;
-  sortOrder?: number | null;
-};
+import type { BankAccount } from "@/types/budget";
 
 function bySortOrderAndName(a: BankAccount, b: BankAccount) {
   const orderA = a.sortOrder ?? Number.MAX_SAFE_INTEGER;
