@@ -2,6 +2,25 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import {
+  ArrowLeftRight,
+  Baby,
+  Briefcase,
+  Car,
+  CreditCard,
+  Gift,
+  HeartPulse,
+  Home,
+  PawPrint,
+  PiggyBank,
+  Plane,
+  Plug,
+  Shirt,
+  ShoppingCart,
+  Utensils,
+  WalletMinimal,
+  type LucideIcon,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { Transition } from "motion/react";
 import { motion } from "motion/react";
@@ -145,6 +164,26 @@ function bySortOrderAndName(a: ExpenseItem, b: ExpenseItem) {
 
   return a.name.localeCompare(b.name, "da-DK");
 }
+
+const categoryIcons: Record<string, LucideIcon> = {
+  Abonnementer: CreditCard,
+  Bolig: Home,
+  Børn: Baby,
+  Diverse: Briefcase,
+  Forbrug: Plug,
+  Forsikring: WalletMinimal,
+  Fritid: ShoppingCart,
+  Gaver: Gift,
+  Gæld: WalletMinimal,
+  Kæledyr: PawPrint,
+  Mad: Utensils,
+  Opsparing: PiggyBank,
+  Rejser: Plane,
+  "Restaurant og cafe": Utensils,
+  Sundhed: HeartPulse,
+  Transport: Car,
+  "Tøj og sko": Shirt,
+};
 
 async function fetchDashboardData(userId: string): Promise<{
   data: DashboardData;
@@ -385,15 +424,6 @@ export function DashboardClient() {
     [groupedExpenses, periodFactor],
   );
 
-  const totalTransfers = useMemo(
-    () =>
-      transferTargets.reduce(
-        (sum, account) => sum + account.amountMonthly,
-        0,
-      ) * periodFactor,
-    [transferTargets, periodFactor],
-  );
-
   const freeToSpend = totalIncome - totalExpenses;
 
   const freeToSpendPercent =
@@ -582,7 +612,10 @@ export function DashboardClient() {
             </div>
 
             <div className="mt-3 space-y-3 sm:mt-4 sm:space-y-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-4 lg:space-y-0">
-              {groupedExpenses.map((group) => (
+              {groupedExpenses.map((group) => {
+                const CategoryIcon = categoryIcons[group.category];
+
+                return (
                 <motion.article
                   key={group.category}
                   layout
@@ -590,7 +623,14 @@ export function DashboardClient() {
                   className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 dark:border-white/15 dark:bg-slate-800/75"
                 >
                   <div className="flex items-center justify-between gap-2 px-3 py-3 sm:gap-4 sm:px-4 sm:py-3">
-                    <h3 className="text-xs font-semibold text-slate-900 dark:text-white sm:text-lg lg:text-base">{group.category}</h3>
+                    <div className="flex items-center gap-2">
+                      {CategoryIcon ? (
+                        <span className="grid h-7 w-7 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 dark:border-white/10 dark:bg-slate-900/70 dark:text-slate-200">
+                          <CategoryIcon aria-hidden="true" size={14} />
+                        </span>
+                      ) : null}
+                      <h3 className="text-xs font-semibold text-slate-900 dark:text-white sm:text-lg lg:text-base">{group.category}</h3>
+                    </div>
                     <p className="text-xs font-semibold text-slate-700 dark:text-slate-200 sm:text-base">
                       {formatMoney(group.totalMonthly * periodFactor)}/{periodView === "month" ? "md" : "år"}
                     </p>
@@ -628,38 +668,52 @@ export function DashboardClient() {
                     </div>
                   </motion.div>
                 </motion.article>
-              ))}
+              );
+            })}
             </div>
           </section>
 
-          <section className="mt-6 rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)] backdrop-blur-sm dark:border-white/10 dark:bg-slate-800/70 sm:mt-7 sm:rounded-[1.75rem] sm:p-5 lg:rounded-2xl">
-            <div className="flex flex-wrap items-start justify-between gap-2">
-              <div>
-                <h2 className="text-base font-semibold tracking-tight text-slate-900 dark:text-white sm:text-lg">
-                  Fast overførsel
-                </h2>
+          <section className="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-slate-100/70 p-4 shadow-[0_22px_55px_rgba(15,23,42,0.08)] backdrop-blur-sm dark:border-white/10 dark:from-slate-900/80 dark:via-slate-900/60 dark:to-slate-800/80 dark:shadow-[0_28px_70px_rgba(2,6,23,0.45)] sm:mt-7 sm:rounded-[1.75rem] sm:p-5 lg:rounded-2xl">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <span className="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200/80 bg-white/70 text-slate-600 shadow-[0_10px_24px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-slate-900/70 dark:text-slate-200">
+                  <ArrowLeftRight aria-hidden="true" size={18} />
+                </span>
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                    Fast overførsel
+                  </p>
+                  <h2 className="mt-1 text-base font-semibold tracking-tight text-slate-900 dark:text-white sm:text-lg">
+                    Forslag baseret på dine udgifter
+                  </h2>
+                </div>
               </div>
             </div>
 
             {transferTargets.length > 0 ? (
-              <div className="mt-4 space-y-2">
+              <div className="mt-4 space-y-3">
                 {transferTargets.map((account) => (
                   <div
                     key={account.id}
-                    className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-white/10 dark:bg-slate-700/45"
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200/80 bg-white/80 px-4 py-3 text-sm shadow-[0_12px_26px_rgba(15,23,42,0.06)] dark:border-white/10 dark:bg-slate-900/60"
                   >
-                    <p className="min-w-0 truncate font-semibold text-slate-900 dark:text-white">
-                      {account.name}
-                    </p>
-                    <p className="text-slate-700 dark:text-slate-200">
+                    <div className="min-w-0">
+                      <p className="min-w-0 truncate font-semibold text-slate-900 dark:text-white">
+                        {account.name}
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        Kontooverførsel
+                      </p>
+                    </div>
+                    <div className="rounded-full border border-slate-200/70 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700 dark:border-white/10 dark:bg-slate-800 dark:text-slate-100">
                       {formatMoney(account.amountMonthly * periodFactor)}/{periodView === "month" ? "md" : "år"}
-                    </p>
+                    </div>
                   </div>
                 ))}
               </div>
             ) : (
               <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">
-                Der er ingen udgifter knyttet til en bankkonti. Vælg en konto under
+                Der er ingen udgifter knyttet til en bankkonto. Vælg en konto under
                 avanceret på en <Link href="/expenses" className="font-semibold text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300">Udgift</Link>.
               </p>
             )}
