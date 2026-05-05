@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { EyeIcon } from "@/components/ui/eye";
 import { EyeOffIcon } from "@/components/ui/eye-off";
@@ -168,7 +169,12 @@ export default function LoginPanel() {
 
   return (
     <section className="w-full max-w-[460px] space-y-7 rounded-[2rem] border border-slate-200 bg-white shadow-[0_30px_80px_rgba(0,0,0,0.04)] backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.04] dark:shadow-[0_30px_80px_rgba(0,0,0,0.35)] px-5 py-8 sm:px-8 sm:py-10">
-      <div className="flex flex-col items-center text-center">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, ease: "easeOut" }}
+        className="flex flex-col items-center text-center"
+      >
         <div className="flex h-20 w-20 items-center justify-center rounded-[1.6rem] bg-blue-500 shadow-[0_18px_50px_rgba(59,130,246,0.4)]">
           <svg
             aria-hidden="true"
@@ -192,11 +198,14 @@ export default function LoginPanel() {
         <p className="mt-3 text-lg font-medium text-blue-600 dark:text-blue-400 sm:text-xl">
           Hold styr på din økonomi
         </p>
-      </div>
+      </motion.div>
 
-     
-
-      <ul className="space-y-3 text-sm text-slate-600 dark:text-slate-400 sm:text-base">
+      <motion.ul
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, ease: "easeOut", delay: 0.08 }}
+        className="space-y-3 text-sm text-slate-600 dark:text-slate-400 sm:text-base"
+      >
         <li className="flex items-center gap-3">
           <svg
             aria-hidden="true"
@@ -248,9 +257,12 @@ export default function LoginPanel() {
           </svg>
           <span>Se dit rådighedsbeløb hver måned</span>
         </li>
-      </ul>
+      </motion.ul>
 
-      <form
+      <motion.form
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, ease: "easeOut", delay: 0.15 }}
         className="space-y-4"
         onSubmit={mode === "login" ? handleLogin : handleCreateUser}
       >
@@ -342,8 +354,13 @@ export default function LoginPanel() {
               ? "Log ind"
               : "Opret bruger"}
         </button>
-      </form>
+      </motion.form>
 
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, ease: "easeOut", delay: 0.22 }}
+      >
       {mode === "login" ? (
         <div className="space-y-3 text-center">
           <button
@@ -376,6 +393,7 @@ export default function LoginPanel() {
           </button>
         </div>
       )}
+      </motion.div>
     </section>
   );
 }

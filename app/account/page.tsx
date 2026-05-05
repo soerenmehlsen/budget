@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useRef, useState } from "react";
+import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { BottomNav } from "@/components/bottom-nav";
 import { AnimatedIconButton } from "@/components/ui/animated-icon-button";
@@ -239,16 +240,26 @@ export default function AccountPage() {
 
       <div className="relative z-10 mx-auto w-full max-w-[860px] px-3 pb-28 pt-6 sm:px-5 sm:pt-6 lg:max-w-7xl lg:px-8 lg:pb-12 lg:pt-20">
         <section className="mx-auto w-full rounded-[2rem] border border-slate-200 bg-slate-50/50 p-3 shadow-[0_30px_80px_rgba(0,0,0,0.04)] backdrop-blur-sm dark:border-white/10 dark:bg-slate-900/55 dark:shadow-[0_30px_80px_rgba(0,0,0,0.35)] sm:p-5 lg:rounded-[1.5rem] lg:p-5">
-          <header className="flex items-start justify-between gap-3 px-1 sm:gap-4 sm:px-0">
+          <motion.header
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, ease: "easeOut" }}
+            className="flex items-start justify-between gap-3 px-1 sm:gap-4 sm:px-0"
+          >
             <div>
               <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl">Konto</h1>
               <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400 sm:mt-1 sm:text-sm">
                 Dine bankkonti og feedback
               </p>
             </div>
-          </header>
+          </motion.header>
 
-          <div className="mt-6 grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
+            className="mt-6 grid gap-4 lg:grid-cols-[1.15fr_0.85fr]"
+          >
             <section className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-slate-800/70 sm:p-5">
               <div className="flex items-start justify-between gap-4">
                 <div>
@@ -359,9 +370,12 @@ export default function AccountPage() {
                 </button>
               </form>
             </section>
-          </div>
+          </motion.div>
 
-          <button
+          <motion.button
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, ease: "easeOut", delay: 0.2 }}
             type="button"
             onClick={handleSignOut}
             onMouseEnter={() => logoutIconRef.current?.startAnimation()}
@@ -370,7 +384,7 @@ export default function AccountPage() {
           >
             <LogoutIcon ref={logoutIconRef} size={18} />
             Log ud
-          </button>
+          </motion.button>
         </section>
 
         <BottomNav activeItem="Konto" />

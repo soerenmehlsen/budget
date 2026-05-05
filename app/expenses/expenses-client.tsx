@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "motion/react";
 import { BottomNav } from "@/components/bottom-nav";
 import { AnimatedIconButton } from "@/components/ui/animated-icon-button";
 import { ChevronDownIcon } from "@/components/ui/chevron-down";
@@ -96,7 +97,12 @@ export function ExpensesClient() {
 
       <div className="relative z-10 mx-auto w-full max-w-[860px] px-3 pb-28 pt-6 sm:px-5 sm:pt-6 lg:max-w-7xl lg:px-8 lg:pb-12 lg:pt-20">
         <section className="mx-auto w-full rounded-[2rem] border border-slate-200 bg-slate-50/50 p-3 shadow-[0_30px_80px_rgba(0,0,0,0.04)] backdrop-blur-sm dark:border-white/10 dark:bg-slate-900/55 dark:shadow-[0_30px_80px_rgba(0,0,0,0.35)] sm:p-5 lg:rounded-[1.5rem] lg:p-5">
-          <header className="flex items-start justify-between gap-3 px-1 sm:gap-4 sm:px-0">
+          <motion.header
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, ease: "easeOut" }}
+            className="flex items-start justify-between gap-3 px-1 sm:gap-4 sm:px-0"
+          >
             <div>
               <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl">Udgifter</h1>
               <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400 sm:mt-1 sm:text-sm">{totalCount} faste udgifter</p>
@@ -109,15 +115,25 @@ export function ExpensesClient() {
               className="grid h-10 w-10 place-items-center rounded-xl border border-blue-400/30 bg-blue-500 text-white shadow-[0_15px_45px_rgba(59,130,246,0.35)] transition hover:bg-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-300/35"
               aria-label="Tilføj udgift"
             />
-          </header>
+          </motion.header>
 
           {dataSource === "fallback" ? (
-            <p className="mt-4 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-100">
+            <motion.p
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: "easeOut", delay: 0.05 }}
+              className="mt-4 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-100"
+            >
               Viser test data. Tilføj selv dine <span className="font-semibold">udgifter</span> for at få overblik over dine egne udgifter.
-            </p>
+            </motion.p>
           ) : null}
 
-          <div className="mt-5 flex items-center justify-between sm:mt-6">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, ease: "easeOut", delay: 0.1 }}
+            className="mt-5 flex items-center justify-between sm:mt-6"
+          >
             <AnimatedIconButton
               type="button"
               onClick={toggleAll}
@@ -129,9 +145,14 @@ export function ExpensesClient() {
               {isAllCollapsed ? "Fold alle ud" : "Fold alle ind"}
             </AnimatedIconButton>
             <p className="text-sm text-slate-700 dark:text-slate-300">{formatCompactDkk(totalMonthly)}/md</p>
-          </div>
+          </motion.div>
 
-          <div className="mt-4 space-y-3 sm:space-y-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-4 lg:space-y-0">
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut", delay: 0.18 }}
+            className="mt-4 space-y-3 sm:space-y-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-4 lg:space-y-0"
+          >
             {groupedExpenses.map((group) => (
               <ExpenseCategoryGroup
                 key={group.category}
@@ -144,7 +165,7 @@ export function ExpensesClient() {
                 onAdd={openAdd}
               />
             ))}
-          </div>
+          </motion.div>
 
           {isLoading ? (
             <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">Opdaterer udgifter...</p>
