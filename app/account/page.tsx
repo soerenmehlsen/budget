@@ -8,6 +8,7 @@ import { Share, Plus, Smartphone, MoreHorizontal } from "lucide-react";
 import { BottomNav } from "@/components/bottom-nav";
 import { LogoutIcon, type LogoutIconHandle } from "@/components/ui/logout";
 import { supabase } from "@/lib/supabase/client";
+import { submitFeedback } from "@/app/actions/feedback";
 
 export default function AccountPage() {
   const router = useRouter();
@@ -76,15 +77,11 @@ export default function AccountPage() {
     setFeedbackError(null);
     setFeedbackMessage(null);
 
-    const { error } = await supabase.from("feedback").insert({
-      user_id: userId,
-      message: feedback.trim(),
-      source: "account_page",
-    });
+    const result = await submitFeedback(userId, feedback.trim());
 
     setIsSendingFeedback(false);
 
-    if (error) {
+    if (!result.success) {
       setFeedbackError("Kunne ikke sende feedback. Tjek at tabellen feedback findes.");
       return;
     }
@@ -141,7 +138,7 @@ export default function AccountPage() {
                 <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Gem som en app</h2>
               </div>
               <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-                Tilføj hjemmesiden Budget til din hjemmeskærm og brug den som en rigtig app.
+                Tilføj hjemmesiden Mit Budget til din hjemmeskærm og brug den som en rigtig app.
               </p>
 
               <ol className="mt-4 space-y-3">

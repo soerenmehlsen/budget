@@ -205,7 +205,7 @@ export default function LoginPanel() {
         </motion.div>
 
         <h1 className="mt-5 text-4xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-5xl">
-          Budget
+          Mit Budget
         </h1>
         <p className="mt-3 text-lg font-medium text-blue-600 dark:text-blue-400 sm:text-xl">
           Hold styr på din økonomi
