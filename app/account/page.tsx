@@ -8,6 +8,7 @@ import { AnimatedIconButton } from "@/components/ui/animated-icon-button";
 import { DeleteIcon } from "@/components/ui/delete";
 import { LogoutIcon, type LogoutIconHandle } from "@/components/ui/logout";
 import { PlusIcon } from "@/components/ui/plus";
+import { SquarePenIcon } from "@/components/ui/square-pen";
 import { supabase } from "@/lib/supabase/client";
 import type { BankAccount } from "@/types/budget";
 
@@ -33,6 +34,9 @@ export default function AccountPage() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [accountName, setAccountName] = useState("");
+  const [editingAccountId, setEditingAccountId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [accountMessage, setAccountMessage] = useState<string | null>(null);
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
@@ -185,6 +189,45 @@ export default function AccountPage() {
     setAccountMessage("Kontoen er slettet.");
   };
 
+  const handleStartEdit = (account: BankAccount) => {
+    setEditingAccountId(account.id);
+    setEditingName(account.name);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingAccountId(null);
+    setEditingName("");
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingAccountId || !editingName.trim() || !userId) return;
+
+    setIsSavingEdit(true);
+    setAccountError(null);
+
+    const { error } = await supabase
+      .from("bank_accounts")
+      .update({ name: editingName.trim() })
+      .eq("id", editingAccountId)
+      .eq("user_id", userId);
+
+    setIsSavingEdit(false);
+
+    if (error) {
+      setAccountError("Kunne ikke opdatere kontoen. Prøv igen.");
+      return;
+    }
+
+    setBankAccounts((current) =>
+      current
+        .map((a) => (a.id === editingAccountId ? { ...a, name: editingName.trim() } : a))
+        .sort(bySortOrderAndName),
+    );
+    setEditingAccountId(null);
+    setEditingName("");
+    setAccountMessage("Kontoen er opdateret.");
+  };
+
   const handleSendFeedback = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -308,26 +351,67 @@ export default function AccountPage() {
               ) : null}
 
               <div className="mt-4 space-y-3">
-                {bankAccounts.map((account) => (
-                  <article
-                    key={account.id}
-                    className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-white/10 dark:bg-slate-700/45"
-                  >
-                    <p className="min-w-0 truncate text-sm font-semibold text-slate-900 dark:text-white sm:text-base">
-                      {account.name}
-                    </p>
-                    <AnimatedIconButton
-                      type="button"
-                      onClick={() => handleDeleteBankAccount(account.id)}
-                      Icon={DeleteIcon}
-                      iconSize={16}
-                      className="inline-flex shrink-0 items-center gap-1.5 text-sm text-rose-500 transition hover:text-rose-400"
-                      aria-label={`Slet ${account.name}`}
+                {bankAccounts.map((account) =>
+                  editingAccountId === account.id ? (
+                    <article
+                      key={account.id}
+                      className="flex items-center gap-2 rounded-2xl border border-blue-300 bg-slate-50 px-3 py-2 dark:border-blue-500/40 dark:bg-slate-700/45"
                     >
-                      Slet
-                    </AnimatedIconButton>
-                  </article>
-                ))}
+                      <input
+                        autoFocus
+                        value={editingName}
+                        onChange={(e) => setEditingName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") void handleSaveEdit();
+                          if (e.key === "Escape") handleCancelEdit();
+                        }}
+                        className="h-9 min-w-0 flex-1 rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/20 dark:border-white/10 dark:bg-slate-600/65 dark:text-white"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => void handleSaveEdit()}
+                        disabled={isSavingEdit}
+                        className="shrink-0 rounded-xl bg-blue-500 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-400 disabled:opacity-60"
+                      >
+                        {isSavingEdit ? "Gemmer..." : "Gem"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCancelEdit}
+                        className="shrink-0 rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                      >
+                        Annuller
+                      </button>
+                    </article>
+                  ) : (
+                    <article
+                      key={account.id}
+                      className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-white/10 dark:bg-slate-700/45"
+                    >
+                      <p className="min-w-0 truncate text-sm font-semibold text-slate-900 dark:text-white sm:text-base">
+                        {account.name}
+                      </p>
+                      <div className="flex shrink-0 items-center gap-3">
+                        <AnimatedIconButton
+                          type="button"
+                          onClick={() => handleStartEdit(account)}
+                          Icon={SquarePenIcon}
+                          iconSize={16}
+                          className="inline-flex items-center text-slate-400 transition hover:text-slate-700 dark:hover:text-slate-200"
+                          aria-label={`Rediger ${account.name}`}
+                        />
+                        <AnimatedIconButton
+                          type="button"
+                          onClick={() => handleDeleteBankAccount(account.id)}
+                          Icon={DeleteIcon}
+                          iconSize={16}
+                          className="inline-flex items-center text-rose-500 transition hover:text-rose-400"
+                          aria-label={`Slet ${account.name}`}
+                        />
+                      </div>
+                    </article>
+                  ),
+                )}
 
                 {!isLoadingAccounts && bankAccounts.length === 0 ? (
                   <p className="rounded-2xl border border-dashed border-slate-300 px-4 py-5 text-center text-sm text-slate-600 dark:border-white/20 dark:text-slate-400">
