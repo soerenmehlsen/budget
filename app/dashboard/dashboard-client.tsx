@@ -28,6 +28,7 @@ import { useRouter } from "next/navigation";
 import type { Transition } from "motion/react";
 import { animate, motion } from "motion/react";
 import { BottomNav } from "@/components/bottom-nav";
+import { WelcomeModal } from "@/components/welcome-modal";
 import { TrendingUpIcon } from "@/components/ui/trending-up";
 import { WalletIcon } from "@/components/ui/wallet";
 import { CACHE_KEYS, readCachedData, writeCachedData } from "@/lib/data-cache";
@@ -259,6 +260,7 @@ const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [periodView, setPeriodView] = useState<PeriodView>("month");
   const [sortMode, setSortMode] = useState<SortMode>("alpha");
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -307,6 +309,10 @@ const [isCheckingSession, setIsCheckingSession] = useState(true);
 
       await loadDashboardData(data.session.user.id);
       setIsCheckingSession(false);
+
+      if (!localStorage.getItem("budget-onboarding-seen")) {
+        setShowWelcome(true);
+      }
     };
 
     void syncSession();
@@ -742,6 +748,15 @@ if (isCheckingSession) {
 
         <BottomNav />
       </div>
+
+      {showWelcome && (
+        <WelcomeModal
+          onClose={() => {
+            localStorage.setItem("budget-onboarding-seen", "1");
+            setShowWelcome(false);
+          }}
+        />
+      )}
     </main>
   );
 }
