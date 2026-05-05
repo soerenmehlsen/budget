@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
+import { Share, Plus, Smartphone, MoreHorizontal } from "lucide-react";
 import { BottomNav } from "@/components/bottom-nav";
 import { LogoutIcon, type LogoutIconHandle } from "@/components/ui/logout";
 import { supabase } from "@/lib/supabase/client";
@@ -127,6 +128,74 @@ export default function AccountPage() {
               </p>
             ) : null}
           </motion.header>
+
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut", delay: 0.15 }}
+            className="mt-4"
+          >
+            <section className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-slate-800/70 sm:p-5">
+              <div className="flex items-center gap-2">
+                <Smartphone size={20} className="text-blue-500" />
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Gem som en app</h2>
+              </div>
+              <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                Tilføj hjemmesiden Budget til din hjemmeskærm og brug den som en rigtig app.
+              </p>
+
+              <ol className="mt-4 space-y-3">
+                <li className="flex gap-3">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-600 dark:bg-blue-500/20 dark:text-blue-300">1</span>
+                  <div className="pt-0.5">
+                    <p className="text-sm font-medium text-slate-800 dark:text-slate-100">Åbn i Safari</p>
+                    <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Hjemmeskærmsfunktionen bedst i Safari på iPhone.</p>
+                  </div>
+                </li>
+                <li className="flex gap-3">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-600 dark:bg-blue-500/20 dark:text-blue-300">2</span>
+                  <div className="pt-0.5">
+                    <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
+                      Tryk på{" "}
+                      <MoreHorizontal size={13} className="mb-0.5 inline text-slate-500 dark:text-slate-400" />
+                      {" "}knappen
+                    </p>
+                    <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Knappen med tre prikker sidder i højre side af adresselinjen.</p>
+                  </div>
+                </li>
+                <li className="flex gap-3">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-600 dark:bg-blue-500/20 dark:text-blue-300">3</span>
+                  <div className="pt-0.5">
+                    <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
+                      Tryk på del-knappen{" "}
+                      <Share size={13} className="mb-0.5 inline text-slate-500 dark:text-slate-400" />
+                    </p>
+                    <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Del-knappen dukker op i menuen der åbner sig.</p>
+                  </div>
+                </li>
+                <li className="flex gap-3">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-600 dark:bg-blue-500/20 dark:text-blue-300">4</span>
+                  <div className="pt-0.5">
+                    <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
+                      Vælg{" "}
+                      <span className="inline-flex items-center gap-0.5 rounded-md border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-xs font-medium text-slate-700 dark:border-white/10 dark:bg-slate-700 dark:text-slate-200">
+                        <Plus size={10} />
+                        Føj til hjemmeskærm
+                      </span>
+                    </p>
+                    <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Scroll ned i menuen indtil du finder denne mulighed.</p>
+                  </div>
+                </li>
+                <li className="flex gap-3">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-600 dark:bg-blue-500/20 dark:text-blue-300">5</span>
+                  <div className="pt-0.5">
+                    <p className="text-sm font-medium text-slate-800 dark:text-slate-100">Tryk på Tilføj</p>
+                    <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Appen vises nu på din hjemmeskærm, ligesom en rigtig app.</p>
+                  </div>
+                </li>
+              </ol>
+            </section>
+          </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 14 }}
