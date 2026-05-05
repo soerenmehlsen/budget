@@ -161,7 +161,7 @@ export default function AccountPage() {
 
                 <button
                   type="submit"
-                  disabled={isSendingFeedback}
+                  disabled={isSendingFeedback || !feedback.trim()}
                   className="flex h-11 w-full items-center justify-center rounded-2xl bg-blue-500 text-sm font-semibold text-white shadow-[0_20px_60px_rgba(59,130,246,0.35)] transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-70 sm:h-12"
                 >
                   {isSendingFeedback ? "Sender..." : "Send feedback"}
