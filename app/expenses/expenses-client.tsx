@@ -138,9 +138,9 @@ export function ExpensesClient() {
               type="button"
               onClick={toggleAll}
               Icon={ChevronDownIcon}
-              iconSize={16}
+              iconSize={14}
               iconClassName={`transition ${isAllCollapsed ? "rotate-0" : "rotate-180"}`}
-              className="inline-flex items-center gap-2 text-sm text-slate-600 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
+              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-slate-300 bg-slate-100 px-3 text-xs font-medium text-slate-700 transition hover:bg-slate-200 dark:border-white/10 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 sm:h-10 sm:rounded-xl sm:px-4 sm:text-sm"
             >
               {isAllCollapsed ? "Fold alle ud" : "Fold alle ind"}
             </AnimatedIconButton>

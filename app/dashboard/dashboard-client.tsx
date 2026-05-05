@@ -7,6 +7,8 @@ import {
   Baby,
   Briefcase,
   Car,
+  ChevronDown,
+  ChevronUp,
   CreditCard,
   Gift,
   HeartPulse,
@@ -642,9 +644,10 @@ if (isCheckingSession) {
                 <button
                   type="button"
                   onClick={() => setIsCollapsed((value) => !value)}
-                  className="h-8 rounded-lg border border-slate-300 bg-slate-100 px-2 text-xs font-medium text-slate-700 transition hover:bg-slate-200 dark:border-white/10 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 sm:h-10 sm:rounded-xl sm:px-3 sm:text-sm"
+                  aria-label={isCollapsed ? "Fold ud" : "Fold ind"}
+                  className="grid h-8 w-8 place-items-center rounded-lg border border-slate-300 bg-slate-100 text-slate-600 transition hover:bg-slate-200 dark:border-white/10 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 sm:h-10 sm:w-10 sm:rounded-xl"
                 >
-                  {isCollapsed ? "Fold ud" : "Fold ind"}
+                  {isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
                 </button>
               </div>
             </div>

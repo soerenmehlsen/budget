@@ -313,7 +313,7 @@ export default function AccountPage() {
                 <div>
                   <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Bankkonti</h2>
                   <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-                    Tilføj navnene på de konti, du vil bruge senere.
+                    Tilføj navne på dine bankkonti for at kunne beregne dine faste overførsler.
                   </p>
                 </div>
                 <span className="rounded-full bg-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:bg-slate-700 dark:text-slate-300">
