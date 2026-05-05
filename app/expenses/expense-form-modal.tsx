@@ -151,7 +151,18 @@ export function ExpenseFormModal({
                 <input
                   value={amount}
                   onChange={(event) => setAmount(event.target.value)}
-                  placeholder="0,00"
+                  onBlur={() => {
+                    const normalised = amount.replace(",", ".").replace(/\s/g, "");
+                    if (/^[\d+\-*/().]+$/.test(normalised)) {
+                      try {
+                        const result = Function(`"use strict"; return (${normalised})`)();
+                        if (typeof result === "number" && Number.isFinite(result)) {
+                          setAmount(String(Math.round(result * 100) / 100));
+                        }
+                      } catch {}
+                    }
+                  }}
+                  placeholder="0,0"
                   inputMode="decimal"
                   className="h-10 w-full rounded-2xl border border-slate-300 bg-white px-4 pr-14 text-base text-slate-900 placeholder:text-slate-500 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20 dark:border-white/10 dark:bg-slate-600/65 dark:text-white dark:placeholder:text-slate-400 sm:h-12 sm:px-4 sm:pr-14 sm:text-lg"
                 />
@@ -159,6 +170,9 @@ export function ExpenseFormModal({
                   kr
                 </span>
               </div>
+              <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+                Indbygget lommeregner, f.eks. <span className="font-medium text-slate-700 dark:text-slate-300">14400/2</span>, hvis du deler udgiften med en anden.
+              </p>
             </label>
 
             <fieldset>
