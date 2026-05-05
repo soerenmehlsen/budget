@@ -17,7 +17,7 @@ const CATEGORIES = [
   "Bolig", "Mad", "Forbrug", "Transport", "Abonnementer",
   "Forsikring", "Sundhed", "Børn", "Kæledyr", "Fritid",
   "Restaurant og cafe", "Tøj og sko", "Gaver", "Rejser",
-  "Opsparing", "Gæld", "Diverse",
+  "Opsparing", "Investering", "Gæld", "Diverse",
 ];
 
 const FREQUENCY_OPTIONS: { value: Frequency; label: string }[] = [

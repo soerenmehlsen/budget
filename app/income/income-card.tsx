@@ -17,7 +17,7 @@ export function IncomeCard({ item, onEdit, onDelete }: Props) {
     <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-white/10 dark:bg-slate-800/70">
       <div className="px-4 py-3">
         <div className="flex items-center justify-between mb-3">
-          <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Navn</p>
+          <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Indkomstkilde</p>
           <div className="flex items-center gap-3">
             <AnimatedIconButton
               type="button"

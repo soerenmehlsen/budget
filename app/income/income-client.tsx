@@ -101,7 +101,7 @@ export function IncomeClient() {
               onClick={openAdd}
               className="mt-6 w-full rounded-2xl border-2 border-dashed border-slate-300 py-4 text-center text-slate-700 transition hover:border-slate-400 dark:border-white/20 dark:text-white dark:hover:border-white/40"
             >
-              <span className="text-2xl">+</span> Tilføj indtægtskilde
+              <span className="text-2xl">+</span> Tilføj indkomst
             </button>
 
             {isLoading ? (
