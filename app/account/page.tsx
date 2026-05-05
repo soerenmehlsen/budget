@@ -344,7 +344,7 @@ export default function AccountPage() {
             <section className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-slate-800/70 sm:p-5">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Feedback</h2>
               <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-                Send ideer, fejl eller ønsker direkte til udvikleren.
+                Send ideer, fejl eller ønsker direkte til Søren.
               </p>
 
               <form className="mt-4 space-y-3" onSubmit={handleSendFeedback}>

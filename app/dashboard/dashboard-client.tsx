@@ -536,12 +536,21 @@ if (isCheckingSession) {
               </p>
 
               <div className="mt-4">
-                <progress
+                <div
+                  role="progressbar"
                   aria-label="Indkomstniveau"
-                  className="h-2 w-full overflow-hidden rounded-full bg-white accent-emerald-500 [&::-moz-progress-bar]:bg-emerald-500 [&::-webkit-progress-bar]:bg-white [&::-webkit-progress-value]:bg-emerald-500"
-                  max={100}
-                  value={incomeSharePercent}
-                />
+                  aria-valuenow={incomeSharePercent}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  className="h-2 w-full overflow-hidden rounded-full bg-white"
+                >
+                  <motion.div
+                    className="h-full rounded-full bg-emerald-500"
+                    initial={{ width: "0%" }}
+                    animate={{ width: `${incomeSharePercent}%` }}
+                    transition={{ duration: 1.1, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.35 }}
+                  />
+                </div>
                 <p className="mt-2 text-[11px] font-medium text-emerald-800 dark:text-emerald-100 sm:text-xs">
                   Samlet {periodView === "month" ? "månedlig" : "årlig"} indkomst
                 </p>
@@ -566,12 +575,21 @@ if (isCheckingSession) {
               </p>
 
               <div className="mt-4">
-                <progress
+                <div
+                  role="progressbar"
                   aria-label="Udgifters andel af indkomst"
-                  className="h-2 w-full overflow-hidden rounded-full bg-white accent-rose-500 [&::-moz-progress-bar]:bg-rose-500 [&::-webkit-progress-bar]:bg-white [&::-webkit-progress-value]:bg-rose-500"
-                  max={100}
-                  value={expenseSharePercent}
-                />
+                  aria-valuenow={expenseSharePercent}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  className="h-2 w-full overflow-hidden rounded-full bg-white"
+                >
+                  <motion.div
+                    className="h-full rounded-full bg-rose-500"
+                    initial={{ width: "0%" }}
+                    animate={{ width: `${expenseSharePercent}%` }}
+                    transition={{ duration: 1.1, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.45 }}
+                  />
+                </div>
                 <p className="mt-2 text-[11px] font-medium text-rose-800 dark:text-rose-100 sm:text-xs">
                   {PERCENT_FORMATTER.format(expenseSharePercent)}% af indkomst
                 </p>
