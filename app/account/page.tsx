@@ -1,90 +1,31 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { FormEvent } from "react";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { BottomNav } from "@/components/bottom-nav";
-import { AnimatedIconButton } from "@/components/ui/animated-icon-button";
-import { DeleteIcon } from "@/components/ui/delete";
 import { LogoutIcon, type LogoutIconHandle } from "@/components/ui/logout";
-import { PlusIcon } from "@/components/ui/plus";
-import { SquarePenIcon } from "@/components/ui/square-pen";
 import { supabase } from "@/lib/supabase/client";
-import type { BankAccount } from "@/types/budget";
-
-function bySortOrderAndName(a: BankAccount, b: BankAccount) {
-  const orderA = a.sortOrder ?? Number.MAX_SAFE_INTEGER;
-  const orderB = b.sortOrder ?? Number.MAX_SAFE_INTEGER;
-
-  if (orderA !== orderB) {
-    return orderA - orderB;
-  }
-
-  return a.name.localeCompare(b.name, "da-DK");
-}
 
 export default function AccountPage() {
   const router = useRouter();
   const logoutIconRef = useRef<LogoutIconHandle>(null);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
-  const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
-  const [isSavingAccount, setIsSavingAccount] = useState(false);
   const [isSendingFeedback, setIsSendingFeedback] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
-  const [accountName, setAccountName] = useState("");
-  const [editingAccountId, setEditingAccountId] = useState<string | null>(null);
-  const [editingName, setEditingName] = useState("");
-  const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [feedback, setFeedback] = useState("");
-  const [accountMessage, setAccountMessage] = useState<string | null>(null);
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
-  const [accountError, setAccountError] = useState<string | null>(null);
   const [feedbackError, setFeedbackError] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
 
-    const loadBankAccounts = async (signedInUserId: string) => {
-      setIsLoadingAccounts(true);
-
-      const { data, error } = await supabase
-        .from("bank_accounts")
-        .select("id, name, sort_order")
-        .eq("user_id", signedInUserId)
-        .order("sort_order", { ascending: true });
-
-      if (!isMounted) {
-        return;
-      }
-
-      if (error) {
-        setAccountError("Kunne ikke hente bankkonti. Tjek at tabellen bank_accounts findes.");
-        setBankAccounts([]);
-        setIsLoadingAccounts(false);
-        return;
-      }
-
-      const mapped = (data ?? [])
-        .filter((row) => typeof row.id === "string" && typeof row.name === "string")
-        .map((row) => ({
-          id: row.id,
-          name: row.name,
-          sortOrder: typeof row.sort_order === "number" ? row.sort_order : null,
-        }))
-        .sort(bySortOrderAndName);
-
-      setBankAccounts(mapped);
-      setIsLoadingAccounts(false);
-    };
-
     const syncSession = async () => {
       const { data } = await supabase.auth.getSession();
 
-      if (!isMounted) {
-        return;
-      }
+      if (!isMounted) return;
 
       if (!data.session) {
         router.replace("/");
@@ -93,140 +34,27 @@ export default function AccountPage() {
 
       setUserId(data.session.user.id);
       setUserEmail(data.session.user.email ?? null);
-      await loadBankAccounts(data.session.user.id);
       setIsCheckingSession(false);
     };
 
     void syncSession();
 
-    const { data: subscription } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (!session) {
-          router.replace("/");
-          return;
-        }
+    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        router.replace("/");
+        return;
+      }
 
-        setUserId(session.user.id);
-        setUserEmail(session.user.email ?? null);
-        void loadBankAccounts(session.user.id);
-        setIsCheckingSession(false);
-      },
-    );
+      setUserId(session.user.id);
+      setUserEmail(session.user.email ?? null);
+      setIsCheckingSession(false);
+    });
 
     return () => {
       isMounted = false;
       subscription.subscription.unsubscribe();
     };
   }, [router]);
-
-  const handleAddBankAccount = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    if (!accountName.trim()) {
-      setAccountError("Skriv navnet på kontoen først.");
-      setAccountMessage(null);
-      return;
-    }
-
-    if (!userId) {
-      setAccountError("Kunne ikke finde bruger. Prøv igen.");
-      setAccountMessage(null);
-      return;
-    }
-
-    setIsSavingAccount(true);
-    setAccountError(null);
-    setAccountMessage(null);
-
-    const payload = {
-      user_id: userId,
-      name: accountName.trim(),
-      sort_order: bankAccounts.length + 1,
-    };
-
-    const { data, error } = await supabase
-      .from("bank_accounts")
-      .insert(payload)
-      .select("id, name, sort_order")
-      .single();
-
-    setIsSavingAccount(false);
-
-    if (error) {
-      setAccountError("Kunne ikke gemme kontoen. Tjek at tabellen bank_accounts findes.");
-      return;
-    }
-
-    const savedAccount: BankAccount = {
-      id: data.id ?? `bank-account-${payload.name}`,
-      name: data.name,
-      sortOrder: typeof data.sort_order === "number" ? data.sort_order : null,
-    };
-
-    setBankAccounts((current) => [...current, savedAccount].sort(bySortOrderAndName));
-    setAccountName("");
-    setAccountMessage("Kontoen er gemt.");
-  };
-
-  const handleDeleteBankAccount = async (accountId: string) => {
-    if (!userId) {
-      setAccountError("Kunne ikke finde bruger. Prøv igen.");
-      return;
-    }
-
-    const { error } = await supabase
-      .from("bank_accounts")
-      .delete()
-      .eq("id", accountId)
-      .eq("user_id", userId);
-
-    if (error) {
-      setAccountError("Kunne ikke slette kontoen. Prøv igen.");
-      return;
-    }
-
-    setBankAccounts((current) => current.filter((account) => account.id !== accountId));
-    setAccountMessage("Kontoen er slettet.");
-  };
-
-  const handleStartEdit = (account: BankAccount) => {
-    setEditingAccountId(account.id);
-    setEditingName(account.name);
-  };
-
-  const handleCancelEdit = () => {
-    setEditingAccountId(null);
-    setEditingName("");
-  };
-
-  const handleSaveEdit = async () => {
-    if (!editingAccountId || !editingName.trim() || !userId) return;
-
-    setIsSavingEdit(true);
-    setAccountError(null);
-
-    const { error } = await supabase
-      .from("bank_accounts")
-      .update({ name: editingName.trim() })
-      .eq("id", editingAccountId)
-      .eq("user_id", userId);
-
-    setIsSavingEdit(false);
-
-    if (error) {
-      setAccountError("Kunne ikke opdatere kontoen. Prøv igen.");
-      return;
-    }
-
-    setBankAccounts((current) =>
-      current
-        .map((a) => (a.id === editingAccountId ? { ...a, name: editingName.trim() } : a))
-        .sort(bySortOrderAndName),
-    );
-    setEditingAccountId(null);
-    setEditingName("");
-    setAccountMessage("Kontoen er opdateret.");
-  };
 
   const handleSendFeedback = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -290,141 +118,22 @@ export default function AccountPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, ease: "easeOut" }}
-            className="flex items-start justify-between gap-3 px-1 sm:gap-4 sm:px-0"
+            className="px-1 sm:px-0"
           >
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl">Konto</h1>
-              {userEmail ? (
-                <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400 sm:mt-1 sm:text-sm">
-                  {userEmail}
-                </p>
-              ) : null}
-            </div>
+            <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl">Konto</h1>
+            {userEmail ? (
+              <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400 sm:mt-1 sm:text-sm">
+                {userEmail}
+              </p>
+            ) : null}
           </motion.header>
 
           <motion.div
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
-            className="mt-6 grid gap-4 lg:grid-cols-[1.15fr_0.85fr]"
+            className="mt-6"
           >
-            <section className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-slate-800/70 sm:p-5">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Bankkonti</h2>
-                  <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-                    Tilføj navne på dine bankkonti for at kunne beregne dine faste overførsler.
-                  </p>
-                </div>
-                <span className="rounded-full bg-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:bg-slate-700 dark:text-slate-300">
-                  {bankAccounts.length}
-                </span>
-              </div>
-
-              <form className="mt-4 flex flex-col gap-3 sm:flex-row" onSubmit={handleAddBankAccount}>
-                <label className="min-w-0 flex-1">
-                  <span className="sr-only">Kontonavn</span>
-                  <input
-                    value={accountName}
-                    onChange={(event) => setAccountName(event.target.value)}
-                    placeholder="f.eks. Lønkonto"
-                    className="h-11 w-full rounded-2xl border border-slate-300 bg-white px-4 text-base text-slate-900 placeholder:text-slate-500 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20 dark:border-white/10 dark:bg-slate-600/65 dark:text-white dark:placeholder:text-slate-400 sm:h-12"
-                  />
-                </label>
-                <AnimatedIconButton
-                  type="submit"
-                  disabled={isSavingAccount}
-                  Icon={PlusIcon}
-                  iconSize={18}
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-blue-500 px-5 text-sm font-semibold text-white shadow-[0_20px_60px_rgba(59,130,246,0.35)] transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-70 sm:h-12"
-                  aria-label="Tilføj bankkonto"
-                >
-                  {isSavingAccount ? "Gemmer..." : "Tilføj"}
-                </AnimatedIconButton>
-              </form>
-
-              {accountError ? (
-                <p className="mt-3 text-sm text-rose-600 dark:text-rose-300">{accountError}</p>
-              ) : null}
-              {accountMessage ? (
-                <p className="mt-3 text-sm text-emerald-700 dark:text-emerald-300">{accountMessage}</p>
-              ) : null}
-
-              <div className="mt-4 space-y-3">
-                {bankAccounts.map((account) =>
-                  editingAccountId === account.id ? (
-                    <article
-                      key={account.id}
-                      className="flex items-center gap-2 rounded-2xl border border-blue-300 bg-slate-50 px-3 py-2 dark:border-blue-500/40 dark:bg-slate-700/45"
-                    >
-                      <input
-                        autoFocus
-                        value={editingName}
-                        onChange={(e) => setEditingName(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") void handleSaveEdit();
-                          if (e.key === "Escape") handleCancelEdit();
-                        }}
-                        className="h-9 min-w-0 flex-1 rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/20 dark:border-white/10 dark:bg-slate-600/65 dark:text-white"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => void handleSaveEdit()}
-                        disabled={isSavingEdit}
-                        className="shrink-0 rounded-xl bg-blue-500 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-400 disabled:opacity-60"
-                      >
-                        {isSavingEdit ? "Gemmer..." : "Gem"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleCancelEdit}
-                        className="shrink-0 rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-                      >
-                        Annuller
-                      </button>
-                    </article>
-                  ) : (
-                    <article
-                      key={account.id}
-                      className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-white/10 dark:bg-slate-700/45"
-                    >
-                      <p className="min-w-0 truncate text-sm font-semibold text-slate-900 dark:text-white sm:text-base">
-                        {account.name}
-                      </p>
-                      <div className="flex shrink-0 items-center gap-3">
-                        <AnimatedIconButton
-                          type="button"
-                          onClick={() => handleStartEdit(account)}
-                          Icon={SquarePenIcon}
-                          iconSize={16}
-                          className="inline-flex items-center text-slate-400 transition hover:text-slate-700 dark:hover:text-slate-200"
-                          aria-label={`Rediger ${account.name}`}
-                        />
-                        <AnimatedIconButton
-                          type="button"
-                          onClick={() => handleDeleteBankAccount(account.id)}
-                          Icon={DeleteIcon}
-                          iconSize={16}
-                          className="inline-flex items-center text-rose-500 transition hover:text-rose-400"
-                          aria-label={`Slet ${account.name}`}
-                        />
-                      </div>
-                    </article>
-                  ),
-                )}
-
-                {!isLoadingAccounts && bankAccounts.length === 0 ? (
-                  <p className="rounded-2xl border border-dashed border-slate-300 px-4 py-5 text-center text-sm text-slate-600 dark:border-white/20 dark:text-slate-400">
-                    Ingen bankkonti tilføjet endnu.
-                  </p>
-                ) : null}
-              </div>
-
-              {isLoadingAccounts ? (
-                <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">Henter bankkonti...</p>
-              ) : null}
-            </section>
-
             <section className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-slate-800/70 sm:p-5">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Feedback</h2>
               <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">

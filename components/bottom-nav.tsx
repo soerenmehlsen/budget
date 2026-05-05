@@ -4,13 +4,14 @@ import type { ComponentType, HTMLAttributes, RefAttributes } from "react";
 import { useRef } from "react";
 import Link from "next/link";
 
+import { Building2Icon } from "@/components/ui/building-2";
 import { HomeIcon } from "@/components/ui/home";
 import { TrendingUpIcon } from "@/components/ui/trending-up";
 import { UserIcon } from "@/components/ui/user";
 import { WalletIcon } from "@/components/ui/wallet";
 import { cn } from "@/lib/utils";
 
-type NavItemLabel = "Oversigt" | "Udgifter" | "Indkomst" | "Konto";
+type NavItemLabel = "Oversigt" | "Udgifter" | "Indkomst" | "Bankkonti" | "Konto";
 
 type BottomNavProps = {
   activeItem?: NavItemLabel;
@@ -33,6 +34,7 @@ const NAV_ITEMS: {
   { label: "Oversigt", href: "/dashboard", Icon: HomeIcon },
   { label: "Udgifter", href: "/expenses", Icon: WalletIcon },
   { label: "Indkomst", href: "/income", Icon: TrendingUpIcon },
+  { label: "Bankkonti", href: "/bank-accounts", Icon: Building2Icon },
   { label: "Konto", href: "/account", Icon: UserIcon },
 ];
 
