@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
+import { isDemoMode } from "@/lib/demo-mode";
 
 export function useSession() {
   const router = useRouter();
@@ -18,6 +19,10 @@ export function useSession() {
       if (!isMounted) return;
 
       if (!data.session) {
+        if (isDemoMode()) {
+          setIsCheckingSession(false);
+          return;
+        }
         router.replace("/");
         return;
       }
@@ -30,6 +35,10 @@ export function useSession() {
 
     const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
+        if (isDemoMode()) {
+          setIsCheckingSession(false);
+          return;
+        }
         router.replace("/");
         return;
       }

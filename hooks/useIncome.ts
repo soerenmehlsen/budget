@@ -13,6 +13,7 @@ import {
   readCachedData,
   writeCachedData,
 } from "@/lib/data-cache";
+import { isDemoMode } from "@/lib/demo-mode";
 import type { IncomeItem } from "@/types/budget";
 
 export type IncomeFormValues = {
@@ -25,9 +26,8 @@ export type IncomeFormValues = {
 type DataSource = "supabase" | "fallback";
 
 const FALLBACK_INCOMES: IncomeItem[] = [
-  { id: "salary-person1", name: "Person 1", amountMonthly: 28000, sortOrder: 1 },
-  { id: "salary-person2", name: "Person 2", amountMonthly: 22000, sortOrder: 2 },
-  { id: "bonus", name: "Bonus", amountMonthly: 5000, sortOrder: 3 },
+  { id: "loen", name: "Løn", amountMonthly: 28000, sortOrder: 1 },
+  { id: "bonus", name: "Bonus", amountMonthly: 5000, sortOrder: 2 },
 ];
 
 function bySortOrderAndName(
@@ -47,7 +47,13 @@ export function useIncome(userId: string | null) {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+      if (isDemoMode()) {
+        setIncomeItems(FALLBACK_INCOMES);
+        setDataSource("fallback");
+      }
+      return;
+    }
 
     let isMounted = true;
 
@@ -66,9 +72,15 @@ export function useIncome(userId: string | null) {
         if (!isMounted) return;
 
         if (items.length === 0) {
-          setIncomeItems(FALLBACK_INCOMES);
-          setDataSource("fallback");
-          writeCachedData(CACHE_KEYS.income, userId, FALLBACK_INCOMES, "fallback");
+          if (isDemoMode()) {
+            setIncomeItems(FALLBACK_INCOMES);
+            setDataSource("fallback");
+            writeCachedData(CACHE_KEYS.income, userId, FALLBACK_INCOMES, "fallback");
+          } else {
+            setIncomeItems([]);
+            setDataSource("supabase");
+            writeCachedData(CACHE_KEYS.income, userId, [], "supabase");
+          }
         } else {
           const sorted = [...items].sort(bySortOrderAndName);
           setIncomeItems(sorted);
@@ -77,8 +89,10 @@ export function useIncome(userId: string | null) {
         }
       } catch {
         if (!isMounted) return;
-        setIncomeItems(FALLBACK_INCOMES);
-        setDataSource("fallback");
+        if (isDemoMode()) {
+          setIncomeItems(FALLBACK_INCOMES);
+          setDataSource("fallback");
+        }
       }
 
       setIsLoading(false);

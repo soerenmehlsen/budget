@@ -30,6 +30,7 @@ import { BottomNav } from "@/components/bottom-nav";
 import { TrendingUpIcon } from "@/components/ui/trending-up";
 import { WalletIcon } from "@/components/ui/wallet";
 import { CACHE_KEYS, readCachedData, writeCachedData } from "@/lib/data-cache";
+import { isDemoMode } from "@/lib/demo-mode";
 import { supabase } from "@/lib/supabase/client";
 import { MONEY_FORMATTER } from "@/lib/budget-format";
 import type { BankAccount } from "@/types/budget";
@@ -65,28 +66,20 @@ type DashboardData = {
 };
 
 const FALLBACK_DASHBOARD_DATA: DashboardData = {
-  incomeSources: [{ name: "Løn", amountMonthly: 55000 }],
+  incomeSources: [{ name: "Løn", amountMonthly: 28000 }],
   expenseItems: [
     {
       id: "house-rent",
       category: "Bolig",
-      name: "Husleje/boliglån",
+      name: "Husleje",
       amountMonthly: 12000,
       sortOrder: 1,
-    },
-    {
-      id: "house-tax",
-      category: "Bolig",
-      name: "Ejendomsskat",
-      amountMonthly: 1500,
-      amountAnnual: 18000,
-      sortOrder: 2,
     },
     {
       id: "utility-heat",
       category: "Forbrug",
       name: "Varme",
-      amountMonthly: 800,
+      amountMonthly: 400,
       sortOrder: 1,
     },
     {
@@ -114,7 +107,7 @@ const FALLBACK_DASHBOARD_DATA: DashboardData = {
     {
       id: "transport-car-loan",
       category: "Transport",
-      name: "Bil - lån",
+      name: "Billån",
       amountMonthly: 2500,
       sortOrder: 1,
     },
@@ -122,16 +115,23 @@ const FALLBACK_DASHBOARD_DATA: DashboardData = {
       id: "transport-fuel",
       category: "Transport",
       name: "Benzin",
-      amountMonthly: 1500,
+      amountMonthly: 1000,
       sortOrder: 2,
     },
     {
       id: "transport-insurance",
       category: "Transport",
       name: "Forsikring",
-      amountMonthly: 1550,
+      amountMonthly: 500,
       sortOrder: 3,
     },
+     {
+      id: "savings",
+      category: "Opsparing",
+      name: "Opsparing",
+      amountMonthly: 5000,
+      sortOrder: 3,
+    }
   ],
   bankAccounts: [],
 };
@@ -224,7 +224,7 @@ async function fetchDashboardData(userId: string): Promise<{
 
   const incomeSources =
     incomeResult.error || !incomeResult.data || incomeResult.data.length === 0
-      ? FALLBACK_DASHBOARD_DATA.incomeSources
+      ? (isDemoMode() ? FALLBACK_DASHBOARD_DATA.incomeSources : [])
       : incomeResult.data
           .filter((row) => typeof row.amount_monthly === "number")
           .map((row) => ({
@@ -234,7 +234,7 @@ async function fetchDashboardData(userId: string): Promise<{
 
   const expenseItems =
     expenseResult.error || !expenseResult.data || expenseResult.data.length === 0
-      ? FALLBACK_DASHBOARD_DATA.expenseItems
+      ? (isDemoMode() ? FALLBACK_DASHBOARD_DATA.expenseItems : [])
       : expenseResult.data
           .filter(
             (row) =>
@@ -290,7 +290,7 @@ async function fetchDashboardData(userId: string): Promise<{
       expenseItems,
       bankAccounts,
     },
-    source: hasSupabaseData ? "supabase" : "fallback",
+    source: hasSupabaseData ? "supabase" : isDemoMode() ? "fallback" : "supabase",
   };
 }
 
@@ -337,6 +337,13 @@ const [isCheckingSession, setIsCheckingSession] = useState(true);
       }
 
       if (!data.session) {
+        if (isDemoMode()) {
+          setDashboardData(FALLBACK_DASHBOARD_DATA);
+          setDataSource("fallback");
+          setIsCheckingSession(false);
+          setIsLoadingDashboard(false);
+          return;
+        }
         setIsLoadingDashboard(false);
         router.replace("/");
         return;
@@ -351,6 +358,13 @@ const [isCheckingSession, setIsCheckingSession] = useState(true);
     const { data: subscription } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         if (!session) {
+          if (isDemoMode()) {
+            setDashboardData(FALLBACK_DASHBOARD_DATA);
+            setDataSource("fallback");
+            setIsCheckingSession(false);
+            setIsLoadingDashboard(false);
+            return;
+          }
           setIsLoadingDashboard(false);
           router.replace("/");
           return;
@@ -510,7 +524,7 @@ if (isCheckingSession) {
               transition={{ duration: 0.4, ease: "easeOut", delay: 0.05 }}
               className="mt-3 rounded-2xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-100 sm:mt-4 sm:px-4 sm:py-3 sm:text-sm"
             >
-              Viser test data. Tilføj selv din <span className="font-semibold">indkomst</span> og <span className="font-semibold">udgifter</span> for at få overblik over din økonomi.
+              Demo mode. Oversigten viser et samlet <span className="font-semibold">indkomst</span> og <span className="font-semibold">udgifter</span> i kategorier. Du kan se hvad dit rådighedsbeløb er, og hvad du skal lave af faste overførsler til dine bankkonti.
             </motion.p>
           ) : null}
 

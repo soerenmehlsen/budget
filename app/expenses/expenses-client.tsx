@@ -124,7 +124,7 @@ export function ExpensesClient() {
               transition={{ duration: 0.4, ease: "easeOut", delay: 0.05 }}
               className="mt-4 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-100"
             >
-              Viser test data. Tilføj selv dine <span className="font-semibold">udgifter</span> for at få overblik over dine egne udgifter.
+              Demo mode. Her kan man tilføje sine <span className="font-semibold">udgifter</span>, hvor man selv vælger kategori og bankkonto. Hver udgift bliver automatisk beregnet til månedlige beløb.
             </motion.p>
           ) : null}
 

@@ -110,7 +110,7 @@ export function IncomeClient() {
 
             <div className="mt-4 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 dark:border-blue-400/20 dark:bg-blue-400/10">
               <p className="text-sm text-blue-800 dark:text-blue-100">
-                <span className="font-semibold">Tip:</span> Indtast din netto-løn (efter skat, AM-bidrag mv.). Det beløb du faktisk får udbetalt hver måned.
+                <span className="font-semibold">Tip:</span> Indtast din nettoløn (efter skat, AM-bidrag mv.). Det beløb du faktisk får udbetalt hver måned.
               </p>
             </div>
           </motion.div>

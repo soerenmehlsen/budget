@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { EyeIcon } from "@/components/ui/eye";
 import { EyeOffIcon } from "@/components/ui/eye-off";
 import { supabase } from "../lib/supabase/client";
+import { disableDemoMode, enableDemoMode } from "@/lib/demo-mode";
 
 function getFriendlyAuthError(errorMessage: string) {
   const loweredMessage = errorMessage.toLowerCase();
@@ -82,7 +83,13 @@ export default function LoginPanel() {
       return;
     }
 
+    disableDemoMode();
     router.replace("/dashboard");
+  };
+
+  const handleDemo = () => {
+    enableDemoMode();
+    router.push("/dashboard");
   };
 
   const handleCreateUser = async (event: FormEvent<HTMLFormElement>) => {
@@ -382,6 +389,13 @@ export default function LoginPanel() {
             className="mx-auto block text-sm font-semibold text-blue-600 transition hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
           >
             Opret ny bruger
+          </button>
+          <button
+            type="button"
+            onClick={handleDemo}
+            className="mx-auto block text-sm font-medium text-slate-500 transition hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-300"
+          >
+            Se demo
           </button>
         </div>
       ) : (

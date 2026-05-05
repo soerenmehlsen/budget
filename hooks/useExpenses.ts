@@ -14,6 +14,7 @@ import {
   readCachedData,
   writeCachedData,
 } from "@/lib/data-cache";
+import { isDemoMode } from "@/lib/demo-mode";
 import type { BankAccount, ExpenseItem } from "@/types/budget";
 
 export type ExpenseFormValues = {
@@ -34,7 +35,7 @@ export type GroupedExpense = {
 type DataSource = "supabase" | "fallback";
 
 const FALLBACK_EXPENSES: ExpenseItem[] = [
-  { id: "house-rent", category: "Bolig", name: "Husleje/boliglån", amountMonthly: 12000, sortOrder: 1 },
+  { id: "house-rent", category: "Bolig", name: "Husleje", amountMonthly: 12000, sortOrder: 1 },
   { id: "house-tax", category: "Bolig", name: "Ejendomsskat", amountMonthly: 1500, amountPeriod: 18000, periodLabel: "år", sortOrder: 2 },
   { id: "utility-heat", category: "Forbrug", name: "Varme", amountMonthly: 800, sortOrder: 1 },
   { id: "utility-electricity", category: "Forbrug", name: "El", amountMonthly: 600, sortOrder: 2 },
@@ -62,7 +63,13 @@ export function useExpenses(userId: string | null) {
   const [bankAccountError, setBankAccountError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+      if (isDemoMode()) {
+        setExpenseItems(FALLBACK_EXPENSES);
+        setDataSource("fallback");
+      }
+      return;
+    }
 
     let isMounted = true;
 
@@ -87,9 +94,15 @@ export function useExpenses(userId: string | null) {
       if (expensesResult.status === "fulfilled") {
         const items = expensesResult.value;
         if (items.length === 0) {
-          setExpenseItems(FALLBACK_EXPENSES);
-          setDataSource("fallback");
-          writeCachedData(CACHE_KEYS.expenses, userId, FALLBACK_EXPENSES, "fallback");
+          if (isDemoMode()) {
+            setExpenseItems(FALLBACK_EXPENSES);
+            setDataSource("fallback");
+            writeCachedData(CACHE_KEYS.expenses, userId, FALLBACK_EXPENSES, "fallback");
+          } else {
+            setExpenseItems([]);
+            setDataSource("supabase");
+            writeCachedData(CACHE_KEYS.expenses, userId, [], "supabase");
+          }
         } else {
           const sorted = [...items].sort(bySortOrderAndName);
           setExpenseItems(sorted);
@@ -97,8 +110,10 @@ export function useExpenses(userId: string | null) {
           writeCachedData(CACHE_KEYS.expenses, userId, sorted, "supabase");
         }
       } else {
-        setExpenseItems(FALLBACK_EXPENSES);
-        setDataSource("fallback");
+        if (isDemoMode()) {
+          setExpenseItems(FALLBACK_EXPENSES);
+          setDataSource("fallback");
+        }
       }
 
       if (accountsResult.status === "fulfilled") {
