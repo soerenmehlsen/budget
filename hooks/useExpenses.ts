@@ -34,13 +34,24 @@ export type GroupedExpense = {
 
 type DataSource = "supabase" | "fallback";
 
+const DEMO_BUDGETKONTO_ID = "demo-budgetkonto";
+const DEMO_OPSPARINGSKONTO_ID = "demo-opsparingskonto";
+
+const FALLBACK_BANK_ACCOUNTS: BankAccount[] = [
+  { id: DEMO_BUDGETKONTO_ID, name: "Budgetkonto", sortOrder: 1 },
+  { id: DEMO_OPSPARINGSKONTO_ID, name: "Opsparingskonto", sortOrder: 2 },
+];
+
 const FALLBACK_EXPENSES: ExpenseItem[] = [
-  { id: "house-rent", category: "Bolig", name: "Husleje", amountMonthly: 12000, sortOrder: 1 },
-  { id: "house-tax", category: "Bolig", name: "Ejendomsskat", amountMonthly: 1500, amountPeriod: 18000, periodLabel: "år", sortOrder: 2 },
-  { id: "utility-heat", category: "Forbrug", name: "Varme", amountMonthly: 800, sortOrder: 1 },
-  { id: "utility-electricity", category: "Forbrug", name: "El", amountMonthly: 600, sortOrder: 2 },
-  { id: "utility-water", category: "Forbrug", name: "Vand", amountMonthly: 800, amountPeriod: 2400, periodLabel: "kvartal", sortOrder: 3 },
-  { id: "utility-internet", category: "Forbrug", name: "Internet", amountMonthly: 299, sortOrder: 4 },
+  { id: "house-rent", category: "Bolig", name: "Husleje", amountMonthly: 12000, sortOrder: 1, bankAccountId: DEMO_BUDGETKONTO_ID },
+  { id: "utility-heat", category: "Forbrug", name: "Varme", amountMonthly: 400, sortOrder: 1, bankAccountId: DEMO_BUDGETKONTO_ID },
+  { id: "utility-electricity", category: "Forbrug", name: "El", amountMonthly: 600, sortOrder: 2, bankAccountId: DEMO_BUDGETKONTO_ID },
+  { id: "utility-water", category: "Forbrug", name: "Vand", amountMonthly: 800, amountPeriod: 2400, periodLabel: "kvartal", sortOrder: 3, bankAccountId: DEMO_BUDGETKONTO_ID },
+  { id: "utility-internet", category: "Forbrug", name: "Internet", amountMonthly: 299, sortOrder: 4, bankAccountId: DEMO_BUDGETKONTO_ID },
+  { id: "transport-car-loan", category: "Transport", name: "Billån", amountMonthly: 2500, sortOrder: 1, bankAccountId: DEMO_BUDGETKONTO_ID },
+  { id: "transport-fuel", category: "Transport", name: "Benzin", amountMonthly: 1000, sortOrder: 2, bankAccountId: DEMO_BUDGETKONTO_ID },
+  { id: "transport-insurance", category: "Transport", name: "Forsikring", amountMonthly: 500, sortOrder: 3, bankAccountId: DEMO_BUDGETKONTO_ID },
+  { id: "savings", category: "Opsparing", name: "Opsparing", amountMonthly: 5000, sortOrder: 1, bankAccountId: DEMO_OPSPARINGSKONTO_ID },
 ];
 
 function bySortOrderAndName(
@@ -66,6 +77,7 @@ export function useExpenses(userId: string | null) {
     if (!userId) {
       if (isDemoMode()) {
         setExpenseItems(FALLBACK_EXPENSES);
+        setBankAccounts(FALLBACK_BANK_ACCOUNTS);
         setDataSource("fallback");
       }
       return;

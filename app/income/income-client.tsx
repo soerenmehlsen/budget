@@ -76,7 +76,7 @@ export function IncomeClient() {
               transition={{ duration: 0.4, ease: "easeOut", delay: 0.05 }}
               className="mt-6 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-100"
             >
-              Viser test data. Tilføj selv din <span className="font-semibold">indkomst</span> for at få overblik over din økonomi.
+              Demo mode. Her kan du tilføje og rette dine <span className="font-semibold">indkomster</span>, hvor det automatisk vil blive regnet om til månedlige beløb. 
             </motion.p>
           ) : null}
 

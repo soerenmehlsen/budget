@@ -27,7 +27,7 @@ type DataSource = "supabase" | "fallback";
 
 const FALLBACK_INCOMES: IncomeItem[] = [
   { id: "loen", name: "Løn", amountMonthly: 28000, sortOrder: 1 },
-  { id: "bonus", name: "Bonus", amountMonthly: 5000, sortOrder: 2 },
+  { id: "bonus", name: "Bonus", amountMonthly: 5000, amountPeriod: 15000, periodLabel: "kvartal", sortOrder: 2 },
 ];
 
 function bySortOrderAndName(
