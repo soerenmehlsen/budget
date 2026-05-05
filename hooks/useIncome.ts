@@ -41,19 +41,15 @@ function bySortOrderAndName(
 }
 
 export function useIncome(userId: string | null) {
-  const [incomeItems, setIncomeItems] = useState<IncomeItem[]>([]);
+  const [incomeItems, setIncomeItems] = useState<IncomeItem[]>(() =>
+    !userId && isDemoMode() ? FALLBACK_INCOMES : []
+  );
   const [dataSource, setDataSource] = useState<DataSource>("fallback");
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    if (!userId) {
-      if (isDemoMode()) {
-        setIncomeItems(FALLBACK_INCOMES);
-        setDataSource("fallback");
-      }
-      return;
-    }
+    if (!userId) return;
 
     let isMounted = true;
 

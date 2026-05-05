@@ -65,8 +65,12 @@ function bySortOrderAndName(
 }
 
 export function useExpenses(userId: string | null) {
-  const [expenseItems, setExpenseItems] = useState<ExpenseItem[]>([]);
-  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
+  const [expenseItems, setExpenseItems] = useState<ExpenseItem[]>(() =>
+    !userId && isDemoMode() ? FALLBACK_EXPENSES : []
+  );
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>(() =>
+    !userId && isDemoMode() ? FALLBACK_BANK_ACCOUNTS : []
+  );
   const [dataSource, setDataSource] = useState<DataSource>("fallback");
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
@@ -74,14 +78,7 @@ export function useExpenses(userId: string | null) {
   const [bankAccountError, setBankAccountError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!userId) {
-      if (isDemoMode()) {
-        setExpenseItems(FALLBACK_EXPENSES);
-        setBankAccounts(FALLBACK_BANK_ACCOUNTS);
-        setDataSource("fallback");
-      }
-      return;
-    }
+    if (!userId) return;
 
     let isMounted = true;
 
