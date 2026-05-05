@@ -25,7 +25,6 @@ import { useRouter } from "next/navigation";
 import type { Transition } from "motion/react";
 import { animate, motion } from "motion/react";
 import { BottomNav } from "@/components/bottom-nav";
-import { LogoutIcon, type LogoutIconHandle } from "@/components/ui/logout";
 import { TrendingUpIcon } from "@/components/ui/trending-up";
 import { WalletIcon } from "@/components/ui/wallet";
 import { CACHE_KEYS, readCachedData, writeCachedData } from "@/lib/data-cache";
@@ -295,8 +294,7 @@ async function fetchDashboardData(userId: string): Promise<{
 
 export function DashboardClient() {
   const router = useRouter();
-  const logoutIconRef = useRef<LogoutIconHandle>(null);
-  const [isCheckingSession, setIsCheckingSession] = useState(true);
+const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [dataSource, setDataSource] = useState<"supabase" | "fallback">("fallback");
@@ -448,12 +446,7 @@ export function DashboardClient() {
   const animatedExpenses = useCountUp(totalExpenses);
   const animatedFreeToSpend = useCountUp(freeToSpend);
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.replace("/");
-  };
-
-  if (isCheckingSession) {
+if (isCheckingSession) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-white text-slate-900 dark:bg-[#09111f] dark:text-slate-100 px-4">
         <p className="rounded-2xl border border-slate-200 bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] px-5 py-4 text-sm text-slate-600 dark:text-slate-300 shadow-[0_20px_60px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.25)] backdrop-blur-sm">
@@ -505,17 +498,6 @@ export function DashboardClient() {
                   År
                 </button>
               </div>
-
-              <button
-                type="button"
-                onClick={handleSignOut}
-                onMouseEnter={() => logoutIconRef.current?.startAnimation()}
-                onMouseLeave={() => logoutIconRef.current?.stopAnimation()}
-                className="grid h-9 w-9 place-items-center rounded-xl border border-slate-300 bg-slate-100 text-slate-600 transition hover:bg-slate-200 dark:border-white/15 dark:bg-slate-800/70 dark:text-slate-200 dark:hover:bg-slate-700 focus:outline-none focus:ring-4 focus:ring-blue-400/20 sm:h-10 sm:w-10 sm:rounded-xl"
-                aria-label="Log ud"
-              >
-                <LogoutIcon ref={logoutIconRef} size={20} />
-              </button>
             </div>
           </motion.header>
 

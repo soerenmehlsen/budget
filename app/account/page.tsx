@@ -30,6 +30,7 @@ export default function AccountPage() {
   const [isSavingAccount, setIsSavingAccount] = useState(false);
   const [isSendingFeedback, setIsSendingFeedback] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [accountName, setAccountName] = useState("");
   const [feedback, setFeedback] = useState("");
@@ -87,6 +88,7 @@ export default function AccountPage() {
       }
 
       setUserId(data.session.user.id);
+      setUserEmail(data.session.user.email ?? null);
       await loadBankAccounts(data.session.user.id);
       setIsCheckingSession(false);
     };
@@ -101,6 +103,7 @@ export default function AccountPage() {
         }
 
         setUserId(session.user.id);
+        setUserEmail(session.user.email ?? null);
         void loadBankAccounts(session.user.id);
         setIsCheckingSession(false);
       },
@@ -248,9 +251,11 @@ export default function AccountPage() {
           >
             <div>
               <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl">Konto</h1>
-              <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400 sm:mt-1 sm:text-sm">
-                Dine bankkonti og feedback
-              </p>
+              {userEmail ? (
+                <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400 sm:mt-1 sm:text-sm">
+                  {userEmail}
+                </p>
+              ) : null}
             </div>
           </motion.header>
 
