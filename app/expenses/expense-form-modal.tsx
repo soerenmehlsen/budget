@@ -3,8 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
-import { AnimatedIconButton } from "@/components/ui/animated-icon-button";
-import { ChevronRightIcon } from "@/components/ui/chevron-right";
 import type { BankAccount, ExpenseItem, Frequency } from "@/types/budget";
 import type { ExpenseFormValues } from "@/hooks/useExpenses";
 import {
@@ -59,14 +57,15 @@ export function ExpenseFormModal({
     periodLabelToFrequency(editingItem?.periodLabel),
   );
   const [bankAccountId, setBankAccountId] = useState(editingItem?.bankAccountId ?? "");
-  const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
   const isEditing = editingItem !== null;
   const allCategories = Array.from(new Set([...CATEGORIES, ...existingCategories]));
 
+  const parsedAmount = Number(amount.replace(",", "."));
+  const isFormValid = name.trim().length > 0 && Number.isFinite(parsedAmount) && parsedAmount > 0;
+
   const handleSubmit = async () => {
-    const parsedAmount = Number(amount.replace(",", "."));
     if (!name.trim()) { setFormError("Navn er påkrævet."); return; }
     if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) { setFormError("Beløb skal være større end 0."); return; }
 
@@ -124,7 +123,7 @@ export function ExpenseFormModal({
 
           <div className="mt-4 space-y-2.5 sm:mt-5 sm:space-y-3 lg:space-y-4">
             <label className="block">
-              <span className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-200 sm:text-base">Navn</span>
+              <span className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-200 sm:text-base">Navn <span className="text-rose-500">*</span></span>
               <input
                 value={name}
                 onChange={(event) => setName(event.target.value)}
@@ -134,7 +133,7 @@ export function ExpenseFormModal({
             </label>
 
             <label className="block">
-              <span className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-200 sm:text-base">Kategori</span>
+              <span className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-200 sm:text-base">Kategori <span className="text-rose-500">*</span></span>
               <select
                 value={category}
                 onChange={(event) => setCategory(event.target.value)}
@@ -147,7 +146,7 @@ export function ExpenseFormModal({
             </label>
 
             <label className="block">
-              <span className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-200 sm:text-base">Beløb</span>
+              <span className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-200 sm:text-base">Beløb <span className="text-rose-500">*</span></span>
               <div className="relative">
                 <input
                   value={amount}
@@ -163,7 +162,7 @@ export function ExpenseFormModal({
             </label>
 
             <fieldset>
-              <legend className="mb-2 text-base font-medium text-slate-900 dark:text-slate-200 sm:text-base">Frekvens</legend>
+              <legend className="mb-2 text-base font-medium text-slate-900 dark:text-slate-200 sm:text-base">Frekvens <span className="text-rose-500">*</span></legend>
               <div className="grid grid-cols-2 gap-2 sm:gap-3">
                 {FREQUENCY_OPTIONS.map((option) => (
                   <button
@@ -188,50 +187,34 @@ export function ExpenseFormModal({
               </div>
             ) : null}
 
-            <AnimatedIconButton
-              type="button"
-              onClick={() => setIsAdvancedOpen((v) => !v)}
-              Icon={ChevronRightIcon}
-              iconSize={18}
-              iconClassName={`transition ${isAdvancedOpen ? "rotate-90" : "rotate-0"}`}
-              className="inline-flex items-center gap-1.5 text-sm text-slate-600 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-white sm:gap-2 sm:text-base"
-            >
-              Avanceret
-            </AnimatedIconButton>
-
-            {isAdvancedOpen ? (
-              <div className="space-y-3 rounded-2xl py-3 text-xs text-slate-600 dark:text-slate-300 sm:py-4 sm:text-sm">
-                <label className="block">
-                  <span className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-200 sm:text-base">Bankkonto</span>
-                  <select
-                    value={bankAccountId}
-                    onChange={(event) => setBankAccountId(event.target.value)}
-                    className="h-10 w-full rounded-xl border border-slate-300 bg-white px-4 text-base text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20 dark:border-white/15 dark:bg-slate-600/70 dark:text-white sm:h-11 sm:text-base"
-                  >
-                    <option value="">Ingen konto</option>
-                    {bankAccounts.map((account) => (
-                      <option key={account.id} value={account.id}>{account.name}</option>
-                    ))}
-                  </select>
-                </label>
-
-                {isLoadingAccounts ? <p>Henter bankkonti...</p> : null}
-                {bankAccountError ? <p className="text-rose-500">{bankAccountError}</p> : null}
-                {!isLoadingAccounts && bankAccounts.length === 0 ? (
-                  <p>
-                    Ingen bankkonti endnu.{" "}
-                    <Link href="/account" className="font-semibold text-blue-600 hover:text-blue-500">Tilføj en konto</Link>.
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
+            <label className="block">
+              <span className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-200 sm:text-base">Bankkonto</span>
+              <select
+                value={bankAccountId}
+                onChange={(event) => setBankAccountId(event.target.value)}
+                className="h-10 w-full rounded-xl border border-slate-300 bg-white px-4 text-base text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20 dark:border-white/15 dark:bg-slate-600/70 dark:text-white sm:h-11 sm:text-base"
+              >
+                <option value="">Ingen konto</option>
+                {bankAccounts.map((account) => (
+                  <option key={account.id} value={account.id}>{account.name}</option>
+                ))}
+              </select>
+              {isLoadingAccounts ? <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">Henter bankkonti...</p> : null}
+              {bankAccountError ? <p className="mt-1.5 text-xs text-rose-500">{bankAccountError}</p> : null}
+              {!isLoadingAccounts && bankAccounts.length === 0 ? (
+                <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+                  Ingen bankkonti endnu.{" "}
+                  <Link href="/account" className="font-semibold text-blue-600 hover:text-blue-500">Tilføj en konto</Link>.
+                </p>
+              ) : null}
+            </label>
 
             {formError ? <p className="text-xs text-rose-600 dark:text-rose-300 sm:text-sm">{formError}</p> : null}
 
             <button
               type="button"
               onClick={handleSubmit}
-              disabled={isSaving}
+              disabled={isSaving || !isFormValid}
               className="mt-1 flex h-10 w-full items-center justify-center rounded-2xl bg-blue-500 text-base font-semibold text-white shadow-[0_20px_60px_rgba(59,130,246,0.35)] transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-70 sm:mt-2 sm:h-12 sm:text-lg"
             >
               {isSaving ? "Gemmer..." : isEditing ? "Gem ændringer" : "Tilføj"}
