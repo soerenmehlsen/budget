@@ -175,7 +175,12 @@ export default function LoginPanel() {
         transition={{ duration: 0.45, ease: "easeOut" }}
         className="flex flex-col items-center text-center"
       >
-        <div className="flex h-20 w-20 items-center justify-center rounded-[1.6rem] bg-blue-500 shadow-[0_18px_50px_rgba(59,130,246,0.4)]">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.5, rotate: -15 }}
+          animate={{ opacity: 1, scale: 1, rotate: 0 }}
+          transition={{ duration: 0.55, ease: [0.34, 1.56, 0.64, 1] }}
+          className="flex h-20 w-20 items-center justify-center rounded-[1.6rem] bg-blue-500 shadow-[0_18px_50px_rgba(59,130,246,0.4)]"
+        >
           <svg
             aria-hidden="true"
             viewBox="0 0 24 24"
@@ -190,7 +195,7 @@ export default function LoginPanel() {
             <path d="M18 10.5h-3.1a2 2 0 0 0 0 4H18" />
             <path d="M8 7.5V5.8A1.8 1.8 0 0 1 9.8 4h7.4" />
           </svg>
-        </div>
+        </motion.div>
 
         <h1 className="mt-5 text-4xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-5xl">
           Budget
