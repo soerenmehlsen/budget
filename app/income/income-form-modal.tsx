@@ -36,6 +36,13 @@ export function IncomeFormModal({ editingItem, isSaving, onClose, onSave }: Prop
 
   const isEditing = editingItem !== null;
 
+  const parsedAmount = Number(amount.replace(",", "."));
+  const isFormValid =
+    name.trim().length > 0 &&
+    Number.isFinite(parsedAmount) &&
+    parsedAmount > 0 &&
+    frequency !== undefined;
+
   const handleSubmit = async () => {
     const parsedAmount = Number(amount.replace(",", "."));
     if (!name.trim()) { setFormError("Navn er påkrævet."); return; }
@@ -93,7 +100,7 @@ export function IncomeFormModal({ editingItem, isSaving, onClose, onSave }: Prop
 
           <div className="mt-4 space-y-2.5 sm:mt-5 sm:space-y-3 lg:space-y-4">
             <label className="block">
-              <span className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-200 sm:text-base">Navn</span>
+              <span className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-200 sm:text-base">Indkomstkilde <span className="text-rose-500">*</span></span>
               <input
                 value={name}
                 onChange={(event) => setName(event.target.value)}
@@ -103,7 +110,7 @@ export function IncomeFormModal({ editingItem, isSaving, onClose, onSave }: Prop
             </label>
 
             <label className="block">
-              <span className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-200 sm:text-base">Beløb</span>
+              <span className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-200 sm:text-base">Beløb <span className="text-rose-500">*</span></span>
               <div className="relative">
                 <input
                   value={amount}
@@ -119,7 +126,7 @@ export function IncomeFormModal({ editingItem, isSaving, onClose, onSave }: Prop
             </label>
 
             <fieldset>
-              <legend className="mb-2 text-base font-medium text-slate-900 dark:text-slate-200 sm:text-base">Frekvens</legend>
+              <legend className="mb-2 text-base font-medium text-slate-900 dark:text-slate-200 sm:text-base">Frekvens <span className="text-rose-500">*</span></legend>
               <div className="grid grid-cols-2 gap-2 sm:gap-3">
                 {FREQUENCY_OPTIONS.map((option) => (
                   <button
@@ -143,7 +150,7 @@ export function IncomeFormModal({ editingItem, isSaving, onClose, onSave }: Prop
             <button
               type="button"
               onClick={handleSubmit}
-              disabled={isSaving}
+              disabled={isSaving || !isFormValid}
               className="mt-1 flex h-10 w-full items-center justify-center rounded-2xl bg-blue-500 text-base font-semibold text-white shadow-[0_20px_60px_rgba(59,130,246,0.35)] transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-70 sm:mt-2 sm:h-12 sm:text-lg"
             >
               {isSaving ? "Gemmer..." : isEditing ? "Gem ændringer" : "Gem"}
