@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Budget",
-  description: "Log ind i Budget og få overblik over familiens økonomi",
+  description: "Log ind i Budget og få overblik over din økonomi",
   manifest: "/manifest.webmanifest",
   themeColor: "#3b82f6",
 };
