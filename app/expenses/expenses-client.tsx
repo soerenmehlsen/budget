@@ -1,87 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { AnimatePresence, motion } from "motion/react";
 import { BottomNav } from "@/components/bottom-nav";
 import { AnimatedIconButton } from "@/components/ui/animated-icon-button";
 import { ChevronDownIcon } from "@/components/ui/chevron-down";
-import { ChevronRightIcon } from "@/components/ui/chevron-right";
-import { DeleteIcon } from "@/components/ui/delete";
 import { PlusIcon } from "@/components/ui/plus";
-import { SquarePenIcon } from "@/components/ui/square-pen";
 import { useSession } from "@/hooks/useSession";
 import { useExpenses } from "@/hooks/useExpenses";
-import type { ExpenseItem, Frequency } from "@/types/budget";
-
-const CATEGORIES = [
-  "Bolig",
-  "Mad",
-  "Forbrug",
-  "Transport",
-  "Abonnementer",
-  "Forsikring",
-  "Sundhed",
-  "Børn",
-  "Kæledyr",
-  "Fritid",
-  "Restaurant og cafe",
-  "Tøj og sko",
-  "Gaver",
-  "Rejser",
-  "Opsparing",
-  "Gæld",
-  "Diverse",
-];
-
-const moneyFormatter = new Intl.NumberFormat("da-DK", {
-  style: "currency",
-  currency: "DKK",
-  maximumFractionDigits: 2,
-  minimumFractionDigits: 2,
-});
-
-function formatCompactDkk(amount: number) {
-  return `${moneyFormatter.format(amount).replace("DKK", "kr").trim()}`;
-}
-
-function frequencyToPeriodLabel(frequency: Frequency) {
-  switch (frequency) {
-    case "monthly": return "måned";
-    case "quarterly": return "kvartal";
-    case "halfYearly": return "halvår";
-    case "yearly": return "år";
-    default: return "måned";
-  }
-}
-
-function frequencyToMonthlyAmount(amount: number, frequency: Frequency) {
-  switch (frequency) {
-    case "monthly": return amount;
-    case "quarterly": return amount / 3;
-    case "halfYearly": return amount / 6;
-    case "yearly": return amount / 12;
-    default: return amount;
-  }
-}
-
-function periodLabelToFrequencyText(periodLabel: string | null | undefined) {
-  switch (periodLabel) {
-    case "kvartal": return "Kvartalsvis";
-    case "halvår": return "Halvårlig";
-    case "år": return "Årlig";
-    default: return "Månedlig";
-  }
-}
-
-function expenseItemToFrequency(item: ExpenseItem): Frequency {
-  switch (item.periodLabel) {
-    case "kvartal": return "quarterly";
-    case "halvår": return "halfYearly";
-    case "år": return "yearly";
-    default: return "monthly";
-  }
-}
+import type { ExpenseFormValues } from "@/hooks/useExpenses";
+import type { ExpenseItem } from "@/types/budget";
+import { formatCompactDkk } from "@/lib/budget-format";
+import { ExpenseCategoryGroup } from "./expense-category-group";
+import { ExpenseFormModal } from "./expense-form-modal";
 
 export function ExpensesClient() {
   const { userId, isCheckingSession } = useSession();
@@ -102,53 +32,26 @@ export function ExpensesClient() {
   } = useExpenses(userId);
 
   const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
-  const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
-  const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
-  const [name, setName] = useState("");
-  const [category, setCategory] = useState("Abonnementer");
-  const [amount, setAmount] = useState("");
-  const [frequency, setFrequency] = useState<Frequency>("monthly");
-  const [bankAccountId, setBankAccountId] = useState("");
-  const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
+  const [editingItem, setEditingItem] = useState<ExpenseItem | null>(null);
+  const [preferredCategory, setPreferredCategory] = useState("Abonnementer");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const isAllCollapsed =
     groupedExpenses.length > 0 &&
     groupedExpenses.every((group) => collapsedCategories[group.category] === true);
 
-  const resetForm = () => {
-    setEditingExpenseId(null);
-    setName("");
-    setCategory("Abonnementer");
-    setAmount("");
-    setFrequency("monthly");
-    setBankAccountId("");
-    setIsAdvancedOpen(false);
-    setFormError(null);
+  const openAdd = (category = "Abonnementer") => {
+    setEditingItem(null);
+    setPreferredCategory(category);
+    setIsModalOpen(true);
   };
 
-  const openAddExpenseModal = (preferredCategory?: string) => {
-    resetForm();
-    if (preferredCategory) setCategory(preferredCategory);
-    setIsAddExpenseOpen(true);
+  const openEdit = (item: ExpenseItem) => {
+    setEditingItem(item);
+    setIsModalOpen(true);
   };
 
-  const openEditExpenseModal = (item: ExpenseItem) => {
-    setEditingExpenseId(item.id);
-    setName(item.name);
-    setCategory(item.category);
-    setAmount(String(item.amountPeriod ?? item.amountMonthly));
-    setFrequency(expenseItemToFrequency(item));
-    setBankAccountId(item.bankAccountId ?? "");
-    setIsAdvancedOpen(false);
-    setFormError(null);
-    setIsAddExpenseOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsAddExpenseOpen(false);
-    resetForm();
-  };
+  const closeModal = () => setIsModalOpen(false);
 
   const toggleAll = () => {
     const nextValue = !isAllCollapsed;
@@ -157,47 +60,22 @@ export function ExpensesClient() {
     setCollapsedCategories(nextState);
   };
 
-  const handleSaveExpense = async () => {
-    const parsedAmount = Number(amount.replace(",", "."));
-
-    if (!name.trim()) { setFormError("Navn er påkrævet."); return; }
-    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) { setFormError("Beløb skal være større end 0."); return; }
-
-    setFormError(null);
-
-    const values = {
-      category,
-      name: name.trim(),
-      amountMonthly: frequencyToMonthlyAmount(parsedAmount, frequency),
-      amountPeriod: frequency === "monthly" ? null : parsedAmount,
-      periodLabel: frequency === "monthly" ? null : frequencyToPeriodLabel(frequency),
-      bankAccountId: bankAccountId || null,
-    };
-
-    try {
-      if (editingExpenseId) {
-        await updateExpense(editingExpenseId, values);
-      } else {
-        await addExpense(values);
-      }
-      closeModal();
-    } catch {
-      setFormError(
-        editingExpenseId
-          ? "Kunne ikke opdatere udgift. Tjek at tabellen expense_items findes."
-          : "Kunne ikke gemme udgift. Tjek at tabellen expense_items findes.",
-      );
+  const handleSave = async (values: ExpenseFormValues) => {
+    if (editingItem) {
+      await updateExpense(editingItem.id, values);
+    } else {
+      await addExpense(values);
     }
+    closeModal();
   };
 
-  const handleDeleteExpense = async (expenseId: string) => {
+  const handleDelete = async (id: string) => {
     if (!window.confirm("Vil du slette denne udgift?")) return;
-
     try {
-      await removeExpense(expenseId);
-      if (editingExpenseId === expenseId) closeModal();
+      await removeExpense(id);
+      closeModal();
     } catch {
-      setFormError("Kunne ikke slette udgift. Prøv igen.");
+      window.alert("Kunne ikke slette udgift. Prøv igen.");
     }
   };
 
@@ -223,17 +101,14 @@ export function ExpensesClient() {
               <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl">Udgifter</h1>
               <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400 sm:mt-1 sm:text-sm">{totalCount} faste udgifter</p>
             </div>
-
-            <div className="flex items-center gap-2 sm:gap-3">
-              <AnimatedIconButton
-                type="button"
-                onClick={() => openAddExpenseModal()}
-                Icon={PlusIcon}
-                iconSize={20}
-                className="grid h-10 w-10 place-items-center rounded-xl border border-blue-400/30 bg-blue-500 text-white shadow-[0_15px_45px_rgba(59,130,246,0.35)] transition hover:bg-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-300/35"
-                aria-label="Tilføj udgift"
-              />
-            </div>
+            <AnimatedIconButton
+              type="button"
+              onClick={() => openAdd()}
+              Icon={PlusIcon}
+              iconSize={20}
+              className="grid h-10 w-10 place-items-center rounded-xl border border-blue-400/30 bg-blue-500 text-white shadow-[0_15px_45px_rgba(59,130,246,0.35)] transition hover:bg-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-300/35"
+              aria-label="Tilføj udgift"
+            />
           </header>
 
           {dataSource === "fallback" ? (
@@ -253,314 +128,45 @@ export function ExpensesClient() {
             >
               {isAllCollapsed ? "Fold alle ud" : "Fold alle ind"}
             </AnimatedIconButton>
-
             <p className="text-sm text-slate-700 dark:text-slate-300">{formatCompactDkk(totalMonthly)}/md</p>
           </div>
 
           <div className="mt-4 space-y-3 sm:space-y-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-4 lg:space-y-0">
-            {groupedExpenses.map((group) => {
-              const isCollapsed = collapsedCategories[group.category] === true;
-
-              return (
-                <motion.article
-                  key={group.category}
-                  layout
-                  transition={{ duration: 0.24, ease: "easeOut" }}
-                  className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-white/10 dark:bg-slate-800/70"
-                >
-                  <div className="flex items-center justify-between gap-3 px-4 py-3">
-                    <AnimatedIconButton
-                      type="button"
-                      className="flex min-w-0 items-center gap-3"
-                      onClick={() =>
-                        setCollapsedCategories((current) => ({
-                          ...current,
-                          [group.category]: !isCollapsed,
-                        }))
-                      }
-                      aria-label={`Skift visning for ${group.category}`}
-                      Icon={ChevronDownIcon}
-                      iconSize={20}
-                      iconClassName={`text-slate-500 transition dark:text-slate-400 ${isCollapsed ? "-rotate-90" : "rotate-0"}`}
-                    >
-                      <h2 className="truncate text-sm font-semibold text-slate-900 dark:text-white sm:text-base">{group.category}</h2>
-
-                      <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-semibold text-slate-700 dark:bg-slate-700 dark:text-slate-300">
-                        {group.items.length}
-                      </span>
-                    </AnimatedIconButton>
-
-                    <div className="flex items-center gap-3">
-                      <p className="text-sm font-semibold text-slate-900 dark:text-white sm:text-base">
-                        {formatCompactDkk(group.totalMonthly)}/md
-                      </p>
-
-                      <AnimatedIconButton
-                        type="button"
-                        onClick={() => openAddExpenseModal(group.category)}
-                        Icon={PlusIcon}
-                        iconSize={20}
-                        className="text-2xl leading-none text-slate-500 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
-                        aria-label="Tilføj udgift i kategori"
-                      />
-                    </div>
-                  </div>
-
-                  <AnimatePresence initial={false}>
-                    {!isCollapsed ? (
-                      <motion.ul
-                        className="overflow-hidden border-t border-slate-200 dark:border-white/10"
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.24, ease: "easeOut" }}
-                      >
-                        {group.items.map((item) => (
-                          <li
-                            key={item.id}
-                            className="border-b border-slate-200 px-4 py-3 last:border-b-0 dark:border-white/10"
-                          >
-                            <div className="flex items-start justify-between gap-4">
-                              <div className="min-w-0">
-                                <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">{item.name}</p>
-                                <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 sm:text-sm">
-                                  {periodLabelToFrequencyText(item.periodLabel)}
-                                </p>
-                                {item.bankAccountId ? (
-                                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 sm:text-sm">
-                                    {bankAccountLookup.get(item.bankAccountId) ?? "Ukendt konto"}
-                                  </p>
-                                ) : null}
-
-                                <div className="mt-2 flex items-center gap-3 text-xs">
-                                  <AnimatedIconButton
-                                    type="button"
-                                    onClick={() => openEditExpenseModal(item)}
-                                    Icon={SquarePenIcon}
-                                    iconSize={14}
-                                    className="inline-flex items-center gap-1.5 text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
-                                    aria-label="Rediger udgift"
-                                  >
-                                    Rediger
-                                  </AnimatedIconButton>
-                                  <AnimatedIconButton
-                                    type="button"
-                                    onClick={() => handleDeleteExpense(item.id)}
-                                    Icon={DeleteIcon}
-                                    iconSize={14}
-                                    className="inline-flex items-center gap-1.5 text-rose-400 transition hover:text-rose-300"
-                                    aria-label="Slet udgift"
-                                  >
-                                    Slet
-                                  </AnimatedIconButton>
-                                </div>
-                              </div>
-
-                              <div className="text-right">
-                                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 sm:text-base">
-                                  {formatCompactDkk(item.amountMonthly)}
-                                </p>
-                                {typeof item.amountPeriod === "number" && item.periodLabel ? (
-                                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                                    {formatCompactDkk(item.amountPeriod)}/{item.periodLabel}
-                                  </p>
-                                ) : null}
-                              </div>
-                            </div>
-                          </li>
-                        ))}
-                      </motion.ul>
-                    ) : null}
-                  </AnimatePresence>
-                </motion.article>
-              );
-            })}
+            {groupedExpenses.map((group) => (
+              <ExpenseCategoryGroup
+                key={group.category}
+                group={group}
+                bankAccountLookup={bankAccountLookup}
+                isCollapsed={collapsedCategories[group.category] === true}
+                onToggle={() => setCollapsedCategories((prev) => ({ ...prev, [group.category]: !(prev[group.category] === true) }))}
+                onEdit={openEdit}
+                onDelete={handleDelete}
+                onAdd={openAdd}
+              />
+            ))}
           </div>
 
           {isLoading ? (
             <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">Opdaterer udgifter...</p>
           ) : null}
-
         </section>
 
         <BottomNav activeItem="Udgifter" />
       </div>
 
-      {isAddExpenseOpen ? (
-        <motion.div
-          className="fixed inset-0 z-40 bg-black/45 backdrop-blur-[2px]"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.18, ease: "easeOut" }}
-          onClick={closeModal}
-        >
-          <div className="absolute left-1/2 top-1/2 w-[calc(100%-1rem)] max-w-[560px] -translate-x-1/2 -translate-y-1/2 sm:top-auto sm:bottom-20 sm:w-[calc(100%-2rem)] sm:max-w-[600px] sm:-translate-y-0 lg:bottom-auto lg:top-1/2 lg:max-w-[620px] lg:-translate-y-1/2">
-            <motion.section
-              className="max-h-[82dvh] overflow-auto rounded-[1rem] border border-slate-200 bg-white p-4 shadow-[0_25px_80px_rgba(0,0,0,0.1)] dark:border-white/10 dark:bg-slate-800 dark:shadow-[0_25px_80px_rgba(0,0,0,0.5)] sm:rounded-[1.5rem] sm:p-5 lg:rounded-[1.5rem]"
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-              onClick={(event) => event.stopPropagation()}
-              role="dialog"
-              aria-modal="true"
-              aria-label={editingExpenseId ? "Rediger udgift" : "Tilføj udgift"}
-            >
-            <header className="flex items-start justify-between gap-4">
-              <h2 className="text-xl font-semibold text-slate-900 dark:text-white sm:text-2xl">
-                {editingExpenseId ? "Rediger udgift" : "Tilføj udgift"}
-              </h2>
-              <button
-                type="button"
-                onClick={closeModal}
-                className="text-xl leading-none text-slate-400 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white sm:text-2xl"
-                aria-label="Luk"
-              >
-                ×
-              </button>
-            </header>
-
-            <div className="mt-4 space-y-2.5 sm:mt-5 sm:space-y-3 lg:space-y-4">
-              <label className="block">
-                <span className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-200 sm:text-base">Navn</span>
-                <input
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                  placeholder="f.eks. Huslån"
-                  className="h-10 w-full rounded-2xl border border-slate-300 bg-white px-4 text-base text-slate-900 placeholder:text-slate-500 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20 dark:border-white/10 dark:bg-slate-600/65 dark:text-white dark:placeholder:text-slate-400 sm:h-12 sm:px-4 sm:text-lg"
-                />
-              </label>
-
-              <label className="block">
-                <span className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-200 sm:text-base">Kategori</span>
-                <select
-                  value={category}
-                  onChange={(event) => setCategory(event.target.value)}
-                  className="h-10 w-full rounded-xl border border-slate-300 bg-white px-4 text-base text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20 dark:border-white/15 dark:bg-slate-600/70 dark:text-white sm:h-11 sm:text-base"
-                >
-                  {Array.from(new Set([...CATEGORIES, ...groupedExpenses.map((group) => group.category)])).map(
-                    (option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ),
-                  )}
-                </select>
-              </label>
-
-              <label className="block">
-                <span className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-200 sm:text-base">Beløb</span>
-                <div className="relative">
-                  <input
-                    value={amount}
-                    onChange={(event) => setAmount(event.target.value)}
-                    placeholder="0,00"
-                    inputMode="decimal"
-                    className="h-10 w-full rounded-2xl border border-slate-300 bg-white px-4 pr-14 text-base text-slate-900 placeholder:text-slate-500 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20 dark:border-white/10 dark:bg-slate-600/65 dark:text-white dark:placeholder:text-slate-400 sm:h-12 sm:px-4 sm:pr-14 sm:text-lg"
-                  />
-                  <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm text-slate-500 dark:text-slate-300 sm:text-base">
-                    kr
-                  </span>
-                </div>
-              </label>
-
-              <fieldset>
-                <legend className="mb-2 text-base font-medium text-slate-900 dark:text-slate-200 sm:text-base">Frekvens</legend>
-                <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                  {[
-                    { value: "monthly", label: "Månedlig" },
-                    { value: "quarterly", label: "Kvartalsvis" },
-                    { value: "halfYearly", label: "Halvårlig" },
-                    { value: "yearly", label: "Årlig" },
-                  ].map((option) => {
-                    const isActive = frequency === option.value;
-
-                    return (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() => setFrequency(option.value as Frequency)}
-                        className={`h-10 rounded-2xl border text-sm font-medium transition sm:h-12 sm:text-base ${
-                          isActive
-                            ? "border-blue-400 bg-blue-500/20 text-blue-700 dark:text-blue-300"
-                            : "border-slate-300 bg-slate-100 text-slate-700 hover:border-slate-400 dark:border-white/15 dark:bg-slate-700/40 dark:text-slate-300 dark:hover:border-white/25"
-                        }`}
-                      >
-                        {option.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </fieldset>
-
-              {frequency !== "monthly" ? (
-                <div className="rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-100 sm:text-sm">
-                  <span className="font-semibold">Tip:</span> Beløbet bliver automatisk omregnet til månedlig værdi.
-                </div>
-              ) : null}
-
-              <AnimatedIconButton
-                type="button"
-                onClick={() => setIsAdvancedOpen((value) => !value)}
-                Icon={ChevronRightIcon}
-                iconSize={18}
-                iconClassName={`transition ${isAdvancedOpen ? "rotate-90" : "rotate-0"}`}
-                className="inline-flex items-center gap-1.5 text-sm text-slate-600 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-white sm:gap-2 sm:text-base"
-              >
-                Avanceret
-              </AnimatedIconButton>
-
-              {isAdvancedOpen ? (
-                <div className="space-y-3 rounded-2xl py-3 text-xs text-slate-600 dark:text-slate-300 sm:py-4 sm:text-sm">
-                  <label className="block">
-                    <span className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-200 sm:text-base">
-                      Bankkonto
-                    </span>
-                    <select
-                      value={bankAccountId}
-                      onChange={(event) => setBankAccountId(event.target.value)}
-                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-4 text-base text-slate-900 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20 dark:border-white/15 dark:bg-slate-600/70 dark:text-white sm:h-11 sm:text-base"
-                    >
-                      <option value="">Ingen konto</option>
-                      {bankAccounts.map((account) => (
-                        <option key={account.id} value={account.id}>
-                          {account.name}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-
-                  {isLoadingAccounts ? (
-                    <p>Henter bankkonti...</p>
-                  ) : null}
-
-                  {bankAccountError ? <p className="text-rose-500">{bankAccountError}</p> : null}
-
-                  {!isLoadingAccounts && bankAccounts.length === 0 ? (
-                    <p>
-                      Ingen bankkonti endnu. <Link href="/account" className="font-semibold text-blue-600 hover:text-blue-500">Tilføj en konto</Link>.
-                    </p>
-                  ) : null}
-                </div>
-              ) : null}
-
-              {formError ? <p className="text-xs text-rose-600 dark:text-rose-300 sm:text-sm">{formError}</p> : null}
-
-              <button
-                type="button"
-                onClick={handleSaveExpense}
-                disabled={isSaving}
-                className="mt-1 flex h-10 w-full items-center justify-center rounded-2xl bg-blue-500 text-base font-semibold text-white shadow-[0_20px_60px_rgba(59,130,246,0.35)] transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-70 sm:mt-2 sm:h-12 sm:text-lg"
-              >
-                {isSaving
-                  ? "Gemmer..."
-                  : editingExpenseId
-                    ? "Gem ændringer"
-                    : "Tilføj"}
-              </button>
-            </div>
-            </motion.section>
-          </div>
-        </motion.div>
+      {isModalOpen ? (
+        <ExpenseFormModal
+          key={editingItem?.id ?? "new"}
+          editingItem={editingItem}
+          preferredCategory={preferredCategory}
+          isSaving={isSaving}
+          bankAccounts={bankAccounts}
+          isLoadingAccounts={isLoadingAccounts}
+          bankAccountError={bankAccountError}
+          existingCategories={groupedExpenses.map((g) => g.category)}
+          onClose={closeModal}
+          onSave={handleSave}
+        />
       ) : null}
     </main>
   );

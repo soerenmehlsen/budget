@@ -30,6 +30,7 @@ import { TrendingUpIcon } from "@/components/ui/trending-up";
 import { WalletIcon } from "@/components/ui/wallet";
 import { CACHE_KEYS, readCachedData, writeCachedData } from "@/lib/data-cache";
 import { supabase } from "@/lib/supabase/client";
+import { MONEY_FORMATTER } from "@/lib/budget-format";
 import type { BankAccount } from "@/types/budget";
 
 type PeriodView = "month" | "year";
@@ -134,19 +135,12 @@ const FALLBACK_DASHBOARD_DATA: DashboardData = {
   bankAccounts: [],
 };
 
-const moneyFormatter = new Intl.NumberFormat("da-DK", {
-  style: "currency",
-  currency: "DKK",
-  maximumFractionDigits: 2,
-  minimumFractionDigits: 2,
-});
-
-const percentFormatter = new Intl.NumberFormat("da-DK", {
+const PERCENT_FORMATTER = new Intl.NumberFormat("da-DK", {
   maximumFractionDigits: 0,
 });
 
 function formatMoney(amount: number) {
-  return moneyFormatter.format(amount);
+  return MONEY_FORMATTER.format(amount);
 }
 
 function bySortOrderAndName(a: ExpenseItem, b: ExpenseItem) {
@@ -558,7 +552,7 @@ export function DashboardClient() {
                   value={expenseSharePercent}
                 />
                 <p className="mt-2 text-[11px] font-medium text-rose-800 dark:text-rose-100 sm:text-xs">
-                  {percentFormatter.format(expenseSharePercent)}% af indkomst
+                  {PERCENT_FORMATTER.format(expenseSharePercent)}% af indkomst
                 </p>
               </div>
             </article>
@@ -572,7 +566,7 @@ export function DashboardClient() {
               {formatMoney(freeToSpend)}
             </p>
             <p className="mt-2 text-xs font-medium text-blue-800 dark:text-blue-100 sm:text-base">
-              {percentFormatter.format(freeToSpendPercent)}% af indkomst
+              {PERCENT_FORMATTER.format(freeToSpendPercent)}% af indkomst
             </p>
           </section>
 
