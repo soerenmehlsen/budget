@@ -8,8 +8,14 @@ import { AnimatedIconButton } from "@/components/ui/animated-icon-button";
 import { DeleteIcon } from "@/components/ui/delete";
 import { PlusIcon } from "@/components/ui/plus";
 import { SquarePenIcon } from "@/components/ui/square-pen";
+import { isDemoMode } from "@/lib/demo-mode";
 import { supabase } from "@/lib/supabase/client";
 import type { BankAccount } from "@/types/budget";
+
+const DEMO_BANK_ACCOUNTS: BankAccount[] = [
+  { id: "demo-budgetkonto", name: "Budgetkonto", sortOrder: 1 },
+  { id: "demo-opsparingskonto", name: "Opsparingskonto", sortOrder: 2 },
+];
 
 function bySortOrderAndName(a: BankAccount, b: BankAccount) {
   const orderA = a.sortOrder ?? Number.MAX_SAFE_INTEGER;
@@ -80,6 +86,11 @@ export default function BankAccountsPage() {
       }
 
       if (!data.session) {
+        if (isDemoMode()) {
+          setBankAccounts(DEMO_BANK_ACCOUNTS);
+          setIsCheckingSession(false);
+          return;
+        }
         router.replace("/");
         return;
       }
@@ -94,6 +105,11 @@ export default function BankAccountsPage() {
     const { data: subscription } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         if (!session) {
+          if (isDemoMode()) {
+            setBankAccounts(DEMO_BANK_ACCOUNTS);
+            setIsCheckingSession(false);
+            return;
+          }
           router.replace("/");
           return;
         }
@@ -274,7 +290,7 @@ export default function BankAccountsPage() {
                 </label>
                 <AnimatedIconButton
                   type="submit"
-                  disabled={isSavingAccount}
+                  disabled={isSavingAccount || !accountName.trim()}
                   Icon={PlusIcon}
                   iconSize={18}
                   className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-blue-500 px-5 text-sm font-semibold text-white shadow-[0_20px_60px_rgba(59,130,246,0.35)] transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-70 sm:h-12"
