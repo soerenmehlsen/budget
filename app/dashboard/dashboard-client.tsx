@@ -285,6 +285,11 @@ const [isCheckingSession, setIsCheckingSession] = useState(true);
       setDataSource(source);
       writeCachedData(CACHE_KEYS.dashboard, userId, data, source);
       setIsLoadingDashboard(false);
+
+      const hasData = data.incomeSources.length > 0 || data.expenseItems.length > 0;
+      if (!hasData) {
+        setShowWelcome(true);
+      }
     };
 
     const syncSession = async () => {
@@ -309,10 +314,6 @@ const [isCheckingSession, setIsCheckingSession] = useState(true);
 
       await loadDashboardData(data.session.user.id);
       setIsCheckingSession(false);
-
-      if (!localStorage.getItem("budget-onboarding-seen")) {
-        setShowWelcome(true);
-      }
     };
 
     void syncSession();
@@ -751,10 +752,7 @@ if (isCheckingSession) {
 
       {showWelcome && (
         <WelcomeModal
-          onClose={() => {
-            localStorage.setItem("budget-onboarding-seen", "1");
-            setShowWelcome(false);
-          }}
+          onClose={() => setShowWelcome(false)}
         />
       )}
     </main>
