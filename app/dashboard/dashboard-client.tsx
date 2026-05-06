@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeftRight,
@@ -25,18 +25,15 @@ import {
   WalletMinimal,
   type LucideIcon,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import type { Transition } from "motion/react";
-import { animate, motion } from "motion/react";
+import { motion } from "motion/react";
 import { BottomNav } from "@/components/bottom-nav";
 import { WelcomeModal } from "@/components/welcome-modal";
 import { TrendingUpIcon } from "@/components/ui/trending-up";
 import { WalletIcon } from "@/components/ui/wallet";
-import { CACHE_KEYS, readCachedData, writeCachedData } from "@/lib/data-cache";
-import { isDemoMode } from "@/lib/demo-mode";
-import { supabase } from "@/lib/supabase/client";
 import { MONEY_FORMATTER } from "@/lib/budget-format";
-import type { BankAccount } from "@/types/budget";
+import { useCountUp } from "@/hooks/useCountUp";
+import { useDashboard } from "@/hooks/useDashboard";
 
 type PeriodView = "month" | "year";
 type SortMode = "alpha" | "highest";
@@ -46,90 +43,12 @@ const collapseTransition: Transition = {
   ease: "easeOut",
 };
 
-type IncomeSource = {
-  name: string;
-  amountMonthly: number;
-};
-
-type ExpenseItem = {
-  id: string;
-  category: string;
-  name: string;
-  amountMonthly: number;
-  amountAnnual?: number | null;
-  sortOrder?: number | null;
-  bankAccountId?: string | null;
-};
-
-type DashboardData = {
-  profileName?: string | null;
-  incomeSources: IncomeSource[];
-  expenseItems: ExpenseItem[];
-  bankAccounts: BankAccount[];
-};
-
-const DEMO_BUDGETKONTO_ID = "demo-budgetkonto";
-const DEMO_OPSPARINGSKONTO_ID = "demo-opsparingskonto";
-
-const FALLBACK_DASHBOARD_DATA: DashboardData = {
-  incomeSources: [
-    { name: "Løn", amountMonthly: 28000 },
-    { name: "Bonus", amountMonthly: 5000 },
-  ],
-  expenseItems: [
-    { id: "house-rent", category: "Bolig", name: "Husleje", amountMonthly: 12000, sortOrder: 1, bankAccountId: DEMO_BUDGETKONTO_ID },
-    { id: "utility-heat", category: "Forbrug", name: "Varme", amountMonthly: 400, sortOrder: 1, bankAccountId: DEMO_BUDGETKONTO_ID },
-    { id: "utility-electricity", category: "Forbrug", name: "El", amountMonthly: 600, sortOrder: 2, bankAccountId: DEMO_BUDGETKONTO_ID },
-    { id: "utility-water", category: "Forbrug", name: "Vand", amountMonthly: 800, amountAnnual: 2400, sortOrder: 3, bankAccountId: DEMO_BUDGETKONTO_ID },
-    { id: "utility-internet", category: "Forbrug", name: "Internet", amountMonthly: 299, sortOrder: 4, bankAccountId: DEMO_BUDGETKONTO_ID },
-    { id: "transport-car-loan", category: "Transport", name: "Billån", amountMonthly: 2500, sortOrder: 1, bankAccountId: DEMO_BUDGETKONTO_ID },
-    { id: "transport-fuel", category: "Transport", name: "Benzin", amountMonthly: 1000, sortOrder: 2, bankAccountId: DEMO_BUDGETKONTO_ID },
-    { id: "transport-insurance", category: "Transport", name: "Forsikring", amountMonthly: 500, sortOrder: 3, bankAccountId: DEMO_BUDGETKONTO_ID },
-    { id: "savings", category: "Opsparing", name: "Opsparing", amountMonthly: 5000, sortOrder: 1, bankAccountId: DEMO_OPSPARINGSKONTO_ID },
-  ],
-  bankAccounts: [
-    { id: DEMO_BUDGETKONTO_ID, name: "Budgetkonto", sortOrder: 1 },
-    { id: DEMO_OPSPARINGSKONTO_ID, name: "Opsparingskonto", sortOrder: 2 },
-  ],
-};
-
 const PERCENT_FORMATTER = new Intl.NumberFormat("da-DK", {
   maximumFractionDigits: 0,
 });
 
 function formatMoney(amount: number) {
   return MONEY_FORMATTER.format(amount);
-}
-
-function useCountUp(target: number, duration = 1.3) {
-  const [value, setValue] = useState(target);
-  const prevRef = useRef(target);
-
-  useEffect(() => {
-    const from = prevRef.current;
-    prevRef.current = target;
-    if (from === target) return;
-
-    const controls = animate(from, target, {
-      duration,
-      ease: [0.25, 0.46, 0.45, 0.94],
-      onUpdate: setValue,
-    });
-    return () => controls.stop();
-  }, [target, duration]);
-
-  return value;
-}
-
-function bySortOrderAndName(a: ExpenseItem, b: ExpenseItem) {
-  const orderA = a.sortOrder ?? Number.MAX_SAFE_INTEGER;
-  const orderB = b.sortOrder ?? Number.MAX_SAFE_INTEGER;
-
-  if (orderA !== orderB) {
-    return orderA - orderB;
-  }
-
-  return a.name.localeCompare(b.name, "da-DK");
 }
 
 const categoryIcons: Record<string, LucideIcon> = {
@@ -154,283 +73,42 @@ const categoryIcons: Record<string, LucideIcon> = {
   "Tøj og sko": Shirt,
 };
 
-async function fetchDashboardData(userId: string): Promise<{
-  data: DashboardData;
-  source: "supabase" | "fallback";
-}> {
-  const [profileResult, incomeResult, expenseResult, bankAccountResult] = await Promise.all([
-    supabase.from("profiles").select("display_name").eq("id", userId).maybeSingle(),
-    supabase
-      .from("income_sources")
-      .select("name, amount_monthly")
-      .eq("user_id", userId)
-      .order("name", { ascending: true }),
-    supabase
-      .from("expense_items")
-      .select("id, category, name, amount_monthly, amount_annual, sort_order, bank_account_id")
-      .eq("user_id", userId)
-      .order("sort_order", { ascending: true }),
-    supabase
-      .from("bank_accounts")
-      .select("id, name, sort_order")
-      .eq("user_id", userId)
-      .order("sort_order", { ascending: true }),
-  ]);
-
-  const profileName = profileResult.error
-    ? null
-    : (profileResult.data?.display_name ?? null);
-
-  const incomeSources =
-    incomeResult.error || !incomeResult.data || incomeResult.data.length === 0
-      ? (isDemoMode() ? FALLBACK_DASHBOARD_DATA.incomeSources : [])
-      : incomeResult.data
-          .filter((row) => typeof row.amount_monthly === "number")
-          .map((row) => ({
-            name: row.name || "Indkomst",
-            amountMonthly: row.amount_monthly,
-          }));
-
-  const expenseItems =
-    expenseResult.error || !expenseResult.data || expenseResult.data.length === 0
-      ? (isDemoMode() ? FALLBACK_DASHBOARD_DATA.expenseItems : [])
-      : expenseResult.data
-          .filter(
-            (row) =>
-              typeof row.amount_monthly === "number" &&
-              typeof row.category === "string" &&
-              typeof row.name === "string",
-          )
-          .map((row) => ({
-            id: row.id ?? `${row.category}-${row.name}`,
-            category: row.category,
-            name: row.name,
-            amountMonthly: row.amount_monthly,
-            amountAnnual:
-              typeof row.amount_annual === "number" ? row.amount_annual : null,
-            sortOrder: typeof row.sort_order === "number" ? row.sort_order : null,
-            bankAccountId:
-              typeof row.bank_account_id === "string" ? row.bank_account_id : null,
-          }))
-          .sort(bySortOrderAndName);
-
-  const bankAccounts =
-    bankAccountResult.error || !bankAccountResult.data
-      ? []
-      : bankAccountResult.data
-          .filter((row) => typeof row.id === "string" && typeof row.name === "string")
-          .map((row) => ({
-            id: row.id,
-            name: row.name,
-            sortOrder: typeof row.sort_order === "number" ? row.sort_order : null,
-          }))
-          .sort((a, b) => {
-            const orderA = a.sortOrder ?? Number.MAX_SAFE_INTEGER;
-            const orderB = b.sortOrder ?? Number.MAX_SAFE_INTEGER;
-
-            if (orderA !== orderB) {
-              return orderA - orderB;
-            }
-
-            return a.name.localeCompare(b.name, "da-DK");
-          });
-
-  const hasSupabaseData =
-    !incomeResult.error &&
-    !expenseResult.error &&
-    incomeResult.data !== null &&
-    expenseResult.data !== null &&
-    (incomeResult.data.length > 0 || expenseResult.data.length > 0);
-
-  return {
-    data: {
-      profileName,
-      incomeSources,
-      expenseItems,
-      bankAccounts,
-    },
-    source: hasSupabaseData ? "supabase" : isDemoMode() ? "fallback" : "supabase",
-  };
-}
-
 export function DashboardClient() {
-  const router = useRouter();
-const [isCheckingSession, setIsCheckingSession] = useState(true);
-  const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
-  const [dataSource, setDataSource] = useState<"supabase" | "fallback">("fallback");
   const [periodView, setPeriodView] = useState<PeriodView>("month");
   const [sortMode, setSortMode] = useState<SortMode>("alpha");
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(false);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadDashboardData = async (userId: string) => {
-      const cached = readCachedData<DashboardData>(CACHE_KEYS.dashboard, userId);
-
-      if (cached) {
-        setDashboardData(cached.data);
-        setDataSource(cached.source);
-      }
-
-      setIsLoadingDashboard(true);
-
-      const { data, source } = await fetchDashboardData(userId);
-
-      if (!isMounted) {
-        return;
-      }
-
-      setDashboardData(data);
-      setDataSource(source);
-      writeCachedData(CACHE_KEYS.dashboard, userId, data, source);
-      setIsLoadingDashboard(false);
-
-      const hasData = data.incomeSources.length > 0 || data.expenseItems.length > 0;
-      if (!hasData) {
-        setShowWelcome(true);
-      }
-    };
-
-    const syncSession = async () => {
-      const { data } = await supabase.auth.getSession();
-
-      if (!isMounted) {
-        return;
-      }
-
-      if (!data.session) {
-        if (isDemoMode()) {
-          setDashboardData(FALLBACK_DASHBOARD_DATA);
-          setDataSource("fallback");
-          setIsCheckingSession(false);
-          setIsLoadingDashboard(false);
-          return;
-        }
-        setIsLoadingDashboard(false);
-        router.replace("/");
-        return;
-      }
-
-      await loadDashboardData(data.session.user.id);
-      setIsCheckingSession(false);
-    };
-
-    void syncSession();
-
-    const { data: subscription } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (!session) {
-          if (isDemoMode()) {
-            setDashboardData(FALLBACK_DASHBOARD_DATA);
-            setDataSource("fallback");
-            setIsCheckingSession(false);
-            setIsLoadingDashboard(false);
-            return;
-          }
-          setIsLoadingDashboard(false);
-          router.replace("/");
-          return;
-        }
-
-        void loadDashboardData(session.user.id);
-        setIsCheckingSession(false);
-      },
-    );
-
-    return () => {
-      isMounted = false;
-      subscription.subscription.unsubscribe();
-    };
-  }, [router]);
-
-  const groupedExpenses = useMemo(() => {
-    const grouped = new Map<string, ExpenseItem[]>();
-
-    for (const item of dashboardData?.expenseItems ?? []) {
-      const bucket = grouped.get(item.category) ?? [];
-      bucket.push(item);
-      grouped.set(item.category, bucket);
-    }
-
-    return Array.from(grouped.entries())
-      .map(([category, items]) => ({
-        category,
-        items: [...items].sort(bySortOrderAndName),
-        totalMonthly: items.reduce((total, item) => total + item.amountMonthly, 0),
-      }))
-      .sort((a, b) => {
-        if (sortMode === "highest") {
-          return b.totalMonthly - a.totalMonthly;
-        }
-
-        return a.category.localeCompare(b.category, "da-DK");
-      });
-  }, [dashboardData?.expenseItems, sortMode]);
-
-  const transferTargets = useMemo(() => {
-    const expenses = dashboardData?.expenseItems ?? [];
-    const accounts = dashboardData?.bankAccounts ?? [];
-    const totals = new Map<string, number>();
-
-    for (const item of expenses) {
-      if (!item.bankAccountId) {
-        continue;
-      }
-
-      totals.set(
-        item.bankAccountId,
-        (totals.get(item.bankAccountId) ?? 0) + item.amountMonthly,
-      );
-    }
-
-    return accounts
-      .map((account) => ({
-        id: account.id,
-        name: account.name,
-        amountMonthly: totals.get(account.id) ?? 0,
-      }))
-      .filter((account) => account.amountMonthly > 0);
-  }, [dashboardData?.bankAccounts, dashboardData?.expenseItems]);
+  const {
+    isCheckingSession,
+    isLoadingDashboard,
+    dataSource,
+    showWelcome,
+    setShowWelcome,
+    groupedExpenses,
+    transferTargets,
+    totalMonthlyIncome,
+    totalMonthlyExpenses,
+    incomeSourceCount,
+    expenseItemCount,
+  } = useDashboard(sortMode);
 
   const periodFactor = periodView === "year" ? 12 : 1;
-
-  const totalIncome = useMemo(
-    () =>
-      (dashboardData?.incomeSources ?? []).reduce(
-        (sum, source) => sum + source.amountMonthly,
-        0,
-      ) * periodFactor,
-    [dashboardData?.incomeSources, periodFactor],
-  );
-
-  const totalExpenses = useMemo(
-    () =>
-      groupedExpenses.reduce((sum, group) => sum + group.totalMonthly, 0) * periodFactor,
-    [groupedExpenses, periodFactor],
-  );
-
+  const totalIncome = totalMonthlyIncome * periodFactor;
+  const totalExpenses = totalMonthlyExpenses * periodFactor;
   const freeToSpend = totalIncome - totalExpenses;
 
-  const freeToSpendPercent =
-    totalIncome > 0 ? Math.max(0, (freeToSpend / totalIncome) * 100) : 0;
-
-  const expenseSharePercent =
-    totalIncome > 0 ? Math.min(100, Math.max(0, (totalExpenses / totalIncome) * 100)) : 0;
+  const freeToSpendPercent = totalIncome > 0 ? Math.max(0, (freeToSpend / totalIncome) * 100) : 0;
+  const expenseSharePercent = totalIncome > 0 ? Math.min(100, Math.max(0, (totalExpenses / totalIncome) * 100)) : 0;
   const incomeSharePercent = totalIncome > 0 ? 100 : 0;
-  const incomeSourceCount = dashboardData?.incomeSources.length ?? 0;
-  const expenseItemCount = dashboardData?.expenseItems.length ?? 0;
 
   const animatedIncome = useCountUp(totalIncome);
   const animatedExpenses = useCountUp(totalExpenses);
   const animatedFreeToSpend = useCountUp(freeToSpend);
 
-if (isCheckingSession) {
+  if (isCheckingSession) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-white text-slate-900 dark:bg-[#09111f] dark:text-slate-100 px-4">
-        <p className="rounded-2xl border border-slate-200 bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] px-5 py-4 text-sm text-slate-600 dark:text-slate-300 shadow-[0_20px_60px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.25)] backdrop-blur-sm">
+      <main className="flex min-h-screen items-center justify-center bg-white px-4 text-slate-900 dark:bg-[#09111f] dark:text-slate-100">
+        <p className="rounded-2xl border border-slate-200 bg-slate-100 px-5 py-4 text-sm text-slate-600 shadow-[0_20px_60px_rgba(0,0,0,0.05)] backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 dark:shadow-[0_20px_60px_rgba(0,0,0,0.25)]">
           Tjekker session...
         </p>
       </main>
@@ -636,60 +314,59 @@ if (isCheckingSession) {
                 const CategoryIcon = categoryIcons[group.category];
 
                 return (
-                <motion.article
-                  key={group.category}
-                  layout
-                  transition={collapseTransition}
-                  className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 dark:border-white/15 dark:bg-slate-800/75"
-                >
-                  <div className="flex items-center justify-between gap-2 px-3 py-3 sm:gap-4 sm:px-4 sm:py-3">
-                    <div className="flex items-center gap-2">
-                      {CategoryIcon ? (
-                        <span className="grid h-7 w-7 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 dark:border-white/10 dark:bg-slate-900/70 dark:text-slate-200">
-                          <CategoryIcon aria-hidden="true" size={14} />
-                        </span>
-                      ) : null}
-                      <h3 className="text-xs font-semibold text-slate-900 dark:text-white sm:text-lg lg:text-base">{group.category}</h3>
-                    </div>
-                    <p className="text-xs font-semibold text-slate-700 dark:text-slate-200 sm:text-base">
-                      {formatMoney(group.totalMonthly * periodFactor)}/{periodView === "month" ? "md" : "år"}
-                    </p>
-                  </div>
-
-                  <motion.div
-                    className="grid overflow-hidden"
-                    initial={false}
-                    animate={{ gridTemplateRows: isCollapsed ? "0fr" : "1fr" }}
+                  <motion.article
+                    key={group.category}
+                    layout
                     transition={collapseTransition}
+                    className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 dark:border-white/15 dark:bg-slate-800/75"
                   >
-                    <div className="min-h-0 overflow-hidden">
-                      <motion.ul
-                        className="border-t border-slate-200 px-3 py-2 dark:border-white/10 sm:px-4 sm:py-3"
-                        initial={false}
-                        animate={{
-                          opacity: isCollapsed ? 0 : 1,
-                          y: isCollapsed ? -4 : 0,
-                        }}
-                        transition={collapseTransition}
-                      >
-                        {group.items.map((item) => (
-                          <li
-                            key={item.id}
-                            className="flex items-baseline justify-between gap-2 py-1 text-xs sm:gap-3 sm:text-sm"
-                          >
-                            <span className="text-slate-700 dark:text-slate-300">{item.name}</span>
-                            <span className="text-slate-900 dark:text-slate-100">
-                              {formatMoney(item.amountMonthly * periodFactor)}
-                              {item.amountAnnual && periodView === "month"}
-                            </span>
-                          </li>
-                        ))}
-                      </motion.ul>
+                    <div className="flex items-center justify-between gap-2 px-3 py-3 sm:gap-4 sm:px-4 sm:py-3">
+                      <div className="flex items-center gap-2">
+                        {CategoryIcon ? (
+                          <span className="grid h-7 w-7 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 dark:border-white/10 dark:bg-slate-900/70 dark:text-slate-200">
+                            <CategoryIcon aria-hidden="true" size={14} />
+                          </span>
+                        ) : null}
+                        <h3 className="text-xs font-semibold text-slate-900 dark:text-white sm:text-lg lg:text-base">{group.category}</h3>
+                      </div>
+                      <p className="text-xs font-semibold text-slate-700 dark:text-slate-200 sm:text-base">
+                        {formatMoney(group.totalMonthly * periodFactor)}/{periodView === "month" ? "md" : "år"}
+                      </p>
                     </div>
-                  </motion.div>
-                </motion.article>
-              );
-            })}
+
+                    <motion.div
+                      className="grid overflow-hidden"
+                      initial={false}
+                      animate={{ gridTemplateRows: isCollapsed ? "0fr" : "1fr" }}
+                      transition={collapseTransition}
+                    >
+                      <div className="min-h-0 overflow-hidden">
+                        <motion.ul
+                          className="border-t border-slate-200 px-3 py-2 dark:border-white/10 sm:px-4 sm:py-3"
+                          initial={false}
+                          animate={{
+                            opacity: isCollapsed ? 0 : 1,
+                            y: isCollapsed ? -4 : 0,
+                          }}
+                          transition={collapseTransition}
+                        >
+                          {group.items.map((item) => (
+                            <li
+                              key={item.id}
+                              className="flex items-baseline justify-between gap-2 py-1 text-xs sm:gap-3 sm:text-sm"
+                            >
+                              <span className="text-slate-700 dark:text-slate-300">{item.name}</span>
+                              <span className="text-slate-900 dark:text-slate-100">
+                                {formatMoney(item.amountMonthly * periodFactor)}
+                              </span>
+                            </li>
+                          ))}
+                        </motion.ul>
+                      </div>
+                    </motion.div>
+                  </motion.article>
+                );
+              })}
             </div>
           </motion.section>
 
@@ -753,9 +430,7 @@ if (isCheckingSession) {
       </div>
 
       {showWelcome && (
-        <WelcomeModal
-          onClose={() => setShowWelcome(false)}
-        />
+        <WelcomeModal onClose={() => setShowWelcome(false)} />
       )}
     </main>
   );
