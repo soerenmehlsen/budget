@@ -114,13 +114,7 @@ export default function LoginPanel() {
 
     setIsSubmitting(true);
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/dashboard`,
-      },
-    });
+    const { error } = await supabase.auth.signUp({ email, password });
 
     setIsSubmitting(false);
 
@@ -129,16 +123,8 @@ export default function LoginPanel() {
       return;
     }
 
-    setPassword("");
-    setConfirmPassword("");
-
-    if (data.session) {
-      router.replace("/dashboard");
-      return;
-    }
-
-    setStatusMessage("Brugeren er oprettet. Tjek din e-mail for at bekræfte kontoen, før du logger ind.");
-    setMode("login");
+    disableDemoMode();
+    router.replace("/dashboard");
   };
 
   const handleForgotPassword = async () => {
