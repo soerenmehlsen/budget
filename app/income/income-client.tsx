@@ -65,7 +65,7 @@ export function IncomeClient() {
           >
             <div>
               <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl">Indkomst</h1>
-              <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400 sm:mt-1 sm:text-sm">Indkomst efter skat (beregnes til månedlig)</p>
+              <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400 sm:mt-1 sm:text-sm">Tilføj dine indkomster efter skat (beregnes til månedlig)</p>
             </div>
           </motion.header>
 

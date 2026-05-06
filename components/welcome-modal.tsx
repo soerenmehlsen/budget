@@ -79,7 +79,7 @@ export function WelcomeModal({ onClose }: Props) {
           aria-label="Velkommen — kom i gang"
         >
           <h2 className="text-xl font-semibold text-slate-900 dark:text-white sm:text-2xl">
-            Velkommen til dit budget
+            Velkommen til Mit Budget
           </h2>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Kom i gang på 4 enkle trin.
