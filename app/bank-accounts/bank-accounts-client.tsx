@@ -8,104 +8,43 @@ import { DeleteIcon } from "@/components/ui/delete";
 import { PlusIcon } from "@/components/ui/plus";
 import { SquarePenIcon } from "@/components/ui/square-pen";
 import { useSession } from "@/hooks/useSession";
-import {
-  createBankAccount,
-  deleteBankAccount,
-  fetchBankAccounts,
-  updateBankAccount,
-} from "@/services/bankAccountService";
+import { useBankAccounts } from "@/hooks/useBankAccounts";
 import type { BankAccount } from "@/types/budget";
-import { isDemoMode } from "@/lib/demo-mode";
-import { useEffect } from "react";
-
-const DEMO_BANK_ACCOUNTS: BankAccount[] = [
-  { id: "demo-budgetkonto", name: "Budgetkonto", sortOrder: 1 },
-  { id: "demo-opsparingskonto", name: "Opsparingskonto", sortOrder: 2 },
-];
 
 export function BankAccountsClient() {
   const { userId, isCheckingSession } = useSession();
+  const {
+    bankAccounts,
+    isLoading: isLoadingAccounts,
+    isSaving: isSavingAccount,
+    error: accountError,
+    message: accountMessage,
+    addBankAccount,
+    editBankAccount,
+    removeBankAccount,
+  } = useBankAccounts(isCheckingSession ? null : userId);
 
-  const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
-  const [isSavingAccount, setIsSavingAccount] = useState(false);
-  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>(() =>
-    isDemoMode() ? DEMO_BANK_ACCOUNTS : [],
-  );
   const [accountName, setAccountName] = useState("");
   const [editingAccountId, setEditingAccountId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
   const [isSavingEdit, setIsSavingEdit] = useState(false);
-  const [accountMessage, setAccountMessage] = useState<string | null>(null);
-  const [accountError, setAccountError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (isCheckingSession) return;
-
-    if (!userId) return;
-
-    let isMounted = true;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsLoadingAccounts(true);
-
-    fetchBankAccounts()
-      .then((accounts) => {
-        if (isMounted) setBankAccounts(accounts);
-      })
-      .catch(() => {
-        if (isMounted) setAccountError("Kunne ikke hente bankkonti.");
-      })
-      .finally(() => {
-        if (isMounted) setIsLoadingAccounts(false);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [userId, isCheckingSession]);
 
   const handleAddBankAccount = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
-    if (!accountName.trim()) {
-      setAccountError("Skriv navnet på kontoen først.");
-      setAccountMessage(null);
-      return;
-    }
-
-    if (!userId) {
-      setAccountError("Kunne ikke finde bruger. Prøv igen.");
-      setAccountMessage(null);
-      return;
-    }
-
-    setIsSavingAccount(true);
-    setAccountError(null);
-    setAccountMessage(null);
-
+    if (!accountName.trim()) return;
     try {
-      const saved = await createBankAccount(accountName.trim(), bankAccounts.length + 1);
-      setBankAccounts((current) => [...current, saved]);
+      await addBankAccount(accountName.trim());
       setAccountName("");
-      setAccountMessage("Kontoen er gemt.");
     } catch {
-      setAccountError("Kunne ikke gemme kontoen.");
-    } finally {
-      setIsSavingAccount(false);
+      // error is handled in the hook
     }
   };
 
   const handleDeleteBankAccount = async (accountId: string) => {
-    if (!userId) {
-      setAccountError("Kunne ikke finde bruger. Prøv igen.");
-      return;
-    }
-
     try {
-      await deleteBankAccount(accountId);
-      setBankAccounts((current) => current.filter((a) => a.id !== accountId));
-      setAccountMessage("Kontoen er slettet.");
+      await removeBankAccount(accountId);
     } catch {
-      setAccountError("Kunne ikke slette kontoen. Prøv igen.");
+      // error is handled in the hook
     }
   };
 
@@ -120,21 +59,15 @@ export function BankAccountsClient() {
   };
 
   const handleSaveEdit = async () => {
-    if (!editingAccountId || !editingName.trim() || !userId) return;
+    if (!editingAccountId || !editingName.trim()) return;
 
     setIsSavingEdit(true);
-    setAccountError(null);
-
     try {
-      await updateBankAccount(editingAccountId, editingName.trim());
-      setBankAccounts((current) =>
-        current.map((a) => (a.id === editingAccountId ? { ...a, name: editingName.trim() } : a)),
-      );
+      await editBankAccount(editingAccountId, editingName.trim());
       setEditingAccountId(null);
       setEditingName("");
-      setAccountMessage("Kontoen er opdateret.");
     } catch {
-      setAccountError("Kunne ikke opdatere kontoen. Prøv igen.");
+      // error is handled in the hook
     } finally {
       setIsSavingEdit(false);
     }

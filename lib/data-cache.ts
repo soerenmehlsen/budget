@@ -12,6 +12,7 @@ export const CACHE_KEYS = {
   dashboard: "dashboard",
   expenses: "expenses",
   income: "income",
+  bankAccounts: "bank-accounts",
 } as const;
 
 function getCacheKey(key: string, userId: string) {
