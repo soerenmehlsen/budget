@@ -1,0 +1,66 @@
+import { supabase } from "@/lib/supabase/client";
+import type { BankAccount } from "@/types/budget";
+
+const BANK_ACCOUNT_FIELDS = "id, name, sort_order";
+
+function bySortOrderAndName(a: BankAccount, b: BankAccount) {
+  const orderA = a.sortOrder ?? Number.MAX_SAFE_INTEGER;
+  const orderB = b.sortOrder ?? Number.MAX_SAFE_INTEGER;
+  if (orderA !== orderB) return orderA - orderB;
+  return a.name.localeCompare(b.name, "da-DK");
+}
+
+function mapRow(row: { id: string; name: string; sort_order: number | null }): BankAccount {
+  return {
+    id: row.id,
+    name: row.name,
+    sortOrder: typeof row.sort_order === "number" ? row.sort_order : null,
+  };
+}
+
+export async function fetchBankAccounts(userId: string): Promise<BankAccount[]> {
+  const { data, error } = await supabase
+    .from("bank_accounts")
+    .select(BANK_ACCOUNT_FIELDS)
+    .eq("user_id", userId)
+    .order("sort_order", { ascending: true });
+
+  if (error) throw error;
+
+  return (data ?? [])
+    .filter((row) => typeof row.id === "string" && typeof row.name === "string")
+    .map(mapRow)
+    .sort(bySortOrderAndName);
+}
+
+export async function createBankAccount(userId: string, name: string, sortOrder: number): Promise<BankAccount> {
+  const { data, error } = await supabase
+    .from("bank_accounts")
+    .insert({ user_id: userId, name, sort_order: sortOrder })
+    .select(BANK_ACCOUNT_FIELDS)
+    .single();
+
+  if (error) throw error;
+
+  return mapRow(data);
+}
+
+export async function updateBankAccount(id: string, userId: string, name: string): Promise<void> {
+  const { error } = await supabase
+    .from("bank_accounts")
+    .update({ name })
+    .eq("id", id)
+    .eq("user_id", userId);
+
+  if (error) throw error;
+}
+
+export async function deleteBankAccount(id: string, userId: string): Promise<void> {
+  const { error } = await supabase
+    .from("bank_accounts")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", userId);
+
+  if (error) throw error;
+}

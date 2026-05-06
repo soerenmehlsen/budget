@@ -11,7 +11,7 @@ Act as a **senior software engineer** — careful, minimal, and correct.
 - Next.js (App Router)
 - TypeScript (strict)
 - React Server Components by default
-- Tailwind CSS + Lucide React
+- Tailwind CSS + Lucide React + motion/react (animationer)
 - Supabase (database + auth)
 
 ---

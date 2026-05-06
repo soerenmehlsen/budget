@@ -146,7 +146,7 @@ export default function AccountPage() {
                   <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-600 dark:bg-blue-500/20 dark:text-blue-300">1</span>
                   <div className="pt-0.5">
                     <p className="text-sm font-medium text-slate-800 dark:text-slate-100">Åbn i Safari</p>
-                    <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Hjemmeskærmsfunktionen bedst i Safari på iPhone.</p>
+                    <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Hjemmeskærmsfunktionen er bedst i Safari på iPhone.</p>
                   </div>
                 </li>
                 <li className="flex gap-3">
