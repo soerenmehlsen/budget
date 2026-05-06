@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "../lib/supabase/client";
 
@@ -15,17 +15,34 @@ export default function ResetPasswordPanel() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const recoveredRef = useRef(false);
 
   useEffect(() => {
+    // Implicit flow: Supabase puts the token in the URL hash (#access_token=...&type=recovery).
+    // detectSessionInUrl:true in the client fires PASSWORD_RECOVERY via onAuthStateChange.
+    const { data: subscription } = supabase.auth.onAuthStateChange(
+      (event) => {
+        if (event === "PASSWORD_RECOVERY") {
+          recoveredRef.current = true;
+          setIsCheckingLink(false);
+        }
+      },
+    );
+
     const exchangeRecoveryCode = async () => {
       if (!code) {
-        setIsCheckingLink(false);
-        setErrorMessage(
-          "Linket mangler en genindlogning. Åbn nulstillingslinket fra e-mailen igen.",
-        );
+        // Give the implicit-flow listener a moment to fire before showing the error.
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        if (!recoveredRef.current) {
+          setErrorMessage(
+            "Linket mangler en genindlogning. Åbn nulstillingslinket fra e-mailen igen.",
+          );
+          setIsCheckingLink(false);
+        }
         return;
       }
 
+      // PKCE flow: exchange the one-time code for a session.
       const { error } = await supabase.auth.exchangeCodeForSession(code);
 
       if (error) {
@@ -38,6 +55,10 @@ export default function ResetPasswordPanel() {
     };
 
     exchangeRecoveryCode();
+
+    return () => {
+      subscription.subscription.unsubscribe();
+    };
   }, [code]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
