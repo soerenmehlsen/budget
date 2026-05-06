@@ -14,6 +14,7 @@ import {
   writeCachedData,
 } from "@/lib/data-cache";
 import { isDemoMode } from "@/lib/demo-mode";
+import { bySortOrderAndName } from "@/lib/utils";
 import type { IncomeItem } from "@/types/budget";
 
 export type IncomeFormValues = {
@@ -29,16 +30,6 @@ const FALLBACK_INCOMES: IncomeItem[] = [
   { id: "loen", name: "Løn", amountMonthly: 28000, sortOrder: 1 },
   { id: "bonus", name: "Bonus", amountMonthly: 5000, amountPeriod: 15000, periodLabel: "kvartal", sortOrder: 2 },
 ];
-
-function bySortOrderAndName(
-  a: { sortOrder?: number | null; name: string },
-  b: { sortOrder?: number | null; name: string },
-) {
-  const orderA = a.sortOrder ?? Number.MAX_SAFE_INTEGER;
-  const orderB = b.sortOrder ?? Number.MAX_SAFE_INTEGER;
-  if (orderA !== orderB) return orderA - orderB;
-  return a.name.localeCompare(b.name, "da-DK");
-}
 
 export function useIncome(userId: string | null) {
   const [incomeItems, setIncomeItems] = useState<IncomeItem[]>(() =>

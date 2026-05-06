@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import type { BankAccount, ExpenseItem } from "@/types/budget";
+import type { ExpenseItem } from "@/types/budget";
 import type { ExpenseSaveParams } from "./expenseService.types";
 
 const EXPENSE_FIELDS = "id, category, name, amount_monthly, amount_annual, sort_order, bank_account_id";
@@ -59,32 +59,6 @@ export async function fetchExpenses(): Promise<ExpenseItem[]> {
         typeof row.name === "string",
     )
     .map((row) => mapRowToExpenseItem(row));
-}
-
-export async function fetchBankAccounts(): Promise<BankAccount[]> {
-  const { supabase, userId } = await requireUserId();
-
-  const { data, error } = await supabase
-    .from("bank_accounts")
-    .select("id, name, sort_order")
-    .eq("user_id", userId)
-    .order("sort_order", { ascending: true });
-
-  if (error) throw error;
-
-  return (data ?? [])
-    .filter((row) => typeof row.id === "string" && typeof row.name === "string")
-    .map((row) => ({
-      id: row.id,
-      name: row.name,
-      sortOrder: typeof row.sort_order === "number" ? row.sort_order : null,
-    }))
-    .sort((a, b) => {
-      const orderA = a.sortOrder ?? Number.MAX_SAFE_INTEGER;
-      const orderB = b.sortOrder ?? Number.MAX_SAFE_INTEGER;
-      if (orderA !== orderB) return orderA - orderB;
-      return a.name.localeCompare(b.name, "da-DK");
-    });
 }
 
 export async function createExpense(params: ExpenseSaveParams): Promise<ExpenseItem> {

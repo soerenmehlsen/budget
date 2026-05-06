@@ -4,10 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import {
   createExpense,
   deleteExpense as deleteExpenseInDb,
-  fetchBankAccounts,
   fetchExpenses,
   updateExpense as updateExpenseInDb,
 } from "@/services/expenseService";
+import { fetchBankAccounts } from "@/services/bankAccountService";
 import {
   CACHE_KEYS,
   invalidateDashboardCache,
@@ -15,6 +15,7 @@ import {
   writeCachedData,
 } from "@/lib/data-cache";
 import { isDemoMode } from "@/lib/demo-mode";
+import { bySortOrderAndName } from "@/lib/utils";
 import type { BankAccount, ExpenseItem } from "@/types/budget";
 
 export type ExpenseFormValues = {
@@ -53,16 +54,6 @@ const FALLBACK_EXPENSES: ExpenseItem[] = [
   { id: "transport-insurance", category: "Transport", name: "Forsikring", amountMonthly: 500, sortOrder: 3, bankAccountId: DEMO_BUDGETKONTO_ID },
   { id: "savings", category: "Opsparing", name: "Opsparing", amountMonthly: 5000, sortOrder: 1, bankAccountId: DEMO_OPSPARINGSKONTO_ID },
 ];
-
-function bySortOrderAndName(
-  a: { sortOrder?: number | null; name: string },
-  b: { sortOrder?: number | null; name: string },
-) {
-  const orderA = a.sortOrder ?? Number.MAX_SAFE_INTEGER;
-  const orderB = b.sortOrder ?? Number.MAX_SAFE_INTEGER;
-  if (orderA !== orderB) return orderA - orderB;
-  return a.name.localeCompare(b.name, "da-DK");
-}
 
 export function useExpenses(userId: string | null) {
   const [expenseItems, setExpenseItems] = useState<ExpenseItem[]>(() =>

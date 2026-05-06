@@ -2,15 +2,9 @@
 
 import { createClient } from "@/lib/supabase/server";
 import type { BankAccount } from "@/types/budget";
+import { bySortOrderAndName } from "@/lib/utils";
 
 const BANK_ACCOUNT_FIELDS = "id, name, sort_order";
-
-function bySortOrderAndName(a: BankAccount, b: BankAccount) {
-  const orderA = a.sortOrder ?? Number.MAX_SAFE_INTEGER;
-  const orderB = b.sortOrder ?? Number.MAX_SAFE_INTEGER;
-  if (orderA !== orderB) return orderA - orderB;
-  return a.name.localeCompare(b.name, "da-DK");
-}
 
 function mapRow(row: { id: string; name: string; sort_order: number | null }): BankAccount {
   return {
