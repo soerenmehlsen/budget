@@ -47,7 +47,7 @@ export function BankAccountsClient() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoadingAccounts(true);
 
-    fetchBankAccounts(userId)
+    fetchBankAccounts()
       .then((accounts) => {
         if (isMounted) setBankAccounts(accounts);
       })
@@ -83,7 +83,7 @@ export function BankAccountsClient() {
     setAccountMessage(null);
 
     try {
-      const saved = await createBankAccount(userId, accountName.trim(), bankAccounts.length + 1);
+      const saved = await createBankAccount(accountName.trim(), bankAccounts.length + 1);
       setBankAccounts((current) => [...current, saved]);
       setAccountName("");
       setAccountMessage("Kontoen er gemt.");
@@ -101,7 +101,7 @@ export function BankAccountsClient() {
     }
 
     try {
-      await deleteBankAccount(accountId, userId);
+      await deleteBankAccount(accountId);
       setBankAccounts((current) => current.filter((a) => a.id !== accountId));
       setAccountMessage("Kontoen er slettet.");
     } catch {
@@ -126,7 +126,7 @@ export function BankAccountsClient() {
     setAccountError(null);
 
     try {
-      await updateBankAccount(editingAccountId, userId, editingName.trim());
+      await updateBankAccount(editingAccountId, editingName.trim());
       setBankAccounts((current) =>
         current.map((a) => (a.id === editingAccountId ? { ...a, name: editingName.trim() } : a)),
       );

@@ -1,18 +1,8 @@
-import { supabase } from "@/lib/supabase/client";
+"use server";
+
+import { createClient } from "@/lib/supabase/server";
 import type { BankAccount, ExpenseItem } from "@/types/budget";
-
-export type { BankAccount, ExpenseItem };
-
-export type ExpenseSaveParams = {
-  userId: string;
-  category: string;
-  name: string;
-  amountMonthly: number;
-  amountPeriod: number | null;
-  periodLabel: string | null;
-  sortOrder: number;
-  bankAccountId: string | null;
-};
+import type { ExpenseSaveParams } from "./expenseService.types";
 
 const EXPENSE_FIELDS = "id, category, name, amount_monthly, amount_annual, sort_order, bank_account_id";
 
@@ -40,11 +30,21 @@ function mapRowToExpenseItem(
   };
 }
 
-export async function fetchExpenses(userId: string): Promise<ExpenseItem[]> {
+async function requireUserId() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Ikke logget ind");
+  return { supabase, userId: user.id };
+}
+
+export async function fetchExpenses(): Promise<ExpenseItem[]> {
+  const { supabase } = await requireUserId();
+
   const { data, error } = await supabase
     .from("expense_items")
     .select(EXPENSE_FIELDS)
-    .eq("user_id", userId)
     .order("category", { ascending: true })
     .order("sort_order", { ascending: true });
 
@@ -60,11 +60,12 @@ export async function fetchExpenses(userId: string): Promise<ExpenseItem[]> {
     .map((row) => mapRowToExpenseItem(row));
 }
 
-export async function fetchBankAccounts(userId: string): Promise<BankAccount[]> {
+export async function fetchBankAccounts(): Promise<BankAccount[]> {
+  const { supabase } = await requireUserId();
+
   const { data, error } = await supabase
     .from("bank_accounts")
     .select("id, name, sort_order")
-    .eq("user_id", userId)
     .order("sort_order", { ascending: true });
 
   if (error) throw error;
@@ -85,10 +86,12 @@ export async function fetchBankAccounts(userId: string): Promise<BankAccount[]> 
 }
 
 export async function createExpense(params: ExpenseSaveParams): Promise<ExpenseItem> {
+  const { supabase, userId } = await requireUserId();
+
   const { data, error } = await supabase
     .from("expense_items")
     .insert({
-      user_id: params.userId,
+      user_id: userId,
       category: params.category,
       name: params.name,
       amount_monthly: params.amountMonthly,
@@ -104,11 +107,12 @@ export async function createExpense(params: ExpenseSaveParams): Promise<ExpenseI
   return mapRowToExpenseItem(data, params);
 }
 
-export async function updateExpense(id: string, userId: string, params: ExpenseSaveParams): Promise<ExpenseItem> {
+export async function updateExpense(id: string, params: ExpenseSaveParams): Promise<ExpenseItem> {
+  const { supabase } = await requireUserId();
+
   const { data, error } = await supabase
     .from("expense_items")
     .update({
-      user_id: params.userId,
       category: params.category,
       name: params.name,
       amount_monthly: params.amountMonthly,
@@ -117,7 +121,6 @@ export async function updateExpense(id: string, userId: string, params: ExpenseS
       bank_account_id: params.bankAccountId,
     })
     .eq("id", id)
-    .eq("user_id", userId)
     .select(EXPENSE_FIELDS)
     .single();
 
@@ -126,12 +129,13 @@ export async function updateExpense(id: string, userId: string, params: ExpenseS
   return mapRowToExpenseItem(data, params);
 }
 
-export async function deleteExpense(id: string, userId: string): Promise<void> {
+export async function deleteExpense(id: string): Promise<void> {
+  const { supabase } = await requireUserId();
+
   const { error } = await supabase
     .from("expense_items")
     .delete()
-    .eq("id", id)
-    .eq("user_id", userId);
+    .eq("id", id);
 
   if (error) throw error;
 }

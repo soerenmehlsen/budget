@@ -63,7 +63,7 @@ export function useIncome(userId: string | null) {
       setIsLoading(true);
 
       try {
-        const items = await fetchIncome(userId);
+        const items = await fetchIncome();
 
         if (!isMounted) return;
 
@@ -104,7 +104,7 @@ export function useIncome(userId: string | null) {
     const sortOrder = incomeItems.length + 1;
     setIsSaving(true);
     try {
-      const saved = await createIncome({ ...values, userId, sortOrder });
+      const saved = await createIncome({ ...values, sortOrder });
       const next = [...incomeItems, saved].sort(bySortOrderAndName);
       setIncomeItems(next);
       writeCachedData(CACHE_KEYS.income, userId, next, "supabase");
@@ -120,7 +120,7 @@ export function useIncome(userId: string | null) {
     const sortOrder = incomeItems.find((item) => item.id === id)?.sortOrder ?? incomeItems.length;
     setIsSaving(true);
     try {
-      const saved = await updateIncomeInDb(id, userId, { ...values, userId, sortOrder });
+      const saved = await updateIncomeInDb(id, { ...values, sortOrder });
       const next = incomeItems.map((item) => (item.id === id ? saved : item)).sort(bySortOrderAndName);
       setIncomeItems(next);
       writeCachedData(CACHE_KEYS.income, userId, next, "supabase");
@@ -133,7 +133,7 @@ export function useIncome(userId: string | null) {
 
   const removeIncome = async (id: string): Promise<void> => {
     if (!userId) throw new Error("Ikke logget ind");
-    await deleteIncomeInDb(id, userId);
+    await deleteIncomeInDb(id);
     const next = incomeItems.filter((item) => item.id !== id);
     setIncomeItems(next);
     writeCachedData(CACHE_KEYS.income, userId, next, "supabase");

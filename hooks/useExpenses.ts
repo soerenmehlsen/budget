@@ -94,8 +94,8 @@ export function useExpenses(userId: string | null) {
       setBankAccountError(null);
 
       const [expensesResult, accountsResult] = await Promise.allSettled([
-        fetchExpenses(userId),
-        fetchBankAccounts(userId),
+        fetchExpenses(),
+        fetchBankAccounts(),
       ]);
 
       if (!isMounted) return;
@@ -173,7 +173,7 @@ export function useExpenses(userId: string | null) {
     const sortOrder = expenseItems.filter((item) => item.category === values.category).length + 1;
     setIsSaving(true);
     try {
-      const saved = await createExpense({ ...values, userId, sortOrder });
+      const saved = await createExpense({ ...values, sortOrder });
       const next = [...expenseItems, saved].sort(bySortOrderAndName);
       setExpenseItems(next);
       writeCachedData(CACHE_KEYS.expenses, userId, next, "supabase");
@@ -191,7 +191,7 @@ export function useExpenses(userId: string | null) {
       expenseItems.filter((item) => item.category === values.category && item.id !== id).length + 1;
     setIsSaving(true);
     try {
-      const saved = await updateExpenseInDb(id, userId, { ...values, userId, sortOrder });
+      const saved = await updateExpenseInDb(id, { ...values, sortOrder });
       const next = expenseItems.map((item) => (item.id === id ? saved : item)).sort(bySortOrderAndName);
       setExpenseItems(next);
       writeCachedData(CACHE_KEYS.expenses, userId, next, "supabase");
@@ -204,7 +204,7 @@ export function useExpenses(userId: string | null) {
 
   const removeExpense = async (id: string): Promise<void> => {
     if (!userId) throw new Error("Ikke logget ind");
-    await deleteExpenseInDb(id, userId);
+    await deleteExpenseInDb(id);
     const next = expenseItems.filter((item) => item.id !== id);
     setExpenseItems(next);
     writeCachedData(CACHE_KEYS.expenses, userId, next, "supabase");
