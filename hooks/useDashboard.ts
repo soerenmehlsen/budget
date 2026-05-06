@@ -38,25 +38,22 @@ export function useDashboard(sortMode: SortMode) {
   const { userId, isCheckingSession } = useSession();
 
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(() =>
+    isDemoMode() ? FALLBACK_DASHBOARD_DATA : null,
+  );
   const [dataSource, setDataSource] = useState<DataSource>("fallback");
   const [showWelcome, setShowWelcome] = useState(false);
 
   useEffect(() => {
     if (isCheckingSession) return;
 
-    if (!userId) {
-      if (isDemoMode()) {
-        setDashboardData(FALLBACK_DASHBOARD_DATA);
-        setDataSource("fallback");
-      }
-      return;
-    }
+    if (!userId) return;
 
     let isMounted = true;
 
     const cached = readCachedData<DashboardData>(CACHE_KEYS.dashboard, userId);
     if (cached) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDashboardData(cached.data);
       setDataSource(cached.source);
     }

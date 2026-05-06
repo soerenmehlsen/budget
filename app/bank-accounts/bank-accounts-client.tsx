@@ -28,7 +28,9 @@ export function BankAccountsClient() {
 
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
   const [isSavingAccount, setIsSavingAccount] = useState(false);
-  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>(() =>
+    isDemoMode() ? DEMO_BANK_ACCOUNTS : [],
+  );
   const [accountName, setAccountName] = useState("");
   const [editingAccountId, setEditingAccountId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
@@ -39,12 +41,10 @@ export function BankAccountsClient() {
   useEffect(() => {
     if (isCheckingSession) return;
 
-    if (!userId) {
-      if (isDemoMode()) setBankAccounts(DEMO_BANK_ACCOUNTS);
-      return;
-    }
+    if (!userId) return;
 
     let isMounted = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoadingAccounts(true);
 
     fetchBankAccounts(userId)
