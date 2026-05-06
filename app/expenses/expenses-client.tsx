@@ -24,6 +24,8 @@ export function ExpensesClient() {
     isLoading,
     isLoadingAccounts,
     isSaving,
+    error,
+    clearError,
     bankAccountError,
     totalMonthly,
     totalCount,
@@ -62,12 +64,17 @@ export function ExpensesClient() {
   };
 
   const handleSave = async (values: ExpenseFormValues) => {
-    if (editingItem) {
-      await updateExpense(editingItem.id, values);
-    } else {
-      await addExpense(values);
+    clearError();
+    try {
+      if (editingItem) {
+        await updateExpense(editingItem.id, values);
+      } else {
+        await addExpense(values);
+      }
+      closeModal();
+    } catch {
+      // error is handled in the hook
     }
-    closeModal();
   };
 
   const handleDelete = async (id: string) => {
@@ -76,7 +83,7 @@ export function ExpensesClient() {
       await removeExpense(id);
       closeModal();
     } catch {
-      window.alert("Kunne ikke slette udgift. Prøv igen.");
+      // error is handled in the hook
     }
   };
 
@@ -167,6 +174,9 @@ export function ExpensesClient() {
             ))}
           </motion.div>
 
+          {error ? (
+            <p className="mt-4 text-sm text-rose-600 dark:text-rose-300">{error}</p>
+          ) : null}
           {isLoading ? (
             <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">Opdaterer udgifter...</p>
           ) : null}

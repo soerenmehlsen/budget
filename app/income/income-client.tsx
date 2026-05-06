@@ -12,7 +12,7 @@ import { IncomeFormModal } from "./income-form-modal";
 
 export function IncomeClient() {
   const { userId, isCheckingSession } = useSession();
-  const { incomeItems, dataSource, isLoading, isSaving, addIncome, updateIncome, removeIncome } = useIncome(userId);
+  const { incomeItems, dataSource, isLoading, isSaving, error, clearError, addIncome, updateIncome, removeIncome } = useIncome(userId);
 
   const [editingItem, setEditingItem] = useState<IncomeItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -22,12 +22,17 @@ export function IncomeClient() {
   const closeModal = () => setIsModalOpen(false);
 
   const handleSave = async (values: IncomeFormValues) => {
-    if (editingItem) {
-      await updateIncome(editingItem.id, values);
-    } else {
-      await addIncome(values);
+    clearError();
+    try {
+      if (editingItem) {
+        await updateIncome(editingItem.id, values);
+      } else {
+        await addIncome(values);
+      }
+      closeModal();
+    } catch {
+      // error is handled in the hook
     }
-    closeModal();
   };
 
   const handleDelete = async (id: string) => {
@@ -36,7 +41,7 @@ export function IncomeClient() {
       await removeIncome(id);
       closeModal();
     } catch {
-      window.alert("Kunne ikke slette indkomst. Prøv igen.");
+      // error is handled in the hook
     }
   };
 
@@ -104,6 +109,9 @@ export function IncomeClient() {
               <span className="text-2xl">+</span> Tilføj indkomst
             </button>
 
+            {error ? (
+              <p className="mt-4 text-sm text-rose-600 dark:text-rose-300">{error}</p>
+            ) : null}
             {isLoading ? (
               <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">Opdaterer indkomster...</p>
             ) : null}

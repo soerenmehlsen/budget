@@ -66,6 +66,7 @@ export function useExpenses(userId: string | null) {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [bankAccountError, setBankAccountError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -113,6 +114,8 @@ export function useExpenses(userId: string | null) {
         if (isDemoMode()) {
           setExpenseItems(FALLBACK_EXPENSES);
           setDataSource("fallback");
+        } else {
+          setError("Kunne ikke hente udgifter.");
         }
       }
 
@@ -163,6 +166,7 @@ export function useExpenses(userId: string | null) {
     if (!userId) throw new Error("Ikke logget ind");
     const sortOrder = expenseItems.filter((item) => item.category === values.category).length + 1;
     setIsSaving(true);
+    setError(null);
     try {
       const saved = await createExpense({ ...values, sortOrder });
       const next = [...expenseItems, saved].sort(bySortOrderAndName);
@@ -170,6 +174,9 @@ export function useExpenses(userId: string | null) {
       writeCachedData(CACHE_KEYS.expenses, userId, next, "supabase");
       invalidateDashboardCache(userId);
       setDataSource("supabase");
+    } catch {
+      setError("Kunne ikke gemme udgiften. Prøv igen.");
+      throw new Error("Kunne ikke gemme udgiften.");
     } finally {
       setIsSaving(false);
     }
@@ -181,6 +188,7 @@ export function useExpenses(userId: string | null) {
       expenseItems.find((item) => item.id === id)?.sortOrder ??
       expenseItems.filter((item) => item.category === values.category && item.id !== id).length + 1;
     setIsSaving(true);
+    setError(null);
     try {
       const saved = await updateExpenseInDb(id, { ...values, sortOrder });
       const next = expenseItems.map((item) => (item.id === id ? saved : item)).sort(bySortOrderAndName);
@@ -188,6 +196,9 @@ export function useExpenses(userId: string | null) {
       writeCachedData(CACHE_KEYS.expenses, userId, next, "supabase");
       invalidateDashboardCache(userId);
       setDataSource("supabase");
+    } catch {
+      setError("Kunne ikke opdatere udgiften. Prøv igen.");
+      throw new Error("Kunne ikke opdatere udgiften.");
     } finally {
       setIsSaving(false);
     }
@@ -195,12 +206,18 @@ export function useExpenses(userId: string | null) {
 
   const removeExpense = async (id: string): Promise<void> => {
     if (!userId) throw new Error("Ikke logget ind");
-    await deleteExpenseInDb(id);
-    const next = expenseItems.filter((item) => item.id !== id);
-    setExpenseItems(next);
-    writeCachedData(CACHE_KEYS.expenses, userId, next, "supabase");
-    invalidateDashboardCache(userId);
-    setDataSource("supabase");
+    setError(null);
+    try {
+      await deleteExpenseInDb(id);
+      const next = expenseItems.filter((item) => item.id !== id);
+      setExpenseItems(next);
+      writeCachedData(CACHE_KEYS.expenses, userId, next, "supabase");
+      invalidateDashboardCache(userId);
+      setDataSource("supabase");
+    } catch {
+      setError("Kunne ikke slette udgiften. Prøv igen.");
+      throw new Error("Kunne ikke slette udgiften.");
+    }
   };
 
   return {
@@ -212,6 +229,8 @@ export function useExpenses(userId: string | null) {
     isLoading,
     isLoadingAccounts,
     isSaving,
+    error,
+    clearError: () => setError(null),
     bankAccountError,
     totalMonthly,
     totalCount: expenseItems.length,

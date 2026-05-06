@@ -38,6 +38,7 @@ export function useIncome(userId: string | null) {
   const [dataSource, setDataSource] = useState<DataSource>("fallback");
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!userId) return;
@@ -79,6 +80,8 @@ export function useIncome(userId: string | null) {
         if (isDemoMode()) {
           setIncomeItems(FALLBACK_INCOMES);
           setDataSource("fallback");
+        } else {
+          setError("Kunne ikke hente indkomster.");
         }
       }
 
@@ -94,6 +97,7 @@ export function useIncome(userId: string | null) {
     if (!userId) throw new Error("Ikke logget ind");
     const sortOrder = incomeItems.length + 1;
     setIsSaving(true);
+    setError(null);
     try {
       const saved = await createIncome({ ...values, sortOrder });
       const next = [...incomeItems, saved].sort(bySortOrderAndName);
@@ -101,6 +105,9 @@ export function useIncome(userId: string | null) {
       writeCachedData(CACHE_KEYS.income, userId, next, "supabase");
       invalidateDashboardCache(userId);
       setDataSource("supabase");
+    } catch {
+      setError("Kunne ikke gemme indkomsten. Prøv igen.");
+      throw new Error("Kunne ikke gemme indkomsten.");
     } finally {
       setIsSaving(false);
     }
@@ -110,6 +117,7 @@ export function useIncome(userId: string | null) {
     if (!userId) throw new Error("Ikke logget ind");
     const sortOrder = incomeItems.find((item) => item.id === id)?.sortOrder ?? incomeItems.length;
     setIsSaving(true);
+    setError(null);
     try {
       const saved = await updateIncomeInDb(id, { ...values, sortOrder });
       const next = incomeItems.map((item) => (item.id === id ? saved : item)).sort(bySortOrderAndName);
@@ -117,6 +125,9 @@ export function useIncome(userId: string | null) {
       writeCachedData(CACHE_KEYS.income, userId, next, "supabase");
       invalidateDashboardCache(userId);
       setDataSource("supabase");
+    } catch {
+      setError("Kunne ikke opdatere indkomsten. Prøv igen.");
+      throw new Error("Kunne ikke opdatere indkomsten.");
     } finally {
       setIsSaving(false);
     }
@@ -124,12 +135,18 @@ export function useIncome(userId: string | null) {
 
   const removeIncome = async (id: string): Promise<void> => {
     if (!userId) throw new Error("Ikke logget ind");
-    await deleteIncomeInDb(id);
-    const next = incomeItems.filter((item) => item.id !== id);
-    setIncomeItems(next);
-    writeCachedData(CACHE_KEYS.income, userId, next, "supabase");
-    invalidateDashboardCache(userId);
-    setDataSource("supabase");
+    setError(null);
+    try {
+      await deleteIncomeInDb(id);
+      const next = incomeItems.filter((item) => item.id !== id);
+      setIncomeItems(next);
+      writeCachedData(CACHE_KEYS.income, userId, next, "supabase");
+      invalidateDashboardCache(userId);
+      setDataSource("supabase");
+    } catch {
+      setError("Kunne ikke slette indkomsten. Prøv igen.");
+      throw new Error("Kunne ikke slette indkomsten.");
+    }
   };
 
   return {
@@ -137,6 +154,8 @@ export function useIncome(userId: string | null) {
     dataSource,
     isLoading,
     isSaving,
+    error,
+    clearError: () => setError(null),
     addIncome,
     updateIncome,
     removeIncome,
