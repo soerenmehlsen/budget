@@ -30,11 +30,12 @@ async function requireUserId() {
 }
 
 export async function fetchBankAccounts(): Promise<BankAccount[]> {
-  const { supabase } = await requireUserId();
+  const { supabase, userId } = await requireUserId();
 
   const { data, error } = await supabase
     .from("bank_accounts")
     .select(BANK_ACCOUNT_FIELDS)
+    .eq("user_id", userId)
     .order("sort_order", { ascending: true });
 
   if (error) throw error;
@@ -60,23 +61,25 @@ export async function createBankAccount(name: string, sortOrder: number): Promis
 }
 
 export async function updateBankAccount(id: string, name: string): Promise<void> {
-  const { supabase } = await requireUserId();
+  const { supabase, userId } = await requireUserId();
 
   const { error } = await supabase
     .from("bank_accounts")
     .update({ name })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("user_id", userId);
 
   if (error) throw error;
 }
 
 export async function deleteBankAccount(id: string): Promise<void> {
-  const { supabase } = await requireUserId();
+  const { supabase, userId } = await requireUserId();
 
   const { error } = await supabase
     .from("bank_accounts")
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .eq("user_id", userId);
 
   if (error) throw error;
 }

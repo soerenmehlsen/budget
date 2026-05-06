@@ -37,11 +37,12 @@ async function requireUserId() {
 }
 
 export async function fetchIncome(): Promise<IncomeItem[]> {
-  const { supabase } = await requireUserId();
+  const { supabase, userId } = await requireUserId();
 
   const { data, error } = await supabase
     .from("income_sources")
     .select(INCOME_FIELDS)
+    .eq("user_id", userId)
     .order("sort_order", { ascending: true });
 
   if (error) throw error;
@@ -77,7 +78,7 @@ export async function createIncome(params: IncomeSaveParams): Promise<IncomeItem
 }
 
 export async function updateIncome(id: string, params: IncomeSaveParams): Promise<IncomeItem> {
-  const { supabase } = await requireUserId();
+  const { supabase, userId } = await requireUserId();
 
   const { data, error } = await supabase
     .from("income_sources")
@@ -89,6 +90,7 @@ export async function updateIncome(id: string, params: IncomeSaveParams): Promis
       sort_order: params.sortOrder,
     })
     .eq("id", id)
+    .eq("user_id", userId)
     .select(INCOME_FIELDS)
     .single();
 
@@ -98,12 +100,13 @@ export async function updateIncome(id: string, params: IncomeSaveParams): Promis
 }
 
 export async function deleteIncome(id: string): Promise<void> {
-  const { supabase } = await requireUserId();
+  const { supabase, userId } = await requireUserId();
 
   const { error } = await supabase
     .from("income_sources")
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .eq("user_id", userId);
 
   if (error) throw error;
 }

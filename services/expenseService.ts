@@ -40,11 +40,12 @@ async function requireUserId() {
 }
 
 export async function fetchExpenses(): Promise<ExpenseItem[]> {
-  const { supabase } = await requireUserId();
+  const { supabase, userId } = await requireUserId();
 
   const { data, error } = await supabase
     .from("expense_items")
     .select(EXPENSE_FIELDS)
+    .eq("user_id", userId)
     .order("category", { ascending: true })
     .order("sort_order", { ascending: true });
 
@@ -61,11 +62,12 @@ export async function fetchExpenses(): Promise<ExpenseItem[]> {
 }
 
 export async function fetchBankAccounts(): Promise<BankAccount[]> {
-  const { supabase } = await requireUserId();
+  const { supabase, userId } = await requireUserId();
 
   const { data, error } = await supabase
     .from("bank_accounts")
     .select("id, name, sort_order")
+    .eq("user_id", userId)
     .order("sort_order", { ascending: true });
 
   if (error) throw error;
@@ -108,7 +110,7 @@ export async function createExpense(params: ExpenseSaveParams): Promise<ExpenseI
 }
 
 export async function updateExpense(id: string, params: ExpenseSaveParams): Promise<ExpenseItem> {
-  const { supabase } = await requireUserId();
+  const { supabase, userId } = await requireUserId();
 
   const { data, error } = await supabase
     .from("expense_items")
@@ -121,6 +123,7 @@ export async function updateExpense(id: string, params: ExpenseSaveParams): Prom
       bank_account_id: params.bankAccountId,
     })
     .eq("id", id)
+    .eq("user_id", userId)
     .select(EXPENSE_FIELDS)
     .single();
 
@@ -130,12 +133,13 @@ export async function updateExpense(id: string, params: ExpenseSaveParams): Prom
 }
 
 export async function deleteExpense(id: string): Promise<void> {
-  const { supabase } = await requireUserId();
+  const { supabase, userId } = await requireUserId();
 
   const { error } = await supabase
     .from("expense_items")
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .eq("user_id", userId);
 
   if (error) throw error;
 }
