@@ -4,11 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useSession } from "@/hooks/useSession";
 import { isDemoMode } from "@/lib/demo-mode";
 import { CACHE_KEYS, readCachedData, writeCachedData } from "@/lib/data-cache";
-import {
-  FALLBACK_DASHBOARD_DATA,
-  fetchDashboardData,
-  type DashboardData,
-} from "@/services/dashboardService";
+import { fetchDashboardData } from "@/services/dashboardService";
+import { FALLBACK_DASHBOARD_DATA, type DashboardData } from "@/services/dashboardService.types";
 import type { ExpenseItem } from "@/types/budget";
 
 type DataSource = "supabase" | "fallback";
@@ -60,7 +57,7 @@ export function useDashboard(sortMode: SortMode) {
 
     setIsLoadingDashboard(true);
 
-    fetchDashboardData(userId)
+    fetchDashboardData()
       .then(({ data, source }) => {
         if (!isMounted) return;
         setDashboardData(data);

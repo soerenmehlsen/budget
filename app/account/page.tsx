@@ -77,7 +77,7 @@ export default function AccountPage() {
     setFeedbackError(null);
     setFeedbackMessage(null);
 
-    const result = await submitFeedback(userId, feedback.trim());
+    const result = await submitFeedback(feedback.trim());
 
     setIsSendingFeedback(false);
 

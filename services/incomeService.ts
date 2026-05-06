@@ -1,16 +1,8 @@
-import { supabase } from "@/lib/supabase/client";
+"use server";
+
+import { createClient } from "@/lib/supabase/server";
 import type { IncomeItem } from "@/types/budget";
-
-export type { IncomeItem };
-
-export type IncomeSaveParams = {
-  userId: string;
-  name: string;
-  amountMonthly: number;
-  amountPeriod: number | null;
-  periodLabel: string | null;
-  sortOrder: number;
-};
+import type { IncomeSaveParams } from "./incomeService.types";
 
 const INCOME_FIELDS = "id, name, amount_monthly, amount_period, period_label, sort_order";
 
@@ -35,11 +27,21 @@ function mapRowToIncomeItem(
   };
 }
 
-export async function fetchIncome(userId: string): Promise<IncomeItem[]> {
+async function requireUserId() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Ikke logget ind");
+  return { supabase, userId: user.id };
+}
+
+export async function fetchIncome(): Promise<IncomeItem[]> {
+  const { supabase } = await requireUserId();
+
   const { data, error } = await supabase
     .from("income_sources")
     .select(INCOME_FIELDS)
-    .eq("user_id", userId)
     .order("sort_order", { ascending: true });
 
   if (error) throw error;
@@ -54,10 +56,12 @@ export async function fetchIncome(userId: string): Promise<IncomeItem[]> {
 }
 
 export async function createIncome(params: IncomeSaveParams): Promise<IncomeItem> {
+  const { supabase, userId } = await requireUserId();
+
   const { data, error } = await supabase
     .from("income_sources")
     .insert({
-      user_id: params.userId,
+      user_id: userId,
       name: params.name,
       amount_monthly: params.amountMonthly,
       amount_period: params.amountPeriod,
@@ -72,11 +76,12 @@ export async function createIncome(params: IncomeSaveParams): Promise<IncomeItem
   return mapRowToIncomeItem(data, params);
 }
 
-export async function updateIncome(id: string, userId: string, params: IncomeSaveParams): Promise<IncomeItem> {
+export async function updateIncome(id: string, params: IncomeSaveParams): Promise<IncomeItem> {
+  const { supabase } = await requireUserId();
+
   const { data, error } = await supabase
     .from("income_sources")
     .update({
-      user_id: params.userId,
       name: params.name,
       amount_monthly: params.amountMonthly,
       amount_period: params.amountPeriod,
@@ -84,7 +89,6 @@ export async function updateIncome(id: string, userId: string, params: IncomeSav
       sort_order: params.sortOrder,
     })
     .eq("id", id)
-    .eq("user_id", userId)
     .select(INCOME_FIELDS)
     .single();
 
@@ -93,12 +97,13 @@ export async function updateIncome(id: string, userId: string, params: IncomeSav
   return mapRowToIncomeItem(data, params);
 }
 
-export async function deleteIncome(id: string, userId: string): Promise<void> {
+export async function deleteIncome(id: string): Promise<void> {
+  const { supabase } = await requireUserId();
+
   const { error } = await supabase
     .from("income_sources")
     .delete()
-    .eq("id", id)
-    .eq("user_id", userId);
+    .eq("id", id);
 
   if (error) throw error;
 }
