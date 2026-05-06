@@ -95,6 +95,7 @@ export function ExpenseFormModal({
   const [bankAccountId, setBankAccountId] = useState(editingItem?.bankAccountId ?? "");
   const [formError, setFormError] = useState<string | null>(null);
   const [showAllExpenses, setShowAllExpenses] = useState(false);
+  const [showBankInfo, setShowBankInfo] = useState(false);
 
   const COLLAPSED_LIMIT = 12;
 
@@ -283,8 +284,24 @@ export function ExpenseFormModal({
               </div>
             ) : null}
 
-            <label className="block">
-              <span className="mb-1.5 block text-sm font-medium text-slate-900 dark:text-slate-200 sm:text-base">Bankkonto</span>
+            <div>
+              <div className="mb-1.5 flex items-center gap-1.5">
+                <span className="text-sm font-medium text-slate-900 dark:text-slate-200 sm:text-base">Bankkonto</span>
+                <button
+                  type="button"
+                  onClick={() => setShowBankInfo((prev) => !prev)}
+                  className="grid h-4 w-4 place-items-center rounded-full border border-slate-300 bg-slate-100 text-[10px] font-semibold text-slate-500 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 dark:border-white/15 dark:bg-slate-700 dark:text-slate-400 dark:hover:border-blue-400/40 dark:hover:bg-blue-400/10 dark:hover:text-blue-300"
+                  aria-label="Hvad bruges bankkonto til?"
+                >
+                  ?
+                </button>
+              </div>
+              {showBankInfo ? (
+                <p className="mb-2 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-100">
+                  Vælg hvilken bankkonto denne vil blive trukket fra. Det bruges til at give dig et overblik over, hvor meget du fast skal overføre til hver konto.
+                </p>
+              ) : null}
+              <label className="block">
               <select
                 value={bankAccountId}
                 onChange={(event) => setBankAccountId(event.target.value)}
@@ -303,7 +320,8 @@ export function ExpenseFormModal({
                   <Link href="/account" className="font-semibold text-blue-600 hover:text-blue-500">Tilføj en konto</Link>.
                 </p>
               ) : null}
-            </label>
+              </label>
+            </div>
 
             {formError ? <p className="text-xs text-rose-600 dark:text-rose-300 sm:text-sm">{formError}</p> : null}
 
