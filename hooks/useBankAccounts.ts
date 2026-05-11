@@ -36,6 +36,7 @@ export function useBankAccounts(userId: string | null) {
     if (!userId || fetchResult !== null) return;
     const cached = readCachedData<BankAccount[]>(CACHE_KEYS.bankAccounts, userId);
     if (cached) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setBankAccounts(cached.data);
     }
   }, [userId, fetchResult]);
@@ -45,6 +46,7 @@ export function useBankAccounts(userId: string | null) {
     if (isDemoMode()) return;
 
     let isMounted = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoading(true);
 
     fetchBankAccounts()

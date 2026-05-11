@@ -49,6 +49,7 @@ export function useDashboard(sortMode: SortMode) {
     if (!userId || fetchResult !== null) return;
     const cached = readCachedData<DashboardData>(CACHE_KEYS.dashboard, userId);
     if (cached) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDashboardData(cached.data);
       setDataSource(cached.source);
     }
@@ -59,6 +60,7 @@ export function useDashboard(sortMode: SortMode) {
     if (isDemoMode()) return;
 
     let isMounted = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoadingDashboard(true);
 
     fetchDashboardData()

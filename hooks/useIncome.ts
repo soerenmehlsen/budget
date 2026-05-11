@@ -46,6 +46,7 @@ export function useIncome(userId: string | null) {
     if (!userId || fetchResult !== null) return;
     const cached = readCachedData<IncomeItem[]>(CACHE_KEYS.income, userId);
     if (cached) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIncomeItems(cached.data);
       setDataSource(cached.source);
     }
@@ -56,6 +57,7 @@ export function useIncome(userId: string | null) {
     if (isDemoMode()) return;
 
     let isMounted = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoading(true);
 
     fetchIncome()

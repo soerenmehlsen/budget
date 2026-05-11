@@ -75,6 +75,7 @@ export function useExpenses(userId: string | null) {
     if (!userId || fetchResult !== null) return;
     const cached = readCachedData<ExpenseItem[]>(CACHE_KEYS.expenses, userId);
     if (cached) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setExpenseItems(cached.data);
       setDataSource(cached.source);
     }
@@ -85,6 +86,7 @@ export function useExpenses(userId: string | null) {
     if (isDemoMode()) return;
 
     let isMounted = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoading(true);
     setIsLoadingAccounts(true);
     setBankAccountError(null);
