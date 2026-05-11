@@ -106,16 +106,6 @@ export function DashboardClient() {
   const animatedExpenses = useCountUp(totalExpenses);
   const animatedFreeToSpend = useCountUp(freeToSpend);
 
-  if (isCheckingSession) {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-white px-4 text-slate-900 dark:bg-[#09111f] dark:text-slate-100">
-        <p className="rounded-2xl border border-slate-200 bg-slate-100 px-5 py-4 text-sm text-slate-600 shadow-[0_20px_60px_rgba(0,0,0,0.05)] backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 dark:shadow-[0_20px_60px_rgba(0,0,0,0.25)]">
-          Tjekker session...
-        </p>
-      </main>
-    );
-  }
-
   return (
     <main className="relative min-h-screen overflow-hidden bg-white text-slate-900 dark:bg-[#09111f] dark:text-slate-100">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.04),_transparent_38%),radial-gradient(circle_at_bottom,_rgba(245,158,11,0.02),_transparent_35%)] dark:bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.18),_transparent_38%),radial-gradient(circle_at_bottom,_rgba(245,158,11,0.08),_transparent_35%)]" />
@@ -422,9 +412,6 @@ export function DashboardClient() {
             )}
           </motion.section>
 
-          {isLoadingDashboard ? (
-            <p className="mt-4 text-xs text-slate-600 dark:text-slate-400 sm:mt-5 sm:text-sm">Opdaterer budgetdata...</p>
-          ) : null}
         </section>
 
         <BottomNav />
