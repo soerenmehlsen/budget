@@ -21,10 +21,12 @@ const FALLBACK_BANK_ACCOUNTS: BankAccount[] = [
   { id: "demo-opsparingskonto", name: "Opsparingskonto", sortOrder: 2 },
 ];
 
-export function useBankAccounts(userId: string | null) {
-  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>(() =>
-    !userId && isDemoMode() ? FALLBACK_BANK_ACCOUNTS : [],
-  );
+export function useBankAccounts(userId: string | null, initialData: BankAccount[] | null = null) {
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>(() => {
+    if (initialData) return initialData;
+    if (!userId && isDemoMode()) return FALLBACK_BANK_ACCOUNTS;
+    return [];
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,16 +35,17 @@ export function useBankAccounts(userId: string | null) {
 
   // Show cached data instantly while fetch is in progress
   useEffect(() => {
-    if (!userId || fetchResult !== null) return;
+    if (initialData || !userId || fetchResult !== null) return;
     const cached = readCachedData<BankAccount[]>(CACHE_KEYS.bankAccounts, userId);
     if (cached) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setBankAccounts(cached.data);
     }
-  }, [userId, fetchResult]);
+  }, [userId, fetchResult, initialData]);
 
   // Fire immediately — server action validates auth via session cookie
   useEffect(() => {
+    if (initialData) return;
     if (isDemoMode()) return;
 
     let isMounted = true;
@@ -64,13 +67,19 @@ export function useBankAccounts(userId: string | null) {
       });
 
     return () => { isMounted = false; };
-  }, []);
+  }, [initialData]);
 
   // Write cache once userId is known and fresh data is available
   useEffect(() => {
     if (!userId || fetchResult === null) return;
     writeCachedData(CACHE_KEYS.bankAccounts, userId, fetchResult, "supabase");
   }, [userId, fetchResult]);
+
+  // Write initialData to cache so SPA navigation gets a cache hit
+  useEffect(() => {
+    if (!userId || !initialData) return;
+    writeCachedData(CACHE_KEYS.bankAccounts, userId, initialData, "supabase");
+  }, [userId, initialData]);
 
   const addBankAccount = async (name: string): Promise<void> => {
     if (!userId) throw new Error("Ikke logget ind");

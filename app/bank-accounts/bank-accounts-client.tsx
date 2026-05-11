@@ -7,12 +7,15 @@ import { AnimatedIconButton } from "@/components/ui/animated-icon-button";
 import { DeleteIcon } from "@/components/ui/delete";
 import { PlusIcon } from "@/components/ui/plus";
 import { SquarePenIcon } from "@/components/ui/square-pen";
-import { useSession } from "@/hooks/useSession";
 import { useBankAccounts } from "@/hooks/useBankAccounts";
 import type { BankAccount } from "@/types/budget";
 
-export function BankAccountsClient() {
-  const { userId, isCheckingSession } = useSession();
+type Props = {
+  userId: string | null;
+  initialData: BankAccount[] | null;
+};
+
+export function BankAccountsClient({ userId, initialData }: Props) {
   const {
     bankAccounts,
     isLoading: isLoadingAccounts,
@@ -22,7 +25,7 @@ export function BankAccountsClient() {
     addBankAccount,
     editBankAccount,
     removeBankAccount,
-  } = useBankAccounts(isCheckingSession ? null : userId);
+  } = useBankAccounts(userId, initialData);
 
   const [accountName, setAccountName] = useState("");
   const [editingAccountId, setEditingAccountId] = useState<string | null>(null);
