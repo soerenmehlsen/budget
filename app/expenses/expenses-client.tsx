@@ -6,17 +6,20 @@ import { BottomNav } from "@/components/bottom-nav";
 import { AnimatedIconButton } from "@/components/ui/animated-icon-button";
 import { ChevronDownIcon } from "@/components/ui/chevron-down";
 import { PlusIcon } from "@/components/ui/plus";
-import { useSession } from "@/hooks/useSession";
 import { useExpenses } from "@/hooks/useExpenses";
 import type { ExpenseFormValues } from "@/hooks/useExpenses";
-import type { ExpenseItem } from "@/types/budget";
+import type { BankAccount, ExpenseItem } from "@/types/budget";
 import { formatCompactDkk } from "@/lib/budget-format";
 import { isDemoMode } from "@/lib/demo-mode";
 import { ExpenseCategoryGroup } from "./expense-category-group";
 import { ExpenseFormModal } from "./expense-form-modal";
 
-export function ExpensesClient() {
-  const { userId, isCheckingSession } = useSession();
+type Props = {
+  userId: string | null;
+  initialData: { expenses: ExpenseItem[]; accounts: BankAccount[] } | null;
+};
+
+export function ExpensesClient({ userId, initialData }: Props) {
   const {
     groupedExpenses,
     bankAccounts,
@@ -33,7 +36,7 @@ export function ExpensesClient() {
     addExpense,
     updateExpense,
     removeExpense,
-  } = useExpenses(userId);
+  } = useExpenses(userId, initialData);
 
   const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
   const [editingItem, setEditingItem] = useState<ExpenseItem | null>(null);

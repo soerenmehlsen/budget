@@ -35,6 +35,8 @@ export type GroupedExpense = {
 
 type DataSource = "supabase" | "fallback";
 
+type InitialData = { expenses: ExpenseItem[]; accounts: BankAccount[] };
+
 const DEMO_BUDGETKONTO_ID = "demo-budgetkonto";
 const DEMO_OPSPARINGSKONTO_ID = "demo-opsparingskonto";
 
@@ -55,13 +57,17 @@ const FALLBACK_EXPENSES: ExpenseItem[] = [
   { id: "savings", category: "Opsparing", name: "Opsparing", amountMonthly: 5000, sortOrder: 1, bankAccountId: DEMO_OPSPARINGSKONTO_ID },
 ];
 
-export function useExpenses(userId: string | null) {
-  const [expenseItems, setExpenseItems] = useState<ExpenseItem[]>(() =>
-    !userId && isDemoMode() ? FALLBACK_EXPENSES : []
-  );
-  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>(() =>
-    !userId && isDemoMode() ? FALLBACK_BANK_ACCOUNTS : []
-  );
+export function useExpenses(userId: string | null, initialData: InitialData | null = null) {
+  const [expenseItems, setExpenseItems] = useState<ExpenseItem[]>(() => {
+    if (initialData) return initialData.expenses;
+    if (!userId && isDemoMode()) return FALLBACK_EXPENSES;
+    return [];
+  });
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>(() => {
+    if (initialData) return initialData.accounts;
+    if (!userId && isDemoMode()) return FALLBACK_BANK_ACCOUNTS;
+    return [];
+  });
   const [dataSource, setDataSource] = useState<DataSource>("fallback");
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
@@ -72,17 +78,18 @@ export function useExpenses(userId: string | null) {
 
   // Show cached data instantly while fetch is in progress
   useEffect(() => {
-    if (!userId || fetchResult !== null) return;
+    if (initialData || !userId || fetchResult !== null) return;
     const cached = readCachedData<ExpenseItem[]>(CACHE_KEYS.expenses, userId);
     if (cached) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setExpenseItems(cached.data);
       setDataSource(cached.source);
     }
-  }, [userId, fetchResult]);
+  }, [userId, fetchResult, initialData]);
 
   // Fire immediately — server action validates auth via session cookie
   useEffect(() => {
+    if (initialData) return;
     if (isDemoMode()) return;
 
     let isMounted = true;
@@ -117,13 +124,19 @@ export function useExpenses(userId: string | null) {
     );
 
     return () => { isMounted = false; };
-  }, []);
+  }, [initialData]);
 
   // Write cache once userId is known and fresh data is available
   useEffect(() => {
     if (!userId || fetchResult === null) return;
     writeCachedData(CACHE_KEYS.expenses, userId, fetchResult.items, fetchResult.source);
   }, [userId, fetchResult]);
+
+  // Write initialData to cache so SPA navigation gets a cache hit
+  useEffect(() => {
+    if (!userId || !initialData) return;
+    writeCachedData(CACHE_KEYS.expenses, userId, initialData.expenses, "supabase");
+  }, [userId, initialData]);
 
   const groupedExpenses = useMemo<GroupedExpense[]>(() => {
     const grouped = new Map<string, ExpenseItem[]>();
