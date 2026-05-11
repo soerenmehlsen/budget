@@ -11,6 +11,7 @@ import { useExpenses } from "@/hooks/useExpenses";
 import type { ExpenseFormValues } from "@/hooks/useExpenses";
 import type { ExpenseItem } from "@/types/budget";
 import { formatCompactDkk } from "@/lib/budget-format";
+import { isDemoMode } from "@/lib/demo-mode";
 import { ExpenseCategoryGroup } from "./expense-category-group";
 import { ExpenseFormModal } from "./expense-form-modal";
 
@@ -124,7 +125,7 @@ export function ExpensesClient() {
             />
           </motion.header>
 
-          {dataSource === "fallback" ? (
+          {isDemoMode() ? (
             <motion.p
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}

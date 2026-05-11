@@ -34,6 +34,7 @@ import { WalletIcon } from "@/components/ui/wallet";
 import { MONEY_FORMATTER } from "@/lib/budget-format";
 import { useCountUp } from "@/hooks/useCountUp";
 import { useDashboard } from "@/hooks/useDashboard";
+import { isDemoMode } from "@/lib/demo-mode";
 
 type PeriodView = "month" | "year";
 type SortMode = "alpha" | "highest";
@@ -160,7 +161,7 @@ export function DashboardClient() {
             </div>
           </motion.header>
 
-          {dataSource === "fallback" ? (
+          {isDemoMode() ? (
             <motion.p
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}

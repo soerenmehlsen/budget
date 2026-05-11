@@ -7,6 +7,7 @@ import { useSession } from "@/hooks/useSession";
 import { useIncome } from "@/hooks/useIncome";
 import type { IncomeFormValues } from "@/hooks/useIncome";
 import type { IncomeItem } from "@/types/budget";
+import { isDemoMode } from "@/lib/demo-mode";
 import { IncomeCard } from "./income-card";
 import { IncomeFormModal } from "./income-form-modal";
 
@@ -74,7 +75,7 @@ export function IncomeClient() {
             </div>
           </motion.header>
 
-          {dataSource === "fallback" ? (
+          {isDemoMode() ? (
             <motion.p
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
