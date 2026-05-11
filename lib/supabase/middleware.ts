@@ -35,8 +35,9 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
+  const isDemoMode = request.cookies.get("budget-demo-mode")?.value === "true";
 
-  if (!user && !isPublicPath(pathname)) {
+  if (!user && !isDemoMode && !isPublicPath(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     return NextResponse.redirect(url);
