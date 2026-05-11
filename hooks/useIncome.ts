@@ -31,10 +31,12 @@ const FALLBACK_INCOMES: IncomeItem[] = [
   { id: "bonus", name: "Bonus", amountMonthly: 5000, amountPeriod: 15000, periodLabel: "kvartal", sortOrder: 2 },
 ];
 
-export function useIncome(userId: string | null) {
-  const [incomeItems, setIncomeItems] = useState<IncomeItem[]>(() =>
-    !userId && isDemoMode() ? FALLBACK_INCOMES : []
-  );
+export function useIncome(userId: string | null, initialData: IncomeItem[] | null = null) {
+  const [incomeItems, setIncomeItems] = useState<IncomeItem[]>(() => {
+    if (initialData) return initialData;
+    if (!userId && isDemoMode()) return FALLBACK_INCOMES;
+    return [];
+  });
   const [dataSource, setDataSource] = useState<DataSource>("fallback");
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -43,17 +45,18 @@ export function useIncome(userId: string | null) {
 
   // Show cached data instantly while fetch is in progress
   useEffect(() => {
-    if (!userId || fetchResult !== null) return;
+    if (initialData || !userId || fetchResult !== null) return;
     const cached = readCachedData<IncomeItem[]>(CACHE_KEYS.income, userId);
     if (cached) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setIncomeItems(cached.data);
       setDataSource(cached.source);
     }
-  }, [userId, fetchResult]);
+  }, [userId, fetchResult, initialData]);
 
   // Fire immediately — server action validates auth via session cookie
   useEffect(() => {
+    if (initialData) return;
     if (isDemoMode()) return;
 
     let isMounted = true;
@@ -77,13 +80,19 @@ export function useIncome(userId: string | null) {
       });
 
     return () => { isMounted = false; };
-  }, []);
+  }, [initialData]);
 
   // Write cache once userId is known and fresh data is available
   useEffect(() => {
     if (!userId || fetchResult === null) return;
     writeCachedData(CACHE_KEYS.income, userId, fetchResult.items, fetchResult.source);
   }, [userId, fetchResult]);
+
+  // Write initialData to cache so SPA navigation gets a cache hit
+  useEffect(() => {
+    if (!userId || !initialData) return;
+    writeCachedData(CACHE_KEYS.income, userId, initialData, "supabase");
+  }, [userId, initialData]);
 
   const addIncome = async (values: IncomeFormValues): Promise<void> => {
     if (!userId) throw new Error("Ikke logget ind");

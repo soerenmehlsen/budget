@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { motion } from "motion/react";
 import { BottomNav } from "@/components/bottom-nav";
-import { useSession } from "@/hooks/useSession";
 import { useIncome } from "@/hooks/useIncome";
 import type { IncomeFormValues } from "@/hooks/useIncome";
 import type { IncomeItem } from "@/types/budget";
@@ -11,9 +10,13 @@ import { isDemoMode } from "@/lib/demo-mode";
 import { IncomeCard } from "./income-card";
 import { IncomeFormModal } from "./income-form-modal";
 
-export function IncomeClient() {
-  const { userId, isCheckingSession } = useSession();
-  const { incomeItems, dataSource, isLoading, isSaving, error, clearError, addIncome, updateIncome, removeIncome } = useIncome(userId);
+type Props = {
+  userId: string | null;
+  initialData: IncomeItem[] | null;
+};
+
+export function IncomeClient({ userId, initialData }: Props) {
+  const { incomeItems, dataSource, isLoading, isSaving, error, clearError, addIncome, updateIncome, removeIncome } = useIncome(userId, initialData);
 
   const [editingItem, setEditingItem] = useState<IncomeItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
