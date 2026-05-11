@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getUser } from "@/lib/supabase/server";
 import type { BankAccount } from "@/types/budget";
 import { bySortOrderAndName } from "@/lib/utils";
 
@@ -15,11 +15,9 @@ function mapRow(row: { id: string; name: string; sort_order: number | null }): B
 }
 
 async function requireUserId() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
   if (!user) throw new Error("Ikke logget ind");
+  const supabase = await createClient();
   return { supabase, userId: user.id };
 }
 

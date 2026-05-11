@@ -1,13 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/supabase/server";
 import { fetchIncome } from "@/services/incomeService";
 import type { IncomeItem } from "@/types/budget";
 import { IncomeClient } from "./income-client";
 
 export default async function IncomePage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
 
   if (!user) {
     return <IncomeClient userId={null} initialData={null} />;

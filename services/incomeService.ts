@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getUser } from "@/lib/supabase/server";
 import type { IncomeItem } from "@/types/budget";
 import type { IncomeSaveParams } from "./incomeService.types";
 
@@ -28,11 +28,9 @@ function mapRowToIncomeItem(
 }
 
 async function requireUserId() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
   if (!user) throw new Error("Ikke logget ind");
+  const supabase = await createClient();
   return { supabase, userId: user.id };
 }
 

@@ -1,13 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/supabase/server";
 import { fetchBankAccounts } from "@/services/bankAccountService";
 import type { BankAccount } from "@/types/budget";
 import { BankAccountsClient } from "./bank-accounts-client";
 
 export default async function BankAccountsPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
 
   if (!user) {
     return <BankAccountsClient userId={null} initialData={null} />;

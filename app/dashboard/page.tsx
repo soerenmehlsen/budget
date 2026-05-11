@@ -1,13 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/supabase/server";
 import { fetchDashboardData } from "@/services/dashboardService";
 import type { DashboardData } from "@/services/dashboardService.types";
 import { DashboardClient } from "./dashboard-client";
 
 export default async function DashboardPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
 
   if (!user) {
     return <DashboardClient userId={null} initialData={null} />;

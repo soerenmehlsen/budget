@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getUser } from "@/lib/supabase/server";
 import { isDemoMode } from "@/lib/demo-mode";
 import type { ExpenseItem } from "@/types/budget";
 import { FALLBACK_DASHBOARD_DATA, type DashboardData } from "./dashboardService.types";
@@ -16,11 +16,9 @@ export async function fetchDashboardData(): Promise<{
   data: DashboardData;
   source: "supabase" | "fallback";
 }> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
   if (!user) throw new Error("Ikke logget ind");
+  const supabase = await createClient();
 
   const [profileResult, incomeResult, expenseResult, bankAccountResult] = await Promise.all([
     supabase.from("profiles").select("display_name").eq("id", user.id).maybeSingle(),
