@@ -68,7 +68,9 @@ export function useExpenses(userId: string | null, initialData: InitialData | nu
     if (!userId && isDemoMode()) return FALLBACK_BANK_ACCOUNTS;
     return [];
   });
-  const [dataSource, setDataSource] = useState<DataSource>("fallback");
+  const [dataSource, setDataSource] = useState<DataSource>(() =>
+    initialData ? "supabase" : "fallback",
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
   const [isSaving, setIsSaving] = useState(false);

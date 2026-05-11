@@ -37,7 +37,9 @@ export function useIncome(userId: string | null, initialData: IncomeItem[] | nul
     if (!userId && isDemoMode()) return FALLBACK_INCOMES;
     return [];
   });
-  const [dataSource, setDataSource] = useState<DataSource>("fallback");
+  const [dataSource, setDataSource] = useState<DataSource>(() =>
+    initialData ? "supabase" : "fallback",
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
