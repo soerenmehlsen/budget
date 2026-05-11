@@ -68,72 +68,60 @@ export function useExpenses(userId: string | null) {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [bankAccountError, setBankAccountError] = useState<string | null>(null);
+  const [fetchResult, setFetchResult] = useState<{ items: ExpenseItem[]; source: DataSource } | null>(null);
 
+  // Show cached data instantly while fetch is in progress
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || fetchResult !== null) return;
+    const cached = readCachedData<ExpenseItem[]>(CACHE_KEYS.expenses, userId);
+    if (cached) {
+      setExpenseItems(cached.data);
+      setDataSource(cached.source);
+    }
+  }, [userId, fetchResult]);
+
+  // Fire immediately — server action validates auth via session cookie
+  useEffect(() => {
+    if (isDemoMode()) return;
 
     let isMounted = true;
+    setIsLoading(true);
+    setIsLoadingAccounts(true);
+    setBankAccountError(null);
 
-    const loadData = async () => {
-      const cached = readCachedData<ExpenseItem[]>(CACHE_KEYS.expenses, userId);
-      if (cached) {
-        setExpenseItems(cached.data);
-        setDataSource(cached.source);
-      }
+    Promise.allSettled([fetchExpenses(), fetchBankAccounts()]).then(
+      ([expensesResult, accountsResult]) => {
+        if (!isMounted) return;
 
-      setIsLoading(true);
-      setIsLoadingAccounts(true);
-      setBankAccountError(null);
-
-      const [expensesResult, accountsResult] = await Promise.allSettled([
-        fetchExpenses(),
-        fetchBankAccounts(),
-      ]);
-
-      if (!isMounted) return;
-
-      if (expensesResult.status === "fulfilled") {
-        const items = expensesResult.value;
-        if (items.length === 0) {
-          if (isDemoMode()) {
-            setExpenseItems(FALLBACK_EXPENSES);
-            setDataSource("fallback");
-            writeCachedData(CACHE_KEYS.expenses, userId, FALLBACK_EXPENSES, "fallback");
-          } else {
-            setExpenseItems([]);
-            setDataSource("supabase");
-            writeCachedData(CACHE_KEYS.expenses, userId, [], "supabase");
-          }
-        } else {
-          const sorted = [...items].sort(bySortOrderAndName);
+        if (expensesResult.status === "fulfilled") {
+          const sorted = [...expensesResult.value].sort(bySortOrderAndName);
           setExpenseItems(sorted);
           setDataSource("supabase");
-          writeCachedData(CACHE_KEYS.expenses, userId, sorted, "supabase");
-        }
-      } else {
-        if (isDemoMode()) {
-          setExpenseItems(FALLBACK_EXPENSES);
-          setDataSource("fallback");
+          setFetchResult({ items: sorted, source: "supabase" });
         } else {
           setError("Kunne ikke hente udgifter.");
         }
+
+        if (accountsResult.status === "fulfilled") {
+          setBankAccounts(accountsResult.value);
+        } else {
+          setBankAccountError("Kunne ikke hente bankkonti. Tjek at tabellen bank_accounts findes.");
+          setBankAccounts([]);
+        }
+
+        setIsLoading(false);
+        setIsLoadingAccounts(false);
       }
-
-      if (accountsResult.status === "fulfilled") {
-        setBankAccounts(accountsResult.value);
-      } else {
-        setBankAccountError("Kunne ikke hente bankkonti. Tjek at tabellen bank_accounts findes.");
-        setBankAccounts([]);
-      }
-
-      setIsLoading(false);
-      setIsLoadingAccounts(false);
-    };
-
-    void loadData();
+    );
 
     return () => { isMounted = false; };
-  }, [userId]);
+  }, []);
+
+  // Write cache once userId is known and fresh data is available
+  useEffect(() => {
+    if (!userId || fetchResult === null) return;
+    writeCachedData(CACHE_KEYS.expenses, userId, fetchResult.items, fetchResult.source);
+  }, [userId, fetchResult]);
 
   const groupedExpenses = useMemo<GroupedExpense[]>(() => {
     const grouped = new Map<string, ExpenseItem[]>();

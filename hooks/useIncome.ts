@@ -39,59 +39,49 @@ export function useIncome(userId: string | null) {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fetchResult, setFetchResult] = useState<{ items: IncomeItem[]; source: DataSource } | null>(null);
 
+  // Show cached data instantly while fetch is in progress
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || fetchResult !== null) return;
+    const cached = readCachedData<IncomeItem[]>(CACHE_KEYS.income, userId);
+    if (cached) {
+      setIncomeItems(cached.data);
+      setDataSource(cached.source);
+    }
+  }, [userId, fetchResult]);
+
+  // Fire immediately — server action validates auth via session cookie
+  useEffect(() => {
+    if (isDemoMode()) return;
 
     let isMounted = true;
+    setIsLoading(true);
 
-    const loadData = async () => {
-      const cached = readCachedData<IncomeItem[]>(CACHE_KEYS.income, userId);
-      if (cached) {
-        setIncomeItems(cached.data);
-        setDataSource(cached.source);
-      }
-
-      setIsLoading(true);
-
-      try {
-        const items = await fetchIncome();
-
+    fetchIncome()
+      .then((items) => {
         if (!isMounted) return;
-
-        if (items.length === 0) {
-          if (isDemoMode()) {
-            setIncomeItems(FALLBACK_INCOMES);
-            setDataSource("fallback");
-            writeCachedData(CACHE_KEYS.income, userId, FALLBACK_INCOMES, "fallback");
-          } else {
-            setIncomeItems([]);
-            setDataSource("supabase");
-            writeCachedData(CACHE_KEYS.income, userId, [], "supabase");
-          }
-        } else {
-          const sorted = [...items].sort(bySortOrderAndName);
-          setIncomeItems(sorted);
-          setDataSource("supabase");
-          writeCachedData(CACHE_KEYS.income, userId, sorted, "supabase");
-        }
-      } catch {
+        const sorted = [...items].sort(bySortOrderAndName);
+        setIncomeItems(sorted);
+        setDataSource("supabase");
+        setFetchResult({ items: sorted, source: "supabase" });
+      })
+      .catch(() => {
         if (!isMounted) return;
-        if (isDemoMode()) {
-          setIncomeItems(FALLBACK_INCOMES);
-          setDataSource("fallback");
-        } else {
-          setError("Kunne ikke hente indkomster.");
-        }
-      }
-
-      setIsLoading(false);
-    };
-
-    void loadData();
+        setError("Kunne ikke hente indkomster.");
+      })
+      .finally(() => {
+        if (isMounted) setIsLoading(false);
+      });
 
     return () => { isMounted = false; };
-  }, [userId]);
+  }, []);
+
+  // Write cache once userId is known and fresh data is available
+  useEffect(() => {
+    if (!userId || fetchResult === null) return;
+    writeCachedData(CACHE_KEYS.income, userId, fetchResult.items, fetchResult.source);
+  }, [userId, fetchResult]);
 
   const addIncome = async (values: IncomeFormValues): Promise<void> => {
     if (!userId) throw new Error("Ikke logget ind");

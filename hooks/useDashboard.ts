@@ -8,6 +8,8 @@ import { fetchDashboardData } from "@/services/dashboardService";
 import { FALLBACK_DASHBOARD_DATA, type DashboardData } from "@/services/dashboardService.types";
 import type { ExpenseItem } from "@/types/budget";
 
+type FetchResult = { data: DashboardData; source: "supabase" | "fallback" };
+
 type DataSource = "supabase" | "fallback";
 
 export type TransferTarget = {
@@ -40,21 +42,23 @@ export function useDashboard(sortMode: SortMode) {
   );
   const [dataSource, setDataSource] = useState<DataSource>("fallback");
   const [showWelcome, setShowWelcome] = useState(false);
+  const [fetchResult, setFetchResult] = useState<FetchResult | null>(null);
 
+  // Show cached data instantly while fetch is in progress
   useEffect(() => {
-    if (isCheckingSession) return;
-
-    if (!userId) return;
-
-    let isMounted = true;
-
+    if (!userId || fetchResult !== null) return;
     const cached = readCachedData<DashboardData>(CACHE_KEYS.dashboard, userId);
     if (cached) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDashboardData(cached.data);
       setDataSource(cached.source);
     }
+  }, [userId, fetchResult]);
 
+  // Fire immediately — server action validates auth via session cookie
+  useEffect(() => {
+    if (isDemoMode()) return;
+
+    let isMounted = true;
     setIsLoadingDashboard(true);
 
     fetchDashboardData()
@@ -62,9 +66,12 @@ export function useDashboard(sortMode: SortMode) {
         if (!isMounted) return;
         setDashboardData(data);
         setDataSource(source);
-        writeCachedData(CACHE_KEYS.dashboard, userId, data, source);
+        setFetchResult({ data, source });
         const hasData = data.incomeSources.length > 0 || data.expenseItems.length > 0;
         if (!hasData) setShowWelcome(true);
+      })
+      .catch(() => {
+        // Not authenticated — useSession handles redirect
       })
       .finally(() => {
         if (isMounted) setIsLoadingDashboard(false);
@@ -73,7 +80,13 @@ export function useDashboard(sortMode: SortMode) {
     return () => {
       isMounted = false;
     };
-  }, [userId, isCheckingSession]);
+  }, []);
+
+  // Write cache once userId is known and fresh data is available
+  useEffect(() => {
+    if (!userId || fetchResult === null) return;
+    writeCachedData(CACHE_KEYS.dashboard, userId, fetchResult.data, fetchResult.source);
+  }, [userId, fetchResult]);
 
   const groupedExpenses = useMemo((): GroupedExpense[] => {
     const grouped = new Map<string, ExpenseItem[]>();

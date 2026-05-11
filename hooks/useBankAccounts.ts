@@ -29,45 +29,46 @@ export function useBankAccounts(userId: string | null) {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [fetchResult, setFetchResult] = useState<BankAccount[] | null>(null);
 
+  // Show cached data instantly while fetch is in progress
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || fetchResult !== null) return;
+    const cached = readCachedData<BankAccount[]>(CACHE_KEYS.bankAccounts, userId);
+    if (cached) {
+      setBankAccounts(cached.data);
+    }
+  }, [userId, fetchResult]);
+
+  // Fire immediately — server action validates auth via session cookie
+  useEffect(() => {
+    if (isDemoMode()) return;
 
     let isMounted = true;
+    setIsLoading(true);
 
-    const loadData = async () => {
-      const cached = readCachedData<BankAccount[]>(CACHE_KEYS.bankAccounts, userId);
-      if (cached) {
-        setBankAccounts(cached.data);
-      }
-
-      setIsLoading(true);
-
-      try {
-        const accounts = await fetchBankAccounts();
-
+    fetchBankAccounts()
+      .then((accounts) => {
         if (!isMounted) return;
-
-        if (accounts.length === 0 && isDemoMode()) {
-          setBankAccounts(FALLBACK_BANK_ACCOUNTS);
-          writeCachedData(CACHE_KEYS.bankAccounts, userId, FALLBACK_BANK_ACCOUNTS, "fallback");
-        } else {
-          setBankAccounts(accounts);
-          writeCachedData(CACHE_KEYS.bankAccounts, userId, accounts, "supabase");
-        }
-      } catch {
+        setBankAccounts(accounts);
+        setFetchResult(accounts);
+      })
+      .catch(() => {
         if (!isMounted) return;
-        if (isDemoMode()) setBankAccounts(FALLBACK_BANK_ACCOUNTS);
-        else setError("Kunne ikke hente bankkonti.");
-      }
-
-      if (isMounted) setIsLoading(false);
-    };
-
-    void loadData();
+        setError("Kunne ikke hente bankkonti.");
+      })
+      .finally(() => {
+        if (isMounted) setIsLoading(false);
+      });
 
     return () => { isMounted = false; };
-  }, [userId]);
+  }, []);
+
+  // Write cache once userId is known and fresh data is available
+  useEffect(() => {
+    if (!userId || fetchResult === null) return;
+    writeCachedData(CACHE_KEYS.bankAccounts, userId, fetchResult, "supabase");
+  }, [userId, fetchResult]);
 
   const addBankAccount = async (name: string): Promise<void> => {
     if (!userId) throw new Error("Ikke logget ind");
