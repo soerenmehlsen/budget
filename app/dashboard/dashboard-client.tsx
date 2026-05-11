@@ -35,6 +35,7 @@ import { MONEY_FORMATTER } from "@/lib/budget-format";
 import { useCountUp } from "@/hooks/useCountUp";
 import { useDashboard } from "@/hooks/useDashboard";
 import { isDemoMode } from "@/lib/demo-mode";
+import type { DashboardData } from "@/services/dashboardService.types";
 
 type PeriodView = "month" | "year";
 type SortMode = "alpha" | "highest";
@@ -74,13 +75,17 @@ const categoryIcons: Record<string, LucideIcon> = {
   "Tøj og sko": Shirt,
 };
 
-export function DashboardClient() {
+type Props = {
+  userId: string | null;
+  initialData: DashboardData | null;
+};
+
+export function DashboardClient({ userId, initialData }: Props) {
   const [periodView, setPeriodView] = useState<PeriodView>("month");
   const [sortMode, setSortMode] = useState<SortMode>("alpha");
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const {
-    isCheckingSession,
     isLoadingDashboard,
     dataSource,
     showWelcome,
@@ -91,7 +96,7 @@ export function DashboardClient() {
     totalMonthlyExpenses,
     incomeSourceCount,
     expenseItemCount,
-  } = useDashboard(sortMode);
+  } = useDashboard(sortMode, userId, initialData);
 
   const periodFactor = periodView === "year" ? 12 : 1;
   const totalIncome = totalMonthlyIncome * periodFactor;

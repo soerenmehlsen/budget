@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useSession } from "@/hooks/useSession";
 import { isDemoMode } from "@/lib/demo-mode";
 import { CACHE_KEYS, readCachedData, writeCachedData } from "@/lib/data-cache";
 import { fetchDashboardData } from "@/services/dashboardService";
@@ -9,7 +8,6 @@ import { FALLBACK_DASHBOARD_DATA, type DashboardData } from "@/services/dashboar
 import type { ExpenseItem } from "@/types/budget";
 
 type FetchResult = { data: DashboardData; source: "supabase" | "fallback" };
-
 type DataSource = "supabase" | "fallback";
 
 export type TransferTarget = {
@@ -33,30 +31,36 @@ function bySortOrderAndName(a: ExpenseItem, b: ExpenseItem) {
   return a.name.localeCompare(b.name, "da-DK");
 }
 
-export function useDashboard(sortMode: SortMode) {
-  const { userId, isCheckingSession } = useSession();
-
+export function useDashboard(sortMode: SortMode, userId: string | null, initialData: DashboardData | null) {
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(() =>
-    isDemoMode() ? FALLBACK_DASHBOARD_DATA : null,
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(() => {
+    if (initialData) return initialData;
+    if (isDemoMode()) return FALLBACK_DASHBOARD_DATA;
+    return null;
+  });
+  const [dataSource, setDataSource] = useState<DataSource>(() =>
+    initialData ? "supabase" : "fallback",
   );
-  const [dataSource, setDataSource] = useState<DataSource>("fallback");
-  const [showWelcome, setShowWelcome] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(() => {
+    if (!initialData) return false;
+    return initialData.incomeSources.length === 0 && initialData.expenseItems.length === 0;
+  });
   const [fetchResult, setFetchResult] = useState<FetchResult | null>(null);
 
-  // Show cached data instantly while fetch is in progress
+  // Show cached data instantly while fetch is in progress (only when no initialData)
   useEffect(() => {
-    if (!userId || fetchResult !== null) return;
+    if (initialData || !userId || fetchResult !== null) return;
     const cached = readCachedData<DashboardData>(CACHE_KEYS.dashboard, userId);
     if (cached) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setDashboardData(cached.data);
       setDataSource(cached.source);
     }
-  }, [userId, fetchResult]);
+  }, [userId, fetchResult, initialData]);
 
-  // Fire immediately — server action validates auth via session cookie
+  // Fire immediately — skip if initialData was provided by server
   useEffect(() => {
+    if (initialData) return;
     if (isDemoMode()) return;
 
     let isMounted = true;
@@ -73,7 +77,7 @@ export function useDashboard(sortMode: SortMode) {
         if (!hasData) setShowWelcome(true);
       })
       .catch(() => {
-        // Not authenticated — useSession handles redirect
+        // Not authenticated — client handles redirect
       })
       .finally(() => {
         if (isMounted) setIsLoadingDashboard(false);
@@ -82,13 +86,19 @@ export function useDashboard(sortMode: SortMode) {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [initialData]);
 
-  // Write cache once userId is known and fresh data is available
+  // Write cache when fresh data arrives via client fetch
   useEffect(() => {
     if (!userId || fetchResult === null) return;
     writeCachedData(CACHE_KEYS.dashboard, userId, fetchResult.data, fetchResult.source);
   }, [userId, fetchResult]);
+
+  // Write initialData to cache so SPA navigation gets a cache hit
+  useEffect(() => {
+    if (!userId || !initialData) return;
+    writeCachedData(CACHE_KEYS.dashboard, userId, initialData, "supabase");
+  }, [userId, initialData]);
 
   const groupedExpenses = useMemo((): GroupedExpense[] => {
     const grouped = new Map<string, ExpenseItem[]>();
@@ -130,18 +140,17 @@ export function useDashboard(sortMode: SortMode) {
       .filter((account) => account.amountMonthly > 0);
   }, [dashboardData?.bankAccounts, dashboardData?.expenseItems]);
 
-  const totalMonthlyIncome = (dashboardData?.incomeSources ?? []).reduce(
-    (sum, source) => sum + source.amountMonthly,
-    0,
+  const totalMonthlyIncome = useMemo(
+    () => (dashboardData?.incomeSources ?? []).reduce((sum, s) => sum + s.amountMonthly, 0),
+    [dashboardData?.incomeSources],
   );
 
-  const totalMonthlyExpenses = groupedExpenses.reduce(
-    (sum, group) => sum + group.totalMonthly,
-    0,
+  const totalMonthlyExpenses = useMemo(
+    () => groupedExpenses.reduce((sum, group) => sum + group.totalMonthly, 0),
+    [groupedExpenses],
   );
 
   return {
-    isCheckingSession,
     isLoadingDashboard,
     dataSource,
     showWelcome,
