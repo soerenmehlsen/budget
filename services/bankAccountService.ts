@@ -1,6 +1,9 @@
 "use server";
 
+import { unstable_cache, revalidateTag } from "next/cache";
 import { createClient, getUser } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { cacheTags } from "@/lib/cache-tags";
 import type { BankAccount } from "@/types/budget";
 import { bySortOrderAndName } from "@/lib/utils";
 
@@ -22,20 +25,24 @@ async function requireUserId() {
 }
 
 export async function fetchBankAccounts(): Promise<BankAccount[]> {
-  const { supabase, userId } = await requireUserId();
-
-  const { data, error } = await supabase
-    .from("bank_accounts")
-    .select(BANK_ACCOUNT_FIELDS)
-    .eq("user_id", userId)
-    .order("sort_order", { ascending: true });
-
-  if (error) throw error;
-
-  return (data ?? [])
-    .filter((row) => typeof row.id === "string" && typeof row.name === "string")
-    .map(mapRow)
-    .sort(bySortOrderAndName);
+  const { userId } = await requireUserId();
+  return unstable_cache(
+    async () => {
+      const supabase = createAdminClient();
+      const { data, error } = await supabase
+        .from("bank_accounts")
+        .select(BANK_ACCOUNT_FIELDS)
+        .eq("user_id", userId)
+        .order("sort_order", { ascending: true });
+      if (error) throw error;
+      return (data ?? [])
+        .filter((row) => typeof row.id === "string" && typeof row.name === "string")
+        .map(mapRow)
+        .sort(bySortOrderAndName);
+    },
+    [cacheTags.bankAccounts(userId)],
+    { revalidate: 60, tags: [cacheTags.bankAccounts(userId)] },
+  )();
 }
 
 export async function createBankAccount(name: string, sortOrder: number): Promise<BankAccount> {
@@ -48,6 +55,9 @@ export async function createBankAccount(name: string, sortOrder: number): Promis
     .single();
 
   if (error) throw error;
+
+  revalidateTag(cacheTags.bankAccounts(userId), "default");
+  revalidateTag(cacheTags.dashboard(userId), "default");
 
   return mapRow(data);
 }
@@ -62,6 +72,9 @@ export async function updateBankAccount(id: string, name: string): Promise<void>
     .eq("user_id", userId);
 
   if (error) throw error;
+
+  revalidateTag(cacheTags.bankAccounts(userId), "default");
+  revalidateTag(cacheTags.dashboard(userId), "default");
 }
 
 export async function deleteBankAccount(id: string): Promise<void> {
@@ -74,4 +87,7 @@ export async function deleteBankAccount(id: string): Promise<void> {
     .eq("user_id", userId);
 
   if (error) throw error;
+
+  revalidateTag(cacheTags.bankAccounts(userId), "default");
+  revalidateTag(cacheTags.dashboard(userId), "default");
 }

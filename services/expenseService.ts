@@ -1,6 +1,9 @@
 "use server";
 
+import { unstable_cache, revalidateTag } from "next/cache";
 import { createClient, getUser } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { cacheTags } from "@/lib/cache-tags";
 import type { ExpenseItem } from "@/types/budget";
 import type { ExpenseSaveParams } from "./expenseService.types";
 
@@ -38,25 +41,29 @@ async function requireUserId() {
 }
 
 export async function fetchExpenses(): Promise<ExpenseItem[]> {
-  const { supabase, userId } = await requireUserId();
-
-  const { data, error } = await supabase
-    .from("expense_items")
-    .select(EXPENSE_FIELDS)
-    .eq("user_id", userId)
-    .order("category", { ascending: true })
-    .order("sort_order", { ascending: true });
-
-  if (error) throw error;
-
-  return (data ?? [])
-    .filter(
-      (row) =>
-        typeof row.amount_monthly === "number" &&
-        typeof row.category === "string" &&
-        typeof row.name === "string",
-    )
-    .map((row) => mapRowToExpenseItem(row));
+  const { userId } = await requireUserId();
+  return unstable_cache(
+    async () => {
+      const supabase = createAdminClient();
+      const { data, error } = await supabase
+        .from("expense_items")
+        .select(EXPENSE_FIELDS)
+        .eq("user_id", userId)
+        .order("category", { ascending: true })
+        .order("sort_order", { ascending: true });
+      if (error) throw error;
+      return (data ?? [])
+        .filter(
+          (row) =>
+            typeof row.amount_monthly === "number" &&
+            typeof row.category === "string" &&
+            typeof row.name === "string",
+        )
+        .map((row) => mapRowToExpenseItem(row));
+    },
+    [cacheTags.expenses(userId)],
+    { revalidate: 60, tags: [cacheTags.expenses(userId)] },
+  )();
 }
 
 export async function createExpense(params: ExpenseSaveParams): Promise<ExpenseItem> {
@@ -77,6 +84,9 @@ export async function createExpense(params: ExpenseSaveParams): Promise<ExpenseI
     .single();
 
   if (error) throw error;
+
+  revalidateTag(cacheTags.expenses(userId), "default");
+  revalidateTag(cacheTags.dashboard(userId), "default");
 
   return mapRowToExpenseItem(data, params);
 }
@@ -101,6 +111,9 @@ export async function updateExpense(id: string, params: ExpenseSaveParams): Prom
 
   if (error) throw error;
 
+  revalidateTag(cacheTags.expenses(userId), "default");
+  revalidateTag(cacheTags.dashboard(userId), "default");
+
   return mapRowToExpenseItem(data, params);
 }
 
@@ -114,4 +127,7 @@ export async function deleteExpense(id: string): Promise<void> {
     .eq("user_id", userId);
 
   if (error) throw error;
+
+  revalidateTag(cacheTags.expenses(userId), "default");
+  revalidateTag(cacheTags.dashboard(userId), "default");
 }

@@ -1,6 +1,9 @@
 "use server";
 
+import { unstable_cache, revalidateTag } from "next/cache";
 import { createClient, getUser } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { cacheTags } from "@/lib/cache-tags";
 import type { IncomeItem } from "@/types/budget";
 import type { IncomeSaveParams } from "./incomeService.types";
 
@@ -35,23 +38,27 @@ async function requireUserId() {
 }
 
 export async function fetchIncome(): Promise<IncomeItem[]> {
-  const { supabase, userId } = await requireUserId();
-
-  const { data, error } = await supabase
-    .from("income_sources")
-    .select(INCOME_FIELDS)
-    .eq("user_id", userId)
-    .order("sort_order", { ascending: true });
-
-  if (error) throw error;
-
-  return (data ?? [])
-    .filter(
-      (row) =>
-        typeof row.amount_monthly === "number" &&
-        typeof row.name === "string",
-    )
-    .map((row) => mapRowToIncomeItem(row));
+  const { userId } = await requireUserId();
+  return unstable_cache(
+    async () => {
+      const supabase = createAdminClient();
+      const { data, error } = await supabase
+        .from("income_sources")
+        .select(INCOME_FIELDS)
+        .eq("user_id", userId)
+        .order("sort_order", { ascending: true });
+      if (error) throw error;
+      return (data ?? [])
+        .filter(
+          (row) =>
+            typeof row.amount_monthly === "number" &&
+            typeof row.name === "string",
+        )
+        .map((row) => mapRowToIncomeItem(row));
+    },
+    [cacheTags.income(userId)],
+    { revalidate: 60, tags: [cacheTags.income(userId)] },
+  )();
 }
 
 export async function createIncome(params: IncomeSaveParams): Promise<IncomeItem> {
@@ -71,6 +78,9 @@ export async function createIncome(params: IncomeSaveParams): Promise<IncomeItem
     .single();
 
   if (error) throw error;
+
+  revalidateTag(cacheTags.income(userId), "default");
+  revalidateTag(cacheTags.dashboard(userId), "default");
 
   return mapRowToIncomeItem(data, params);
 }
@@ -94,6 +104,9 @@ export async function updateIncome(id: string, params: IncomeSaveParams): Promis
 
   if (error) throw error;
 
+  revalidateTag(cacheTags.income(userId), "default");
+  revalidateTag(cacheTags.dashboard(userId), "default");
+
   return mapRowToIncomeItem(data, params);
 }
 
@@ -107,4 +120,7 @@ export async function deleteIncome(id: string): Promise<void> {
     .eq("user_id", userId);
 
   if (error) throw error;
+
+  revalidateTag(cacheTags.income(userId), "default");
+  revalidateTag(cacheTags.dashboard(userId), "default");
 }
