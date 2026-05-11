@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { AnimatedIconButton } from "@/components/ui/animated-icon-button";
 import { ChevronDownIcon } from "@/components/ui/chevron-down";
@@ -20,7 +21,7 @@ type Props = {
   onAdd: (category: string) => void;
 };
 
-export function ExpenseCategoryGroup({ group, bankAccountLookup, isCollapsed, onToggle, onEdit, onDelete, onAdd }: Props) {
+export const ExpenseCategoryGroup = memo(function ExpenseCategoryGroup({ group, bankAccountLookup, isCollapsed, onToggle, onEdit, onDelete, onAdd }: Props) {
   return (
     <motion.article
       layout
@@ -123,4 +124,4 @@ export function ExpenseCategoryGroup({ group, bankAccountLookup, isCollapsed, on
       </AnimatePresence>
     </motion.article>
   );
-}
+});

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { BottomNav } from "@/components/bottom-nav";
 import { AnimatedIconButton } from "@/components/ui/animated-icon-button";
@@ -37,6 +37,8 @@ export function ExpensesClient({ userId, initialData }: Props) {
     updateExpense,
     removeExpense,
   } = useExpenses(userId, initialData);
+
+  const demoMode = useMemo(() => isDemoMode(), []);
 
   const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
   const [editingItem, setEditingItem] = useState<ExpenseItem | null>(null);
@@ -118,7 +120,7 @@ export function ExpensesClient({ userId, initialData }: Props) {
             />
           </motion.header>
 
-          {isDemoMode() ? (
+          {demoMode ? (
             <motion.p
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
