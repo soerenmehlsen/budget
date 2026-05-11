@@ -32,6 +32,21 @@ page.tsx  (async Server Component)
 
 ---
 
+## Props From Server
+
+Each `page.tsx` passes two props to the client component:
+
+- `initialData` — pre-fetched data (avoids client-side fetch on first load)
+- `userId` — from `user.id` after server auth check (replaces `useSession` for cache writes and mutation guards)
+
+```tsx
+return <ExpensesClient initialData={...} userId={user.id} />;
+```
+
+Hooks receive `userId` as a parameter (unchanged) — the only change is the source: server prop instead of `useSession`.
+
+---
+
 ## Changes Per Page
 
 ### `/dashboard`
